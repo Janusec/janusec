@@ -1,0 +1,32 @@
+/*
+ * @Copyright Reserved By Janusec (https://www.janusec.com/).
+ * @Author: U2
+ * @Date: 2018-07-14 16:35:30
+ * @Last Modified: U2, 2018-07-14 16:35:30
+ */
+
+package firewall
+
+import (
+	"time"
+
+	"../data"
+	"../utils"
+)
+
+/*
+Clear Expired Logs
+*/
+func RoutineTick() {
+	if data.IsMaster {
+		log_expire_seconds, err := data.DAL.SelectIntSetting("Log_Expire_Seconds")
+		utils.CheckError("RoutineTick", err)
+		//fmt.Println("RoutineTick log_expire_seconds:", log_expire_seconds)
+		routine_ticker := time.NewTicker(time.Duration(5*60) * time.Second)
+		for range routine_ticker.C {
+			//fmt.Println("RoutineTick", time.Now())
+			expired_time := time.Now().Unix() - log_expire_seconds
+			data.DAL.DeleteHitLogsBeforeTime(expired_time)
+		}
+	}
+}

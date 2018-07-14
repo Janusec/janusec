@@ -1,0 +1,19 @@
+{
+	"node_id": 0,
+	"node_role": "master",
+	"master_node": {
+		"admin_http_listen": ":9080",
+		"admin_https_listen": ":9443",
+		"database": {
+			"host": "127.0.0.1",
+			"port": "5432",
+			"user": "postgres",
+			"password": "8c7d4114c208e8679376fe1aa49096e0361c8c2dbdde937bad07806028442343d20f9a5994",
+			"dbname": "janusec"
+		}
+	},
+	"slave_node": {
+		"node_key": "",
+		"sync_addr": "http://127.0.0.1:9080/janusec-api/"
+	}
+}

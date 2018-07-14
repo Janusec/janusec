@@ -1,0 +1,14 @@
+[Unit]
+Description=Janusec Application Gateway
+Documentation=http://www.janusec.com/
+After=network.target
+After=postgresql.service
+ 
+[Service]
+Type=forking
+ExecStart=/usr/local/janusec/janusec.sh
+Restart=always
+ 
+[Install]
+WantedBy=multi-user.target
+
