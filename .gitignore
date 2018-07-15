@@ -1,4 +1,4 @@
-.vscode/*
+/.vscode
 /dist
 janusec
 janusec.exe

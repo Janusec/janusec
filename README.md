@@ -66,7 +66,7 @@ The release package is under ./dist .
 
 ## Web Administration Portal
 
-Release directory is `./static/` , and source code is available from [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) with Angular 5.  
+Release directory is `./static/` , and source code is available at [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) with Angular 5.  
 
 ## LICENSE
 
