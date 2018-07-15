@@ -1,0 +1,6 @@
+.vscode/*
+/dist
+janusec
+janusec.exe
+*.zip
+*.tar.gz

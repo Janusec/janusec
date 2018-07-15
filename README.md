@@ -64,6 +64,10 @@ Then:
 
 The release package is under ./dist .
 
+## Web Administration Portal
+
+Release directory is `./static/` , and source code is available from [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) with Angular 5.  
+
 ## LICENSE
 
 Janusec Application Gateway source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)).  
