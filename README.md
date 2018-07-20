@@ -60,6 +60,7 @@ Then:
 
 ## Release  
 
+> go build janusec.go  
 > ./release.sh  
 
 The release package is under ./dist .
