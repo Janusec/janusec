@@ -16,9 +16,20 @@ Janusec Application Gateway, an application security solutions for public cloud,
 * Certificate Protection with Private Key Encrypted Storage  
 * Scalable Architecture, Load Balance and Multiple Nodes Support  
 
+## Screenshots  
+
+### SQL Injection Screenshot
+
+![Janusec Application Gateway Screenshot](https://www.janusec.com/images/waf-demo1.png)  
+
+### Sensitive Data Leakage Screenshot
+
+![Janusec Application Gateway Screenshot](https://www.janusec.com/images/waf-demo2.png)  
+
 ## Official Web Site  
 
 https://www.janusec.com/  
+
 Detailed documentation is available at [Janusec Application Gateway Documentation](https://www.janusec.com/documentation/quick-start/).
 
 ## Requirements  
