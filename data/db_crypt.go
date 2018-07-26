@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"io"
 
-	"../utils"
+	"github.com/Janusec/janusec/utils"
 )
 
 var (

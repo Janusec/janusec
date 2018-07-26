@@ -45,9 +45,7 @@ https://www.janusec.com/documentation/quick-start/
 
 ## Quick Start for Developer  
 
-> go get github.com/lib/pq  
-> go get github.com/gorilla/sessions  
-> go get github.com/dchest/captcha  
+> go get github.com/Janusec/janusec  
 
 Edit config.json with PostgreSQL  
 
@@ -60,7 +58,7 @@ Edit config.json with PostgreSQL
 Janusec will encrypt the password automatically.  
 Then:  
 
-> go build janusec.go  
+> go build  
 > ./janusec  
 
 ## Web Administration  
@@ -71,8 +69,8 @@ Then:
 
 ## Release  
 
-> go build janusec.go  
-> ./release.sh  
+> go build  
+> `./release.sh`  (Only support Linux Now)  
 
 The release package is under ./dist .
 

@@ -8,7 +8,7 @@
 package backend
 
 import (
-	"../data"
+	"github.com/Janusec/janusec/data"
 	_ "github.com/lib/pq"
 )
 

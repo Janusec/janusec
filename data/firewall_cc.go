@@ -10,8 +10,8 @@ package data
 import (
 	"time"
 
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 const (

@@ -8,7 +8,7 @@
 package firewall
 
 import (
-	"../models"
+	"github.com/Janusec/janusec/models"
 )
 
 func InitFirewall() {

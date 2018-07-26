@@ -13,8 +13,8 @@ import (
 	"os"
 	"strings"
 
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 	_ "github.com/lib/pq"
 )
 

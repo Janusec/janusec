@@ -10,9 +10,9 @@ package firewall
 import (
 	"encoding/json"
 
-	"../data"
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 func RPCSelectCCPolicies() (cc_policies []*models.CCPolicy) {

@@ -15,8 +15,8 @@ import (
 	"net/http"
 	"time"
 
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 func GenAuthKey() string {

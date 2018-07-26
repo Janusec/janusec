@@ -15,10 +15,10 @@ import (
 	//"net/http/httputil"
 	"strings"
 	//"io/ioutil"
-	"../backend"
-	"../firewall"
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/backend"
+	"github.com/Janusec/janusec/firewall"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 func rewriteResponse(resp *http.Response) (err error) {

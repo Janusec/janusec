@@ -13,7 +13,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"../models"
+	"github.com/Janusec/janusec/models"
 	//"fmt"
 )
 

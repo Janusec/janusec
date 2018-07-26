@@ -17,10 +17,10 @@ import (
 	"sync"
 	"time"
 
-	"../data"
-	"../models"
-	"../usermgmt"
-	"../utils"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/usermgmt"
+	"github.com/Janusec/janusec/utils"
 )
 
 var (

@@ -12,7 +12,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"../models"
+	"github.com/Janusec/janusec/models"
 )
 
 func GenerateBlockPage(w http.ResponseWriter, block_info *models.HitInfo) {

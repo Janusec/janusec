@@ -23,8 +23,8 @@ import (
 	"strings"
 	"sync"
 
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 var static_suffix []string = []string{".js", ".css", ".png", ".jpg", ".gif", ".bmp"}

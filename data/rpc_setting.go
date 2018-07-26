@@ -10,8 +10,8 @@ package data
 import (
 	"encoding/json"
 
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 func RPCGetSettings() []*models.Setting {

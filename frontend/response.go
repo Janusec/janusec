@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"../models"
+	"github.com/Janusec/janusec/models"
 )
 
 func GenResponseByObject(w http.ResponseWriter, object interface{}, err error) {

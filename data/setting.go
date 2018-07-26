@@ -10,7 +10,7 @@ package data
 import (
 	"time"
 
-	"../models"
+	"github.com/Janusec/janusec/models"
 )
 
 var (

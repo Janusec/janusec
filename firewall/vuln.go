@@ -10,8 +10,8 @@ package firewall
 import (
 	"sync"
 
-	"../data"
-	"../models"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/models"
 )
 
 var (

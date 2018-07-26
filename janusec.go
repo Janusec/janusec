@@ -21,13 +21,13 @@ import (
 
 	_ "net/http/pprof"
 
-	"./backend"
-	"./data"
-	"./firewall"
-	"./frontend"
-	"./gateway"
-	"./settings"
-	"./utils"
+	"github.com/Janusec/janusec/backend"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/firewall"
+	"github.com/Janusec/janusec/frontend"
+	"github.com/Janusec/janusec/gateway"
+	"github.com/Janusec/janusec/settings"
+	"github.com/Janusec/janusec/utils"
 )
 
 func main() {

@@ -11,8 +11,8 @@ import (
 	"errors"
 	"net/http"
 
-	"../data"
-	"../models"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/models"
 	"github.com/gorilla/sessions"
 )
 

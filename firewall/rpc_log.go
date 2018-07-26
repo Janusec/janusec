@@ -8,9 +8,9 @@
 package firewall
 
 import (
-	"../data"
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 func RPCGroupHitLog(regex_hit_log *models.GroupHitLog) {

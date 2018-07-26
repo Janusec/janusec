@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"../data"
-	"../firewall"
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/firewall"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 var (

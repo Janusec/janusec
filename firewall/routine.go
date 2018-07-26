@@ -10,8 +10,8 @@ package firewall
 import (
 	"time"
 
-	"../data"
-	"../utils"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/utils"
 )
 
 /*

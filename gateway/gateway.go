@@ -17,11 +17,11 @@ import (
 	"strings"
 	"time"
 
-	"../backend"
-	"../data"
-	"../firewall"
-	"../models"
-	"../utils"
+	"github.com/Janusec/janusec/backend"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/firewall"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {

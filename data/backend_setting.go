@@ -8,7 +8,7 @@
 package data
 
 import (
-	"../utils"
+	"github.com/Janusec/janusec/utils"
 )
 
 const (

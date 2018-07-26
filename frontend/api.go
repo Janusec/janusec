@@ -16,11 +16,11 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"../backend"
-	"../firewall"
-	"../settings"
-	"../usermgmt"
-	"../utils"
+	"github.com/Janusec/janusec/backend"
+	"github.com/Janusec/janusec/firewall"
+	"github.com/Janusec/janusec/settings"
+	"github.com/Janusec/janusec/usermgmt"
+	"github.com/Janusec/janusec/utils"
 )
 
 func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {

@@ -10,9 +10,9 @@ package settings
 import (
 	"time"
 
-	"../backend"
-	"../data"
-	"../firewall"
+	"github.com/Janusec/janusec/backend"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/firewall"
 )
 
 var (

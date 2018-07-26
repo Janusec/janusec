@@ -10,8 +10,8 @@ package settings
 import (
 	"time"
 
-	"../data"
-	"../models"
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/models"
 )
 
 func InitDefaultSettings() {
