@@ -1,10 +1,10 @@
-# Janusec Application Gateway  
+# [Janusec Application Gateway](https://www.janusec.com/) &nbsp; [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Protect%20web%20applications%20from%20network%20attacks%20with%20open%20source%20Janusec%20Application%20Gateway&url=https://github.com/Janusec/janusec&via=janusec&hashtags=waf,web,application,firewall,gateway)
 
 ## Build Scalable Application Security Infrastructures  
 
 ![Janusec Application Gateway](https://www.janusec.com/images/gateway1.png)  
 
-Janusec Application Gateway, an application security solutions for public cloud, private cloud, and traditional IDC, which provides web routing, load balancing, and web application firewall. With Janusec, you can build secure and scalable applications.  
+Janusec Application Gateway, an application security solutions which provides WAF (Web Application Firewall), unified web administration portal, private key protection, web routing and scalable load balancing. With Janusec, you can build secure and scalable applications.  
 
 ### Key Features  
 
