@@ -112,7 +112,7 @@ func IsCCAttack(r *http.Request, app_id int64, src_ip string) (bool, *models.CCP
 		return true, cc_policy, client_id
 	}
 	client_stat.Count += 1
-	//fmt.Println("IsCCAttack:", client_id, client_stat.Count, client_stat.IsBlackIP, client_stat.RemainSeconds)
+	//fmt.Println("IsCCAttack:", r.URL.Path, client_id, client_stat.Count, client_stat.IsBlackIP, client_stat.RemainSeconds)
 	return false, nil, ""
 }
 
@@ -122,7 +122,7 @@ func InitCCPolicy() {
 		data.DAL.CreateTableIfNotExistsCCPolicy()
 		exist_cc_policy := data.DAL.ExistsCCPolicy()
 		if exist_cc_policy == false {
-			data.DAL.InsertCCPolicy(0, 10, 60, 300, models.Action_Block_100, true, true, true, true)
+			data.DAL.InsertCCPolicy(0, 10, 60, 300, models.Action_Block_100, true, true, false, true)
 		}
 		cc_policies_list = data.DAL.SelectCCPolicies()
 	} else {
