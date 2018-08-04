@@ -1,6 +1,6 @@
 # [Janusec应用网关](https://www.janusec.com/cn/)  
 
-[README](https://github.com/Janusec/janusec/blob/master/README.md) | [README中文版](https://github.com/Janusec/janusec/blob/master/README-CN.md)  
+[README](https://github.com/Janusec/janusec) | [README中文版](https://github.com/Janusec/janusec/blob/master/README-CN.md)  
 
 ## 构建可扩展的应用安全基础设施  
 
@@ -83,3 +83,7 @@ Web化管理所需的文件在 `./static/` 目录, 源码在 [Janusec-Admin Gith
 ## LICENSE
 
 Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)授权.  
+
+## Support
+
+QQ群: 776900157  
