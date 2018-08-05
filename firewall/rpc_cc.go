@@ -15,19 +15,19 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
-func RPCSelectCCPolicies() (cc_policies []*models.CCPolicy) {
-	rpc_request := &models.RPCRequest{
+func RPCSelectCCPolicies() (ccPolicies []*models.CCPolicy) {
+	rpcRequest := &models.RPCRequest{
 		Action: "getccpolicies", Object: nil}
-	resp, err := data.GetResponse(rpc_request)
+	resp, err := data.GetResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectCCPolicies GetResponse", err)
 		return nil
 	}
-	rpc_cc_policies := new(models.RPCCCPolicies)
-	if err := json.Unmarshal(resp, rpc_cc_policies); err != nil {
+	rpcCCPolicies := new(models.RPCCCPolicies)
+	if err := json.Unmarshal(resp, rpcCCPolicies); err != nil {
 		utils.CheckError("RPCSelectCCPolicies Unmarshal", err)
 		return nil
 	}
-	cc_policies = rpc_cc_policies.Object
-	return cc_policies
+	ccPolicies = rpcCCPolicies.Object
+	return ccPolicies
 }

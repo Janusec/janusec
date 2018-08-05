@@ -20,19 +20,19 @@ import (
 )
 
 func GenAuthKey() string {
-	node_auth := models.NodeAuth{NodeID: CFG.NodeID, CurTime: time.Now().Unix()}
-	node_auth_bytes, err := json.Marshal(node_auth)
+	nodeAuth := models.NodeAuth{NodeID: CFG.NodeID, CurTime: time.Now().Unix()}
+	nodeAuthBytes, err := json.Marshal(nodeAuth)
 	utils.CheckError("GenAuthKey", err)
-	encrypted_auth_bytes := EncryptWithKey(node_auth_bytes, NodeKey)
-	return hex.EncodeToString(encrypted_auth_bytes)
+	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, NodeKey)
+	return hex.EncodeToString(encryptedAuthBytes)
 }
 
-func GetResponse(rpc_req *models.RPCRequest) (resp_bytes []byte, err error) {
-	rpc_req.ObjectID = 0
-	rpc_req.NodeID = CFG.NodeID
-	rpc_req.NodeVersion = Version
-	rpc_req.AuthKey = GenAuthKey()
-	bytesData, err := json.Marshal(rpc_req)
+func GetResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
+	rpcReq.ObjectID = 0
+	rpcReq.NodeID = CFG.NodeID
+	rpcReq.NodeVersion = Version
+	rpcReq.AuthKey = GenAuthKey()
+	bytesData, err := json.Marshal(rpcReq)
 	utils.CheckError("GetResponse Marshal", err)
 	reader := bytes.NewReader(bytesData)
 	request, err := http.NewRequest("POST", CFG.SlaveNode.SyncAddr, reader)
@@ -44,7 +44,7 @@ func GetResponse(rpc_req *models.RPCRequest) (resp_bytes []byte, err error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	resp_bytes, err = ioutil.ReadAll(resp.Body)
-	return resp_bytes, err
+	respBytes, err = ioutil.ReadAll(resp.Body)
+	return respBytes, err
 
 }

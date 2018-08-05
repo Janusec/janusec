@@ -25,17 +25,17 @@ import (
 
 func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	utils.DebugPrintln("apiHandlerFunc", r.URL.Path)
-	body_buf, _ := ioutil.ReadAll(r.Body)
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body_buf))
+	bodyBuf, _ := ioutil.ReadAll(r.Body)
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	decoder := json.NewDecoder(r.Body)
 	var param map[string]interface{}
 	err := decoder.Decode(&param)
 	defer r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body_buf))
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	action := param["action"]
-	node_id := param["node_id"]
-	var user_id int64
-	if node_id != nil {
+	nodeID := param["node_id"]
+	var userID int64
+	if nodeID != nil {
 		// For slave nodes
 		if backend.IsValidAuthKey(r, param) == false {
 			GenResponseByObject(w, nil, errors.New("AuthKey invalid!"))
@@ -44,9 +44,9 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// For administrators
 		if action != "login" {
-			var is_login bool
-			is_login, user_id = usermgmt.IsLogIn(w, r)
-			if is_login == false {
+			var isLogin bool
+			isLogin, userID = usermgmt.IsLogIn(w, r)
+			if isLogin == false {
 				GenResponseByObject(w, nil, errors.New("Please login!"))
 				return
 			}
@@ -124,7 +124,7 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		id := int64(param["id"].(float64))
 		obj, err = firewall.GetGroupPolicyByID(id)
 	case "updategrouppolicy":
-		obj, err = firewall.UpdateGroupPolicy(r, user_id)
+		obj, err = firewall.UpdateGroupPolicy(r, userID)
 	case "delgrouppolicy":
 		id := int64(param["id"].(float64))
 		obj = nil

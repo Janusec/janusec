@@ -15,13 +15,13 @@ import (
 )
 
 func RPCGetSettings() []*models.Setting {
-	rpc_request := &models.RPCRequest{
+	rpcRequest := &models.RPCRequest{
 		Action: "getsettings", Object: nil}
-	resp, err := GetResponse(rpc_request)
+	resp, err := GetResponse(rpcRequest)
 	utils.CheckError("RPCGetSettings", err)
-	rpc_settings := new(models.RPCSettings)
-	if err = json.Unmarshal(resp, rpc_settings); err != nil {
+	rpcSettings := new(models.RPCSettings)
+	if err = json.Unmarshal(resp, rpcSettings); err != nil {
 		utils.CheckError("RPCGetSettings Unmarshal", err)
 	}
-	return rpc_settings.Object
+	return rpcSettings.Object
 }

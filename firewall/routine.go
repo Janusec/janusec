@@ -19,14 +19,14 @@ Clear Expired Logs
 */
 func RoutineTick() {
 	if data.IsMaster {
-		log_expire_seconds, err := data.DAL.SelectIntSetting("Log_Expire_Seconds")
+		logExpireSeconds, err := data.DAL.SelectIntSetting("Log_Expire_Seconds")
 		utils.CheckError("RoutineTick", err)
 		//fmt.Println("RoutineTick log_expire_seconds:", log_expire_seconds)
-		routine_ticker := time.NewTicker(time.Duration(5*60) * time.Second)
-		for range routine_ticker.C {
+		routineTicker := time.NewTicker(time.Duration(5*60) * time.Second)
+		for range routineTicker.C {
 			//fmt.Println("RoutineTick", time.Now())
-			expired_time := time.Now().Unix() - log_expire_seconds
-			data.DAL.DeleteHitLogsBeforeTime(expired_time)
+			expiredTime := time.Now().Unix() - logExpireSeconds
+			data.DAL.DeleteHitLogsBeforeTime(expiredTime)
 		}
 	}
 }

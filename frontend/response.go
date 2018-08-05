@@ -19,8 +19,8 @@ func GenResponseByObject(w http.ResponseWriter, object interface{}, err error) {
 	if err == nil {
 		resp.Error = nil
 	} else {
-		err_str := err.Error()
-		resp.Error = &err_str
+		errStr := err.Error()
+		resp.Error = &errStr
 	}
 	resp.Object = object
 	json.NewEncoder(w).Encode(resp)

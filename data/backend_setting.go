@@ -103,8 +103,8 @@ func (dal *MyDAL) CreateTableIfNotExistsSettings() error {
 }
 
 func (dal *MyDAL) CountSettings() int64 {
-	var settings_count int64
-	err := dal.db.QueryRow(sqlCountSettings).Scan(&settings_count)
+	var settingsCount int64
+	err := dal.db.QueryRow(sqlCountSettings).Scan(&settingsCount)
 	utils.CheckError("CountSettings", err)
-	return settings_count
+	return settingsCount
 }

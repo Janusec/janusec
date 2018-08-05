@@ -22,10 +22,10 @@ const (
 	sqlExistsDestinationID                = `SELECT coalesce((SELECT 1 FROM destinations WHERE id=$1 limit 1),0)`
 )
 
-func (dal *MyDAL) UpdateDestinationNode(destination string, app_id int64, node_id int64, id int64) error {
+func (dal *MyDAL) UpdateDestinationNode(destination string, appID int64, nodeID int64, id int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateDestinationNode)
 	defer stmt.Close()
-	_, err = stmt.Exec(destination, app_id, node_id, id)
+	_, err = stmt.Exec(destination, appID, nodeID, id)
 	utils.CheckError("UpdateDestinationNode", err)
 	return err
 }
@@ -61,10 +61,10 @@ func (dal *MyDAL) SelectDestinationsByAppID(app_id int64) (dests []*models.Desti
 	return dests
 }
 
-func (dal *MyDAL) InsertDestination(dest string, app_id int64, node_id int64) (new_id int64, err error) {
-	err = dal.db.QueryRow(sqlInsertDestination, dest, app_id, node_id).Scan(&new_id)
+func (dal *MyDAL) InsertDestination(dest string, appID int64, nodeID int64) (newID int64, err error) {
+	err = dal.db.QueryRow(sqlInsertDestination, dest, appID, nodeID).Scan(&newID)
 	utils.CheckError("InsertDestination", err)
-	return new_id, err
+	return newID, err
 }
 
 func (dal *MyDAL) DeleteDestinationByID(id int64) error {
@@ -75,10 +75,10 @@ func (dal *MyDAL) DeleteDestinationByID(id int64) error {
 	return err
 }
 
-func (dal *MyDAL) DeleteDestinationsByAppID(app_id int64) error {
+func (dal *MyDAL) DeleteDestinationsByAppID(appID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteDestinationsByAppID)
 	defer stmt.Close()
-	_, err = stmt.Exec(app_id)
+	_, err = stmt.Exec(appID)
 	utils.CheckError("DeleteDestinationsByAppID", err)
 	return err
 }

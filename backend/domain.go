@@ -100,28 +100,28 @@ func GetDomainByName(domain_name string) *models.Domain {
 	return nil
 }
 
-func UpdateDomain(app *models.Application, domain_map_interface interface{}) *models.Domain {
-	var domain_map = domain_map_interface.(map[string]interface{})
-	domain_id := int64(domain_map["id"].(float64))
-	domain_name := domain_map["name"].(string)
-	cert_id := int64(domain_map["cert_id"].(float64))
-	pCert, _ := GetCertificateByID(cert_id)
-	domain := GetDomainByID(domain_id)
-	if domain_id == 0 {
+func UpdateDomain(app *models.Application, domainMapInterface interface{}) *models.Domain {
+	var domainMap = domainMapInterface.(map[string]interface{})
+	domainID := int64(domainMap["id"].(float64))
+	domainName := domainMap["name"].(string)
+	certID := int64(domainMap["cert_id"].(float64))
+	pCert, _ := GetCertificateByID(certID)
+	domain := GetDomainByID(domainID)
+	if domainID == 0 {
 		// New domain
-		new_domain_id := data.DAL.InsertDomain(domain_name, app.ID, cert_id)
+		newDomainID := data.DAL.InsertDomain(domainName, app.ID, certID)
 		domain = new(models.Domain)
-		domain.ID = new_domain_id
+		domain.ID = newDomainID
 		Domains = append(Domains, domain)
 	} else {
-		data.DAL.UpdateDomain(domain_name, app.ID, cert_id, domain.ID)
+		data.DAL.UpdateDomain(domainName, app.ID, certID, domain.ID)
 	}
-	domain.Name = domain_name
+	domain.Name = domainName
 	domain.AppID = app.ID
-	domain.CertID = cert_id
+	domain.CertID = certID
 	domain.App = app
 	domain.Cert = pCert
-	DomainsMap.Store(domain_name, models.DomainRelation{App: app, Cert: pCert})
+	DomainsMap.Store(domainName, models.DomainRelation{App: app, Cert: pCert})
 	return domain
 }
 

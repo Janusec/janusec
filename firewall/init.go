@@ -13,7 +13,7 @@ import (
 
 func InitFirewall() {
 	InitCCPolicy()
-	cc_policies.Range(func(key, value interface{}) bool {
+	ccPolicies.Range(func(key, value interface{}) bool {
 		app_id := key.(int64)
 		cc_policy := value.(*models.CCPolicy)
 		if cc_policy.IsEnabled == true {

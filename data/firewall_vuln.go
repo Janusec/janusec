@@ -35,20 +35,20 @@ func (dal *MyDAL) ExistsVulnType() bool {
 	}
 }
 
-func (dal *MyDAL) SelectVulnTypes() (vuln_types []*models.VulnType, err error) {
+func (dal *MyDAL) SelectVulnTypes() (vulnTypes []*models.VulnType, err error) {
 	rows, err := dal.db.Query(sqlSelectVulnTypes)
 	utils.CheckError("SelectVulnTypes", err)
 	defer rows.Close()
 	for rows.Next() {
-		vuln_type := new(models.VulnType)
-		err = rows.Scan(&vuln_type.ID, &vuln_type.Name)
+		vulnType := new(models.VulnType)
+		err = rows.Scan(&vulnType.ID, &vulnType.Name)
 		utils.CheckError("SelectVulnTypes rows.Scan", err)
 		if err != nil {
-			return vuln_types, err
+			return vulnTypes, err
 		}
-		vuln_types = append(vuln_types, vuln_type)
+		vulnTypes = append(vulnTypes, vulnType)
 	}
-	return vuln_types, err
+	return vulnTypes, err
 }
 
 func (dal *MyDAL) InsertVulnType(id int64, name string) (err error) {

@@ -62,15 +62,15 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 	nodeID := int64(nodeInterface["id"].(float64))
 	name := nodeInterface["name"].(string)
 	if nodeID == 0 {
-		key_bytes := data.GenRandomAES256Key()
-		hex_key := data.CryptKeyToNodeHexKey(key_bytes)
+		keyBytes := data.GenRandomAES256Key()
+		hexKey := data.CryptKeyToNodeHexKey(keyBytes)
 		srcIP := "unknown"
 		nodeVersion := "unknown"
-		new_id := data.DAL.InsertNode(hex_key, name, nodeVersion, srcIP, 0)
-		node := &models.Node{ID: new_id, Key: key_bytes, Name: name, Version: nodeVersion, LastIP: srcIP, LastRequestTime: 0}
-		dbNode := &models.DBNode{ID: new_id, EncryptedKey: hex_key, Name: name, Version: nodeVersion, LastIP: srcIP, LastRequestTime: 0}
-		//nodesMap[new_id] = node
-		nodesMap.Store(new_id, node)
+		newID := data.DAL.InsertNode(hexKey, name, nodeVersion, srcIP, 0)
+		node := &models.Node{ID: newID, Key: keyBytes, Name: name, Version: nodeVersion, LastIP: srcIP, LastRequestTime: 0}
+		dbNode := &models.DBNode{ID: newID, EncryptedKey: hexKey, Name: name, Version: nodeVersion, LastIP: srcIP, LastRequestTime: 0}
+		//nodesMap[newID] = node
+		nodesMap.Store(newID, node)
 		dbNodes = append(dbNodes, dbNode)
 		return dbNode, nil
 	} else {
@@ -84,21 +84,21 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 }
 
 func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
-	auth_key := param["auth_key"].(string)
-	auth_bytes, err := hex.DecodeString(auth_key)
+	authKey := param["authKey"].(string)
+	authBytes, err := hex.DecodeString(authKey)
 	if err != nil {
 		return false
 	}
 	nodeID := int64(param["node_id"].(float64))
 	node := GetNodeByID(nodeID)
-	decrypted_auth_bytes, err := data.DecryptWithKey(auth_bytes, node.Key)
+	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, node.Key)
 	utils.CheckError("IsValidAuthKey DecryptWithKey", err)
 	if err != nil {
 		return false
 	}
 	// check id and timestamp
 	nodeAuth := new(models.NodeAuth)
-	err = json.Unmarshal(decrypted_auth_bytes, nodeAuth)
+	err = json.Unmarshal(decryptedAuthBytes, nodeAuth)
 	utils.CheckError("IsValidAuthKey Unmarshal", err)
 
 	if nodeAuth.NodeID != nodeID {

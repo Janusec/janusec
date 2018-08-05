@@ -48,9 +48,9 @@ func LoadCerts() {
 		}
 	} else {
 		// Slave
-		rpc_certs := RPCSelectCertificates()
-		if rpc_certs != nil {
-			Certs = rpc_certs
+		rpcCerts := RPCSelectCertificates()
+		if rpcCerts != nil {
+			Certs = rpcCerts
 		}
 		//fmt.Println("LoadCerts Slave:", Certs)
 	}

@@ -9,11 +9,11 @@ package backend
 
 //"../models"
 
-func InterfaceContainsDestinationID(destinations []interface{}, dest_id int64) bool {
+func InterfaceContainsDestinationID(destinations []interface{}, destID int64) bool {
 	for _, destination := range destinations {
 		destMap := destination.(map[string]interface{})
 		id := int64(destMap["id"].(float64))
-		if id == dest_id {
+		if id == destID {
 			return true
 		}
 	}

@@ -29,64 +29,64 @@ func (dal *MyDAL) CreateTableIfNotExistsCCPolicy() error {
 	return err
 }
 
-func (dal *MyDAL) DeleteCCPolicy(app_id int64) error {
+func (dal *MyDAL) DeleteCCPolicy(appID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteCCPolicy)
 	defer stmt.Close()
-	_, err = stmt.Exec(app_id)
+	_, err = stmt.Exec(appID)
 	utils.CheckError("DeleteCCPolicy", err)
 	return err
 }
 
-func (dal *MyDAL) UpdateCCPolicy(interval_seconds time.Duration, max_count int64,
-	block_seconds time.Duration, action models.PolicyAction,
-	stat_by_url bool, stat_by_ua bool, stat_by_cookie bool, is_enabled bool, app_id int64) error {
+func (dal *MyDAL) UpdateCCPolicy(intervalSeconds time.Duration, maxCount int64,
+	blockSeconds time.Duration, action models.PolicyAction,
+	statByUrl bool, statByUA bool, statByCookie bool, isEnabled bool, appID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCCPolicy)
 	defer stmt.Close()
-	_, err = stmt.Exec(interval_seconds, max_count, block_seconds, action,
-		stat_by_url, stat_by_ua, stat_by_cookie, is_enabled, app_id)
+	_, err = stmt.Exec(intervalSeconds, maxCount, blockSeconds, action,
+		statByUrl, statByUA, statByCookie, isEnabled, appID)
 	utils.CheckError("UpdateCCPolicy", err)
 	return err
 }
 
 func (dal *MyDAL) ExistsCCPolicy() bool {
-	var exist_cc_policy int
-	err := dal.db.QueryRow(sqlExistsCCPolicy).Scan(&exist_cc_policy)
+	var existCCPolicy int
+	err := dal.db.QueryRow(sqlExistsCCPolicy).Scan(&existCCPolicy)
 	utils.CheckError("ExistsCCPolicy", err)
-	if exist_cc_policy == 0 {
+	if existCCPolicy == 0 {
 		return false
 	} else {
 		return true
 	}
 }
 
-func (dal *MyDAL) ExistsCCPolicyByAppID(app_id int64) bool {
-	var exist_cc_policy int
-	err := dal.db.QueryRow(sqlExistsCCPolicyByAppID, app_id).Scan(&exist_cc_policy)
+func (dal *MyDAL) ExistsCCPolicyByAppID(appID int64) bool {
+	var existCCPolicy int
+	err := dal.db.QueryRow(sqlExistsCCPolicyByAppID, appID).Scan(&existCCPolicy)
 	utils.CheckError("ExistsCCPolicyByAppID", err)
-	if exist_cc_policy == 0 {
+	if existCCPolicy == 0 {
 		return false
 	} else {
 		return true
 	}
 }
 
-func (dal *MyDAL) InsertCCPolicy(app_id int64, interval_seconds time.Duration, max_count int64, block_seconds time.Duration,
-	action models.PolicyAction, stat_by_url bool, stat_by_ua bool, stat_by_cookie bool, is_enabled bool) error {
-	_, err := dal.db.Exec(sqlInsertCCPolicy, app_id, interval_seconds, max_count, block_seconds,
-		action, stat_by_url, stat_by_ua, stat_by_cookie, is_enabled)
+func (dal *MyDAL) InsertCCPolicy(appID int64, intervalSeconds time.Duration, maxCount int64, blockSeconds time.Duration,
+	action models.PolicyAction, statByUrl bool, statByUA bool, statByCookie bool, isEnabled bool) error {
+	_, err := dal.db.Exec(sqlInsertCCPolicy, appID, intervalSeconds, maxCount, blockSeconds,
+		action, statByUrl, statByUA, statByCookie, isEnabled)
 	utils.CheckError("InsertCCPolicy", err)
 	return err
 }
 
-func (dal *MyDAL) SelectCCPolicies() (cc_policies []*models.CCPolicy) {
+func (dal *MyDAL) SelectCCPolicies() (ccPolicies []*models.CCPolicy) {
 	rows, err := dal.db.Query(sqlSelectCCPolicies)
 	utils.CheckError("SelectCCPolicies", err)
 	defer rows.Close()
 	for rows.Next() {
-		cc_policy := new(models.CCPolicy)
-		rows.Scan(&cc_policy.AppID, &cc_policy.IntervalSeconds, &cc_policy.MaxCount, &cc_policy.BlockSeconds,
-			&cc_policy.Action, &cc_policy.StatByURL, &cc_policy.StatByUserAgent, &cc_policy.StatByCookie, &cc_policy.IsEnabled)
-		cc_policies = append(cc_policies, cc_policy)
+		ccPolicy := new(models.CCPolicy)
+		rows.Scan(&ccPolicy.AppID, &ccPolicy.IntervalSeconds, &ccPolicy.MaxCount, &ccPolicy.BlockSeconds,
+			&ccPolicy.Action, &ccPolicy.StatByURL, &ccPolicy.StatByUserAgent, &ccPolicy.StatByCookie, &ccPolicy.IsEnabled)
+		ccPolicies = append(ccPolicies, ccPolicy)
 	}
-	return cc_policies
+	return ccPolicies
 }

@@ -38,16 +38,16 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 	return dbApps
 }
 
-func (dal *MyDAL) InsertApplication(app_name string, internal_scheme string, redirect_https bool, hsts_enabled bool, waf_enabled bool, ip_method models.IPMethod, description string) (new_id int64) {
-	err := dal.db.QueryRow(sqlInsertApplication, app_name, internal_scheme, redirect_https, hsts_enabled, waf_enabled, ip_method, description).Scan(&new_id)
+func (dal *MyDAL) InsertApplication(appName string, internalScheme string, redirectHttps bool, hstsEnabled bool, wafEnabled bool, ipMethod models.IPMethod, description string) (newID int64) {
+	err := dal.db.QueryRow(sqlInsertApplication, appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description).Scan(&newID)
 	utils.CheckError("InsertApplication", err)
-	return new_id
+	return newID
 }
 
-func (dal *MyDAL) UpdateApplication(app_name string, internal_scheme string, redirect_https bool, hsts_enabled bool, waf_enabled bool, ip_method models.IPMethod, description string, app_id int64) error {
+func (dal *MyDAL) UpdateApplication(appName string, internalScheme string, redirectHttps bool, hstsEnabled bool, wafEnabled bool, ipMethod models.IPMethod, description string, appID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateApplication)
 	defer stmt.Close()
-	_, err = stmt.Exec(app_name, internal_scheme, redirect_https, hsts_enabled, waf_enabled, ip_method, description, app_id)
+	_, err = stmt.Exec(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, appID)
 	utils.CheckError("UpdateApplication", err)
 	return err
 }

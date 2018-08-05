@@ -18,101 +18,101 @@ import (
 )
 
 var (
-	cc_policies_list []*models.CCPolicy
-	cc_policies      sync.Map //map[int64]*models.CCPolicy // key: app_id==0  Global Policy
-	cc_counts        sync.Map //map[int64]*(map[string]*models.ClientStat) // app_id, client_id, ClientStat
-	cc_tickers       sync.Map //map[int64]*time.Ticker
+	ccPoliciesList []*models.CCPolicy
+	ccPolicies     sync.Map //map[int64]*models.CCPolicy // key: appID==0  Global Policy
+	ccCounts       sync.Map //map[int64]*(map[string]*models.ClientStat) // appID, clientID, ClientStat
+	ccTickers      sync.Map //map[int64]*time.Ticker
 )
 
-func ClearCCStatByClientID(policy_app_id int64, client_id string) {
-	if cc_count, ok := cc_counts.Load(policy_app_id); ok {
-		app_cc_count := cc_count.(*sync.Map)
-		app_cc_count.Delete(client_id)
+func ClearCCStatByClientID(policyAppID int64, clientID string) {
+	if ccCount, ok := ccCounts.Load(policyAppID); ok {
+		appCCCount := ccCount.(*sync.Map)
+		appCCCount.Delete(clientID)
 	}
 }
 
-func CCAttackTick(app_id int64) {
-	if app_cc_ticker, ok := cc_tickers.Load(app_id); ok {
-		cc_ticker := app_cc_ticker.(*time.Ticker)
-		cc_ticker.Stop()
+func CCAttackTick(appID int64) {
+	if appCCTicker, ok := ccTickers.Load(appID); ok {
+		ccTicker := appCCTicker.(*time.Ticker)
+		ccTicker.Stop()
 	}
-	cc_policy_map, _ := cc_policies.Load(app_id)
-	cc_policy := cc_policy_map.(*models.CCPolicy)
-	cc_ticker := time.NewTicker(cc_policy.IntervalSeconds * time.Second)
+	ccPolicyMap, _ := ccPolicies.Load(appID)
+	ccPolicy := ccPolicyMap.(*models.CCPolicy)
+	ccTicker := time.NewTicker(ccPolicy.IntervalSeconds * time.Second)
 
-	cc_tickers.Store(app_id, cc_ticker)
-	for range cc_ticker.C {
-		cc_count, _ := cc_counts.LoadOrStore(app_id, &sync.Map{})
-		//fmt.Println("CCAttackTick AppID=", app_id, time.Now())
-		app_cc_count := cc_count.(*sync.Map)
-		app_cc_count.Range(func(key, value interface{}) bool {
-			client_id := key.(string)
+	ccTickers.Store(appID, ccTicker)
+	for range ccTicker.C {
+		ccCount, _ := ccCounts.LoadOrStore(appID, &sync.Map{})
+		//fmt.Println("CCAttackTick AppID=", appID, time.Now())
+		appCCCount := ccCount.(*sync.Map)
+		appCCCount.Range(func(key, value interface{}) bool {
+			clientID := key.(string)
 			stat := value.(*models.ClientStat)
-			//fmt.Println("CCAttackTick:", app_id, client_id, stat)
+			//fmt.Println("CCAttackTick:", appID, clientID, stat)
 			if stat.IsBlackIP == true {
-				stat.RemainSeconds -= cc_policy.IntervalSeconds
+				stat.RemainSeconds -= ccPolicy.IntervalSeconds
 				if stat.RemainSeconds <= 0 {
-					app_cc_count.Delete(client_id)
+					appCCCount.Delete(clientID)
 				}
-			} else if stat.Count >= cc_policy.MaxCount {
+			} else if stat.Count >= ccPolicy.MaxCount {
 				stat.Count = 0
 				stat.IsBlackIP = true
-				stat.RemainSeconds = cc_policy.BlockSeconds
+				stat.RemainSeconds = ccPolicy.BlockSeconds
 			} else {
-				app_cc_count.Delete(client_id)
+				appCCCount.Delete(clientID)
 			}
 			return true
 		})
 	}
 }
 
-func GetCCPolicyByAppID(app_id int64) *models.CCPolicy {
-	if cc_policy, ok := cc_policies.Load(app_id); ok {
-		return cc_policy.(*models.CCPolicy)
+func GetCCPolicyByAppID(appID int64) *models.CCPolicy {
+	if ccPolicy, ok := ccPolicies.Load(appID); ok {
+		return ccPolicy.(*models.CCPolicy)
 	}
-	cc_policy, _ := cc_policies.Load(int64(0))
-	return cc_policy.(*models.CCPolicy)
+	ccPolicy, _ := ccPolicies.Load(int64(0))
+	return ccPolicy.(*models.CCPolicy)
 }
 
 func GetCCPolicies() ([]*models.CCPolicy, error) {
-	return cc_policies_list, nil
+	return ccPoliciesList, nil
 }
 
-func GetCCPolicyRespByAppID(app_id int64) (*models.CCPolicy, error) {
-	cc_policy := GetCCPolicyByAppID(app_id)
-	return cc_policy, nil
+func GetCCPolicyRespByAppID(appID int64) (*models.CCPolicy, error) {
+	ccPolicy := GetCCPolicyByAppID(appID)
+	return ccPolicy, nil
 }
 
-func IsCCAttack(r *http.Request, app_id int64, src_ip string) (bool, *models.CCPolicy, string) {
-	cc_policy := GetCCPolicyByAppID(app_id)
-	if cc_policy.IsEnabled == false {
+func IsCCAttack(r *http.Request, appID int64, src_ip string) (bool, *models.CCPolicy, string) {
+	ccPolicy := GetCCPolicyByAppID(appID)
+	if ccPolicy.IsEnabled == false {
 		return false, nil, ""
 	}
-	if cc_policy.AppID == 0 {
-		app_id = 0 // Important: stat within general policy
+	if ccPolicy.AppID == 0 {
+		appID = 0 // Important: stat within general policy
 	}
-	cc_count, _ := cc_counts.LoadOrStore(app_id, &sync.Map{})
-	app_cc_count := cc_count.(*sync.Map)
-	pre_hash_content := src_ip
-	if cc_policy.StatByURL == true {
-		pre_hash_content += r.URL.Path
+	ccCount, _ := ccCounts.LoadOrStore(appID, &sync.Map{})
+	appCCCount := ccCount.(*sync.Map)
+	preHashContent := src_ip
+	if ccPolicy.StatByURL == true {
+		preHashContent += r.URL.Path
 	}
-	if cc_policy.StatByUserAgent == true {
+	if ccPolicy.StatByUserAgent == true {
 		ua := r.Header.Get("User-Agent")
-		pre_hash_content += ua
+		preHashContent += ua
 	}
-	if cc_policy.StatByCookie == true {
+	if ccPolicy.StatByCookie == true {
 		cookie := r.Header.Get("Cookie")
-		pre_hash_content += cookie
+		preHashContent += cookie
 	}
-	client_id := data.SHA256Hash(pre_hash_content)
-	client_id_stat, _ := app_cc_count.LoadOrStore(client_id, &models.ClientStat{Count: 0, IsBlackIP: false, RemainSeconds: 0})
-	client_stat := client_id_stat.(*models.ClientStat)
-	if client_stat.IsBlackIP == true {
-		return true, cc_policy, client_id
+	clientID := data.SHA256Hash(preHashContent)
+	clientIDStat, _ := appCCCount.LoadOrStore(clientID, &models.ClientStat{Count: 0, IsBlackIP: false, RemainSeconds: 0})
+	clientStat := clientIDStat.(*models.ClientStat)
+	if clientStat.IsBlackIP == true {
+		return true, ccPolicy, clientID
 	}
-	client_stat.Count += 1
-	//fmt.Println("IsCCAttack:", r.URL.Path, client_id, client_stat.Count, client_stat.IsBlackIP, client_stat.RemainSeconds)
+	clientStat.Count += 1
+	//fmt.Println("IsCCAttack:", r.URL.Path, clientID, clientStat.Count, clientStat.IsBlackIP, clientStat.RemainSeconds)
 	return false, nil, ""
 }
 
@@ -120,87 +120,85 @@ func InitCCPolicy() {
 	//var cc_policies_list []*models.CCPolicy
 	if data.IsMaster {
 		data.DAL.CreateTableIfNotExistsCCPolicy()
-		exist_cc_policy := data.DAL.ExistsCCPolicy()
-		if exist_cc_policy == false {
+		existCCPolicy := data.DAL.ExistsCCPolicy()
+		if existCCPolicy == false {
 			data.DAL.InsertCCPolicy(0, 10, 60, 300, models.Action_Block_100, true, true, false, true)
 		}
-		cc_policies_list = data.DAL.SelectCCPolicies()
+		ccPoliciesList = data.DAL.SelectCCPolicies()
 	} else {
-		cc_policies_list = RPCSelectCCPolicies()
+		ccPoliciesList = RPCSelectCCPolicies()
 	}
-	for _, cc_policy := range cc_policies_list {
-		cc_policies.Store(cc_policy.AppID, cc_policy)
-		//fmt.Println("InitCCPolicy:", cc_policy.AppID, cc_policy)
+	for _, ccPolicy := range ccPoliciesList {
+		ccPolicies.Store(ccPolicy.AppID, ccPolicy)
+		//fmt.Println("InitCCPolicy:", ccPolicy.AppID, ccPolicy)
 	}
 }
 
 func UpdateCCPolicy(param map[string]interface{}) error {
-	cc_policy_map := param["object"].(map[string]interface{})
-	app_id := int64(param["id"].(float64))
-	interval_seconds := time.Duration(cc_policy_map["interval_seconds"].(float64))
-	max_count := int64(cc_policy_map["max_count"].(float64))
-	block_seconds := time.Duration(cc_policy_map["block_seconds"].(float64))
-	action := models.PolicyAction(cc_policy_map["action"].(float64))
-	stat_by_url := cc_policy_map["stat_by_url"].(bool)
-	stat_by_ua := cc_policy_map["stat_by_ua"].(bool)
-	stat_by_cookie := cc_policy_map["stat_by_cookie"].(bool)
-	is_enabled := cc_policy_map["is_enabled"].(bool)
-	exist_app_id := data.DAL.ExistsCCPolicyByAppID(app_id)
-	if exist_app_id == false {
+	ccPolicyMap := param["object"].(map[string]interface{})
+	appID := int64(param["id"].(float64))
+	intervalSeconds := time.Duration(ccPolicyMap["interval_seconds"].(float64))
+	maxCount := int64(ccPolicyMap["max_count"].(float64))
+	blockSeconds := time.Duration(ccPolicyMap["block_seconds"].(float64))
+	action := models.PolicyAction(ccPolicyMap["action"].(float64))
+	statByUrl := ccPolicyMap["stat_by_url"].(bool)
+	statByUA := ccPolicyMap["stat_by_ua"].(bool)
+	statByCookie := ccPolicyMap["stat_by_cookie"].(bool)
+	isEnabled := ccPolicyMap["is_enabled"].(bool)
+	existAppID := data.DAL.ExistsCCPolicyByAppID(appID)
+	if existAppID == false {
 		// new policy
-		err := data.DAL.InsertCCPolicy(app_id, interval_seconds, max_count, block_seconds, action, stat_by_url, stat_by_ua, stat_by_cookie, is_enabled)
+		err := data.DAL.InsertCCPolicy(appID, intervalSeconds, maxCount, blockSeconds, action, statByUrl, statByUA, statByCookie, isEnabled)
 		if err != nil {
 			return err
 		}
-		cc_policy := &models.CCPolicy{
-			AppID:           app_id,
-			IntervalSeconds: interval_seconds, MaxCount: max_count, BlockSeconds: block_seconds,
-			Action: action, StatByURL: stat_by_url, StatByUserAgent: stat_by_ua, StatByCookie: stat_by_cookie,
-			IsEnabled: is_enabled}
-		//cc_policies[app_id] = cc_policy
-		cc_policies.Store(app_id, cc_policy)
-		if cc_policy.IsEnabled == true {
-			go CCAttackTick(app_id)
+		ccPolicy := &models.CCPolicy{
+			AppID:           appID,
+			IntervalSeconds: intervalSeconds, MaxCount: maxCount, BlockSeconds: blockSeconds,
+			Action: action, StatByURL: statByUrl, StatByUserAgent: statByUA, StatByCookie: statByCookie,
+			IsEnabled: isEnabled}
+		ccPolicies.Store(appID, ccPolicy)
+		if ccPolicy.IsEnabled == true {
+			go CCAttackTick(appID)
 		}
 	} else {
 		// update policy
-		err := data.DAL.UpdateCCPolicy(interval_seconds, max_count, block_seconds, action, stat_by_url, stat_by_ua, stat_by_cookie, is_enabled, app_id)
+		err := data.DAL.UpdateCCPolicy(intervalSeconds, maxCount, blockSeconds, action, statByUrl, statByUA, statByCookie, isEnabled, appID)
 		if err != nil {
 			return err
 		}
-		cc_policy := GetCCPolicyByAppID(app_id)
-		if cc_policy.IntervalSeconds != interval_seconds {
-			cc_policy.IntervalSeconds = interval_seconds
-			app_cc_ticker, _ := cc_tickers.Load(app_id)
-			cc_ticker := app_cc_ticker.(*time.Ticker)
-			cc_ticker.Stop()
+		ccPolicy := GetCCPolicyByAppID(appID)
+		if ccPolicy.IntervalSeconds != intervalSeconds {
+			ccPolicy.IntervalSeconds = intervalSeconds
+			appCCTicker, _ := ccTickers.Load(appID)
+			ccTicker := appCCTicker.(*time.Ticker)
+			ccTicker.Stop()
 		}
-		cc_policy.MaxCount = max_count
-		cc_policy.BlockSeconds = block_seconds
-		cc_policy.StatByURL = stat_by_url
-		cc_policy.StatByUserAgent = stat_by_ua
-		cc_policy.StatByCookie = stat_by_cookie
-		cc_policy.Action = action
-		cc_policy.IsEnabled = is_enabled
-		//cc_policy.Description=description
-		if cc_policy.IsEnabled == true {
-			go CCAttackTick(app_id)
+		ccPolicy.MaxCount = maxCount
+		ccPolicy.BlockSeconds = blockSeconds
+		ccPolicy.StatByURL = statByUrl
+		ccPolicy.StatByUserAgent = statByUA
+		ccPolicy.StatByCookie = statByCookie
+		ccPolicy.Action = action
+		ccPolicy.IsEnabled = isEnabled
+		if ccPolicy.IsEnabled == true {
+			go CCAttackTick(appID)
 		}
 	}
 	data.UpdateFirewallLastModified()
 	return nil
 }
 
-func DeleteCCPolicyByAppID(app_id int64) error {
-	if app_id == 0 {
+func DeleteCCPolicyByAppID(appID int64) error {
+	if appID == 0 {
 		return errors.New("Global CC Policy cannot be deleted.")
 	}
-	data.DAL.DeleteCCPolicy(app_id)
-	cc_policies.Delete(app_id)
-	if app_cc_ticker, ok := cc_tickers.Load(app_id); ok {
-		cc_ticker := app_cc_ticker.(*time.Ticker)
-		if cc_ticker != nil {
-			cc_ticker.Stop()
+	data.DAL.DeleteCCPolicy(appID)
+	ccPolicies.Delete(appID)
+	if appCCTicker, ok := ccTickers.Load(appID); ok {
+		ccTicker := appCCTicker.(*time.Ticker)
+		if ccTicker != nil {
+			ccTicker.Stop()
 		}
 	}
 	data.UpdateFirewallLastModified()

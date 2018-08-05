@@ -27,51 +27,51 @@ func (dal *MyDAL) CreateTableIfNotExistsDomains() error {
 	return err
 }
 
-func (dal *MyDAL) SelectDomains() (db_domains []*models.DBDomain) {
+func (dal *MyDAL) SelectDomains() (dbDomains []*models.DBDomain) {
 	rows, err := dal.db.Query(sqlSelectDomains)
 	utils.CheckError("SelectDomains", err)
 	defer rows.Close()
 	for rows.Next() {
-		db_domain := new(models.DBDomain)
-		err = rows.Scan(&db_domain.ID, &db_domain.Name, &db_domain.AppID, &db_domain.CertID)
-		db_domains = append(db_domains, db_domain)
+		dbDomain := new(models.DBDomain)
+		err = rows.Scan(&dbDomain.ID, &dbDomain.Name, &dbDomain.AppID, &dbDomain.CertID)
+		dbDomains = append(dbDomains, dbDomain)
 	}
-	return db_domains
+	return dbDomains
 }
 
-func (dal *MyDAL) SelectDomainsCountByCertID(cert_id int64) int64 {
-	var cert_domains_count int64
-	err := dal.db.QueryRow(sqlSelectDomainsCountByCertID, cert_id).Scan(&cert_domains_count)
+func (dal *MyDAL) SelectDomainsCountByCertID(certID int64) int64 {
+	var certDomainsCount int64
+	err := dal.db.QueryRow(sqlSelectDomainsCountByCertID, certID).Scan(&certDomainsCount)
 	utils.CheckError("SelectDomainsCountByCertID", err)
-	return cert_domains_count
+	return certDomainsCount
 }
 
-func (dal *MyDAL) InsertDomain(name string, app_id int64, cert_id int64) (new_id int64) {
-	err := dal.db.QueryRow(sqlInsertDomain, name, app_id, cert_id).Scan(&new_id)
+func (dal *MyDAL) InsertDomain(name string, appID int64, certID int64) (newID int64) {
+	err := dal.db.QueryRow(sqlInsertDomain, name, appID, certID).Scan(&newID)
 	utils.CheckError("InsertDomain", err)
-	return new_id
+	return newID
 }
 
-func (dal *MyDAL) UpdateDomain(name string, app_id int64, cert_id int64, domain_id int64) error {
+func (dal *MyDAL) UpdateDomain(name string, appID int64, certID int64, domainID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateDomain)
 	defer stmt.Close()
-	_, err = stmt.Exec(name, app_id, cert_id, domain_id)
+	_, err = stmt.Exec(name, appID, certID, domainID)
 	utils.CheckError("UpdateDomain", err)
 	return err
 }
 
-func (dal *MyDAL) DeleteDomainByDomainID(domain_id int64) error {
+func (dal *MyDAL) DeleteDomainByDomainID(domainID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteDomainByDomainID)
 	defer stmt.Close()
-	_, err = stmt.Exec(domain_id)
+	_, err = stmt.Exec(domainID)
 	utils.CheckError("DeleteDomainByDomainID", err)
 	return err
 }
 
-func (dal *MyDAL) DeleteDomainByAppID(app_id int64) error {
+func (dal *MyDAL) DeleteDomainByAppID(appID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteDomainByAppID)
 	defer stmt.Close()
-	_, err = stmt.Exec(app_id)
+	_, err = stmt.Exec(appID)
 	utils.CheckError("DeleteDomainByAppID", err)
 	return err
 }

@@ -15,9 +15,9 @@ const (
 	sqlSetIDSeqStartWith = `SELECT setval($1,$2,false)`
 )
 
-func (dal *MyDAL) SetIDSeqStartWith(table_name string, seq int64) error {
-	table_id_sqq := table_name + `_id_seq`
-	_, err := dal.db.Exec(sqlSetIDSeqStartWith, table_id_sqq, seq)
+func (dal *MyDAL) SetIDSeqStartWith(tableName string, seq int64) error {
+	tableIDSeq := tableName + `_id_seq`
+	_, err := dal.db.Exec(sqlSetIDSeqStartWith, tableIDSeq, seq)
 	utils.CheckError("SetIDSeqStartWith", err)
 	return err
 }

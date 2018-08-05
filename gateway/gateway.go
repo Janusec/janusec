@@ -37,13 +37,13 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	r.URL.Scheme = app.InternalScheme
 	r.URL.Host = r.Host
-	//app_id_str := strconv.Itoa(app.AppID)
+	//appID_str := strconv.Itoa(app.AppID)
 	//fmt.Println("ReverseHandlerFunc, r.URL.Path:", r.URL.Path)
 	/*
 	   is_static := backend.IsStaticDir(domain, r.URL.Path)
 	   fmt.Println("is_static:", is_static)
 	   if r.Method=="GET" && is_static {
-	       static_root := "./cdn_static_files/" + app_id_str + "/"
+	       static_root := "./cdn_static_files/" + appID_str + "/"
 	       fmt.Println(static_root)
 	       staticHandler := http.FileServer(http.Dir(static_root))
 	       if strings.HasSuffix(r.URL.Path, "/") {
@@ -56,50 +56,50 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	*/
 	// dynamic
 	if app.WAFEnabled {
-		src_ip := GetClientIP(r, app)
-		if is_cc, cc_policy, client_id := firewall.IsCCAttack(r, app.ID, src_ip); is_cc == true {
+		srcIP := GetClientIP(r, app)
+		if isCC, ccPolicy, clientID := firewall.IsCCAttack(r, app.ID, srcIP); isCC == true {
 			target_url := r.URL.Path
 			if len(r.URL.RawQuery) > 0 {
 				target_url += "?" + r.URL.RawQuery
 			}
 			hit_info := &models.HitInfo{TypeID: 1,
-				PolicyID: cc_policy.AppID, VulnName: "CC",
-				Action: cc_policy.Action, ClientID: client_id,
+				PolicyID: ccPolicy.AppID, VulnName: "CC",
+				Action: ccPolicy.Action, ClientID: clientID,
 				TargetURL: target_url, BlockTime: time.Now().Unix()}
 			if hit_info.Action == models.Action_Block_100 {
 				GenerateBlockPage(w, hit_info)
 				return
 			}
 			if hit_info.Action == models.Action_CAPTCHA_300 {
-				captcha_hit_info.Store(hit_info.ClientID, hit_info)
+				captchaHitInfo.Store(hit_info.ClientID, hit_info)
 				captcha_url := CaptchaEntrance + "?id=" + hit_info.ClientID
 				http.Redirect(w, r, captcha_url, http.StatusTemporaryRedirect)
 				return
 			}
 		}
 
-		if is_hit, policy := firewall.IsRequestHitPolicy(r, app.ID, src_ip); is_hit == true {
+		if is_hit, policy := firewall.IsRequestHitPolicy(r, app.ID, srcIP); is_hit == true {
 			switch policy.Action {
 			case models.Action_Block_100:
 				vuln_name, _ := firewall.VulnMap.Load(policy.VulnID)
 				hit_info := &models.HitInfo{TypeID: 2, PolicyID: policy.ID, VulnName: vuln_name.(string)}
-				go firewall.LogGroupHitRequest(r, app.ID, src_ip, policy)
+				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 				GenerateBlockPage(w, hit_info)
 				return
 			case models.Action_BypassAndLog_200:
-				go firewall.LogGroupHitRequest(r, app.ID, src_ip, policy)
+				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 			case models.Action_CAPTCHA_300:
-				client_id := GenClientID(r, app.ID, src_ip)
+				clientID := GenClientID(r, app.ID, srcIP)
 				target_url := r.URL.Path
 				if len(r.URL.RawQuery) > 0 {
 					target_url += "?" + r.URL.RawQuery
 				}
 				hit_info := &models.HitInfo{TypeID: 2,
 					PolicyID: policy.ID, VulnName: "Group Policy Hit",
-					Action: policy.Action, ClientID: client_id,
+					Action: policy.Action, ClientID: clientID,
 					TargetURL: target_url, BlockTime: time.Now().Unix()}
-				captcha_hit_info.Store(client_id, hit_info)
-				captcha_url := CaptchaEntrance + "?id=" + client_id
+				captchaHitInfo.Store(clientID, hit_info)
+				captcha_url := CaptchaEntrance + "?id=" + clientID
 				http.Redirect(w, r, captcha_url, http.StatusTemporaryRedirect)
 				return
 			default:
@@ -157,34 +157,34 @@ func RedirectHttpsFunc(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, target, http.StatusMovedPermanently)
 }
 
-func GenClientID(r *http.Request, app_id int64, src_ip string) string {
-	pre_hash_content := src_ip
+func GenClientID(r *http.Request, appID int64, srcIP string) string {
+	preHashContent := srcIP
 	url := r.URL.Path
-	pre_hash_content += url
+	preHashContent += url
 	ua := r.Header.Get("User-Agent")
-	pre_hash_content += ua
+	preHashContent += ua
 	cookie := r.Header.Get("Cookie")
-	pre_hash_content += cookie
-	client_id := data.SHA256Hash(pre_hash_content)
-	return client_id
+	preHashContent += cookie
+	clientID := data.SHA256Hash(preHashContent)
+	return clientID
 }
 
-func GetClientIP(r *http.Request, app *models.Application) (client_ip string) {
+func GetClientIP(r *http.Request, app *models.Application) (clientIP string) {
 	switch app.ClientIPMethod {
 	case models.IPMethod_REMOTE_ADDR:
-		client_ip, _, _ = net.SplitHostPort(r.RemoteAddr)
-		return client_ip
+		clientIP, _, _ = net.SplitHostPort(r.RemoteAddr)
+		return clientIP
 	case models.IPMethod_X_FORWARDED_FOR:
-		x_forwarded_for := r.Header.Get("X-Forwarded-For")
-		ips := strings.Split(x_forwarded_for, ", ")
-		client_ip = ips[len(ips)-1]
+		xForwardedFor := r.Header.Get("X-Forwarded-For")
+		ips := strings.Split(xForwardedFor, ", ")
+		clientIP = ips[len(ips)-1]
 	case models.IPMethod_X_REAL_IP:
-		client_ip = r.Header.Get("X-Real-IP")
+		clientIP = r.Header.Get("X-Real-IP")
 	case models.IPMethod_REAL_IP:
-		client_ip = r.Header.Get("Real-IP")
+		clientIP = r.Header.Get("Real-IP")
 	}
-	if len(client_ip) == 0 {
-		client_ip, _, _ = net.SplitHostPort(r.RemoteAddr)
+	if len(clientIP) == 0 {
+		clientIP, _, _ = net.SplitHostPort(r.RemoteAddr)
 	}
-	return client_ip
+	return clientIP
 }

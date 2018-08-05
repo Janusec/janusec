@@ -35,27 +35,27 @@ type CCPolicy struct {
 type ChkPoint int64
 
 const (
-	ChkPoint_Host                ChkPoint = 1
-	ChkPoint_IPAddress           ChkPoint = 1 << 1
-	ChkPoint_Method              ChkPoint = 1 << 2
-	ChkPoint_URLPath             ChkPoint = 1 << 3
-	ChkPoint_URLQuery            ChkPoint = 1 << 4
-	ChkPoint_ValueLength         ChkPoint = 1 << 6
-	ChkPoint_GetPostKey          ChkPoint = 1 << 7
-	ChkPoint_GetPostValue        ChkPoint = 1 << 8
-	ChkPoint_UploadFileExt       ChkPoint = 1 << 9
-	ChkPoint_CookieKey           ChkPoint = 1 << 11
-	ChkPoint_CookieValue         ChkPoint = 1 << 12
-	ChkPoint_UserAgent           ChkPoint = 1 << 13
-	ChkPoint_ContentType         ChkPoint = 1 << 14
-	ChkPoint_HeaderKey           ChkPoint = 1 << 15
-	ChkPoint_HeaderValue         ChkPoint = 1 << 16
-	ChkPoint_Proto               ChkPoint = 1 << 17
-	ChkPoint_ResponseStatusCode  ChkPoint = 1 << 25
-	ChkPoint_ResponseHeaderKey   ChkPoint = 1 << 26
-	ChkPoint_ResponseHeaderValue ChkPoint = 1 << 27
-	ChkPoint_ResponseBodyLength  ChkPoint = 1 << 28
-	ChkPoint_ResponseBody        ChkPoint = 1 << 29
+	ChkPointHost                ChkPoint = 1
+	ChkPointIPAddress           ChkPoint = 1 << 1
+	ChkPointMethod              ChkPoint = 1 << 2
+	ChkPointURLPath             ChkPoint = 1 << 3
+	ChkPointURLQuery            ChkPoint = 1 << 4
+	ChkPointValueLength         ChkPoint = 1 << 6
+	ChkPointGetPostKey          ChkPoint = 1 << 7
+	ChkPointGetPostValue        ChkPoint = 1 << 8
+	ChkPointUploadFileExt       ChkPoint = 1 << 9
+	ChkPointCookieKey           ChkPoint = 1 << 11
+	ChkPointCookieValue         ChkPoint = 1 << 12
+	ChkPointUserAgent           ChkPoint = 1 << 13
+	ChkPointContentType         ChkPoint = 1 << 14
+	ChkPointHeaderKey           ChkPoint = 1 << 15
+	ChkPointHeaderValue         ChkPoint = 1 << 16
+	ChkPointProto               ChkPoint = 1 << 17
+	ChkPointResponseStatusCode  ChkPoint = 1 << 25
+	ChkPointResponseHeaderKey   ChkPoint = 1 << 26
+	ChkPointResponseHeaderValue ChkPoint = 1 << 27
+	ChkPointResponseBodyLength  ChkPoint = 1 << 28
+	ChkPointResponseBody        ChkPoint = 1 << 29
 )
 
 type GroupPolicy struct {
@@ -89,10 +89,10 @@ type DBGroupPolicy struct {
 type Operation int64
 
 const (
-	Operation_Regex_Match                    Operation = 1
-	Operation_Equals_String_Case_InSensitive Operation = 1 << 1
-	Operation_GreaterThan_Integer            Operation = 1 << 2
-	Operation_Equals_Integer                 Operation = 1 << 3
+	OperationRegexMatch                  Operation = 1
+	OperationEqualsStringCaseInSensitive Operation = 1 << 1
+	OperationGreaterThanInteger          Operation = 1 << 2
+	OperationEqualsInteger               Operation = 1 << 3
 )
 
 type CheckItem struct {

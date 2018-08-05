@@ -25,8 +25,8 @@ func CheckError(msg string, err error) {
 
 func GetDirAll(path string) string {
 	i := strings.LastIndex(path, "/")
-	dir_all := path[:i]
-	return dir_all
+	dirAll := path[:i]
+	return dirAll
 }
 
 func DebugPrintln(a ...interface{}) {

@@ -15,19 +15,19 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
-func RPCSelectGroupPolicies() (group_policies []*models.GroupPolicy) {
-	rpc_request := &models.RPCRequest{
+func RPCSelectGroupPolicies() (groupPolicies []*models.GroupPolicy) {
+	rpcRequest := &models.RPCRequest{
 		Action: "getgrouppolicies", Object: nil}
-	resp, err := data.GetResponse(rpc_request)
+	resp, err := data.GetResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectGroupPolicies GetResponse", err)
 		return nil
 	}
-	rpc_group_policies := new(models.RPCGroupPolicies)
-	if err := json.Unmarshal(resp, rpc_group_policies); err != nil {
+	rpcGroupPolicies := new(models.RPCGroupPolicies)
+	if err := json.Unmarshal(resp, rpcGroupPolicies); err != nil {
 		utils.CheckError("RPCSelectGroupPolicies Unmarshal", err)
 		return nil
 	}
-	group_policies = rpc_group_policies.Object
-	return group_policies
+	groupPolicies = rpcGroupPolicies.Object
+	return groupPolicies
 }

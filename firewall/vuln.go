@@ -15,16 +15,15 @@ import (
 )
 
 var (
-	vuln_types []*models.VulnType
-	//VulnMap map[int64]string
-	VulnMap sync.Map
+	vulnTypes []*models.VulnType
+	VulnMap   sync.Map //VulnMap map[int64]string
 )
 
 func InitVulnType() {
 	if data.IsMaster {
 		data.DAL.CreateTableIfNotExistsVulnType()
-		exist_vuln := data.DAL.ExistsVulnType()
-		if exist_vuln == false {
+		existVuln := data.DAL.ExistsVulnType()
+		if existVuln == false {
 			data.DAL.InsertVulnType(001, "None")
 			data.DAL.InsertVulnType(100, "Sensitive Data Leakage")
 			data.DAL.InsertVulnType(200, "SQL Injection")
@@ -50,16 +49,15 @@ func InitVulnType() {
 			data.DAL.InsertVulnType(960, "XML External Entity(XXE)")
 			data.DAL.InsertVulnType(999, "Other")
 		}
-		vuln_types, _ = data.DAL.SelectVulnTypes()
+		vulnTypes, _ = data.DAL.SelectVulnTypes()
 	} else {
-		vuln_types = RPCSelectVulntypes()
+		vulnTypes = RPCSelectVulntypes()
 	}
-	for _, vuln_type := range vuln_types {
-		//VulnMap[vuln_type.ID] = vuln_type.Name
-		VulnMap.Store(vuln_type.ID, vuln_type.Name)
+	for _, vulnType := range vulnTypes {
+		VulnMap.Store(vulnType.ID, vulnType.Name)
 	}
 }
 
 func GetVulnTypes() ([]*models.VulnType, error) {
-	return vuln_types, nil
+	return vulnTypes, nil
 }

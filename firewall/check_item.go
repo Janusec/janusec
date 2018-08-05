@@ -17,12 +17,12 @@ import (
 )
 
 var (
-	check_items_map sync.Map //(models.ChkPoint, []*models.CheckItem)
+	checkPointCheckItemsMap sync.Map //(models.ChkPoint, []*models.CheckItem)
 )
 
-func GetCheckItemIndex(check_items []*models.CheckItem, id int64) int {
-	for i := 0; i < len(check_items); i++ {
-		if check_items[i].ID == id {
+func GetCheckItemIndex(checkItems []*models.CheckItem, id int64) int {
+	for i := 0; i < len(checkItems); i++ {
+		if checkItems[i].ID == id {
 			return i
 		}
 	}
@@ -30,19 +30,19 @@ func GetCheckItemIndex(check_items []*models.CheckItem, id int64) int {
 }
 
 func DeleteCheckItemByIndex(source []*models.CheckItem, index int) []*models.CheckItem {
-	last_index := len(source) - 1
-	source[index] = source[last_index]
-	return source[:last_index]
+	lastIndex := len(source) - 1
+	source[index] = source[lastIndex]
+	return source[:lastIndex]
 }
 
-func GetCheckPointMapByCheckItemID(check_item *models.CheckItem, to_be_delete bool) (hit_check_point models.ChkPoint, check_point_check_items []*models.CheckItem, index int) {
-	if to_be_delete {
+func GetCheckPointMapByCheckItemID(checkItem *models.CheckItem, toBeDelete bool) (hitCheckPoint models.ChkPoint, checkPointCheckItems []*models.CheckItem, index int) {
+	if toBeDelete {
 		// check_point of check_item will not changed.
-		if value, ok := check_items_map.Load(check_item.CheckPoint); ok {
-			check_point_check_items = value.([]*models.CheckItem)
-			for i, check_point_check_item := range check_point_check_items {
-				if check_point_check_item.ID == check_item.ID {
-					hit_check_point = check_item.CheckPoint
+		if value, ok := checkPointCheckItemsMap.Load(checkItem.CheckPoint); ok {
+			checkPointCheckItems = value.([]*models.CheckItem)
+			for i, checkPointCheckItem := range checkPointCheckItems {
+				if checkPointCheckItem.ID == checkItem.ID {
+					hitCheckPoint = checkItem.CheckPoint
 					index = i
 					break
 				}
@@ -50,12 +50,12 @@ func GetCheckPointMapByCheckItemID(check_item *models.CheckItem, to_be_delete bo
 		}
 	} else {
 		// to be update
-		check_items_map.Range(func(key, value interface{}) bool {
-			check_point := key.(models.ChkPoint)
-			check_point_check_items = value.([]*models.CheckItem)
-			for i, check_point_check_item := range check_point_check_items {
-				if check_point_check_item.ID == check_item.ID {
-					hit_check_point = check_point
+		checkPointCheckItemsMap.Range(func(key, value interface{}) bool {
+			checkPoint := key.(models.ChkPoint)
+			checkPointCheckItems = value.([]*models.CheckItem)
+			for i, checkPointCheckItem := range checkPointCheckItems {
+				if checkPointCheckItem.ID == checkItem.ID {
+					hitCheckPoint = checkPoint
 					index = i
 					return false
 				}
@@ -63,101 +63,101 @@ func GetCheckPointMapByCheckItemID(check_item *models.CheckItem, to_be_delete bo
 			return true
 		})
 	}
-	utils.DebugPrintln("GetCheckPointAndIndexFromMapByCheckItemID, old hit_check_point", hit_check_point, index)
-	return hit_check_point, check_point_check_items, index
+	utils.DebugPrintln("GetCheckPointAndIndexFromMapByCheckItemID, old hit_check_point", hitCheckPoint, index)
+	return hitCheckPoint, checkPointCheckItems, index
 }
 
-func AddCheckItemToMap(check_item *models.CheckItem) {
+func AddCheckItemToMap(checkItem *models.CheckItem) {
 	//fmt.Println("AddCheckItemToMap", check_item)
-	value, _ := check_items_map.LoadOrStore(check_item.CheckPoint, []*models.CheckItem{})
-	checkpoint_check_items := value.([]*models.CheckItem)
-	checkpoint_check_items = append(checkpoint_check_items, check_item)
-	check_items_map.Store(check_item.CheckPoint, checkpoint_check_items)
+	value, _ := checkPointCheckItemsMap.LoadOrStore(checkItem.CheckPoint, []*models.CheckItem{})
+	checkpointCheckItems := value.([]*models.CheckItem)
+	checkpointCheckItems = append(checkpointCheckItems, checkItem)
+	checkPointCheckItemsMap.Store(checkItem.CheckPoint, checkpointCheckItems)
 
 }
 
-func UpdateCheckItemToMap(check_item *models.CheckItem) {
-	hit_check_point, check_point_check_items, index := GetCheckPointMapByCheckItemID(check_item, false)
-	check_point_check_items = DeleteCheckItemByIndex(check_point_check_items, index)
-	if check_item.CheckPoint == hit_check_point {
+func UpdateCheckItemToMap(checkItem *models.CheckItem) {
+	hitCheckPoint, checkPointCheckItems, index := GetCheckPointMapByCheckItemID(checkItem, false)
+	checkPointCheckItems = DeleteCheckItemByIndex(checkPointCheckItems, index)
+	if checkItem.CheckPoint == hitCheckPoint {
 		// check point not changed
 		//fmt.Println("UpdateCheckItemToMap check point not changed")
-		check_point_check_items = append(check_point_check_items, check_item)
-		check_items_map.Store(hit_check_point, check_point_check_items)
+		checkPointCheckItems = append(checkPointCheckItems, checkItem)
+		checkPointCheckItemsMap.Store(hitCheckPoint, checkPointCheckItems)
 	} else {
 		//fmt.Println("UpdateCheckItemToMap check point changed, new check point: ", check_item.CheckPoint)
 		// save old check point
-		check_items_map.Store(hit_check_point, check_point_check_items)
+		checkPointCheckItemsMap.Store(hitCheckPoint, checkPointCheckItems)
 		// add new check point
-		value, _ := check_items_map.LoadOrStore(check_item.CheckPoint, []*models.CheckItem{})
-		check_point_check_items = value.([]*models.CheckItem)
-		check_point_check_items = append(check_point_check_items, check_item)
-		check_items_map.Store(check_item.CheckPoint, check_point_check_items)
+		value, _ := checkPointCheckItemsMap.LoadOrStore(checkItem.CheckPoint, []*models.CheckItem{})
+		checkPointCheckItems = value.([]*models.CheckItem)
+		checkPointCheckItems = append(checkPointCheckItems, checkItem)
+		checkPointCheckItemsMap.Store(checkItem.CheckPoint, checkPointCheckItems)
 
 	}
 }
 
 func LoadCheckItems() {
-	for _, group_policy := range group_policies {
-		var check_items []*models.CheckItem
+	for _, groupPolicy := range groupPolicies {
+		var checkItems []*models.CheckItem
 		var err error
 		if data.IsMaster {
-			check_items, err = data.DAL.SelectCheckItemsByGroupID(group_policy.ID)
+			checkItems, err = data.DAL.SelectCheckItemsByGroupID(groupPolicy.ID)
 			utils.CheckError("LoadCheckItems", err)
 		} else {
 			//fmt.Println("LoadCheckItems Slave Node group_policy:", group_policy)
-			check_items = group_policy.CheckItems
+			checkItems = groupPolicy.CheckItems
 		}
 
-		for _, check_item := range check_items {
+		for _, checkItem := range checkItems {
 			//fmt.Println("LoadCheckItems", group_policy.ID, check_item)
-			check_item.GroupPolicy = group_policy
-			check_item.GroupPolicyID = group_policy.ID
-			group_policy.CheckItems = append(group_policy.CheckItems, check_item)
-			value, _ := check_items_map.LoadOrStore(check_item.CheckPoint, []*models.CheckItem{})
-			checkpoint_check_items := value.(([]*models.CheckItem))
-			checkpoint_check_items = append(checkpoint_check_items, check_item)
-			check_items_map.Store(check_item.CheckPoint, checkpoint_check_items)
+			checkItem.GroupPolicy = groupPolicy
+			checkItem.GroupPolicyID = groupPolicy.ID
+			groupPolicy.CheckItems = append(groupPolicy.CheckItems, checkItem)
+			value, _ := checkPointCheckItemsMap.LoadOrStore(checkItem.CheckPoint, []*models.CheckItem{})
+			checkpointCheckItems := value.(([]*models.CheckItem))
+			checkpointCheckItems = append(checkpointCheckItems, checkItem)
+			checkPointCheckItemsMap.Store(checkItem.CheckPoint, checkpointCheckItems)
 		}
 	}
 }
 
-func ContainsCheckItemID(check_items []*models.CheckItem, check_item_id int64) bool {
-	for _, check_item := range check_items {
-		if check_item.ID == check_item_id {
+func ContainsCheckItemID(checkItems []*models.CheckItem, checkItemID int64) bool {
+	for _, checkItem := range checkItems {
+		if checkItem.ID == checkItemID {
 			return true
 		}
 	}
 	return false
 }
 
-func UpdateCheckItems(group_policy *models.GroupPolicy, check_items []*models.CheckItem) error {
-	for _, check_item := range group_policy.CheckItems {
+func UpdateCheckItems(groupPolicy *models.GroupPolicy, checkItems []*models.CheckItem) error {
+	for _, checkItem := range groupPolicy.CheckItems {
 		// delete outdated check_items from DB
-		if !ContainsCheckItemID(check_items, check_item.ID) {
+		if !ContainsCheckItemID(checkItems, checkItem.ID) {
 			//fmt.Println("UpdateCheckItems Delete CheckItem ID:", check_item.ID)
-			data.DAL.DeleteCheckItemByID(check_item.ID)
-			hit_check_point, check_point_check_items, index := GetCheckPointMapByCheckItemID(check_item, true)
-			check_point_check_items = DeleteCheckItemByIndex(check_point_check_items, index)
-			check_items_map.Store(hit_check_point, check_point_check_items)
+			data.DAL.DeleteCheckItemByID(checkItem.ID)
+			hitCheckPoint, checkPointCheckItems, index := GetCheckPointMapByCheckItemID(checkItem, true)
+			checkPointCheckItems = DeleteCheckItemByIndex(checkPointCheckItems, index)
+			checkPointCheckItemsMap.Store(hitCheckPoint, checkPointCheckItems)
 		}
 	}
-	var new_check_items []*models.CheckItem
-	for _, check_item := range check_items {
+	var newCheckItems []*models.CheckItem
+	for _, checkItem := range checkItems {
 		// add new check_items to DB and group_policy
-		if check_item.ID == 0 {
-			check_item_id, _ := data.DAL.InsertCheckItem(check_item.CheckPoint, check_item.Operation, check_item.KeyName, check_item.RegexPolicy, group_policy.ID)
-			check_item.ID = check_item_id
-			check_item.GroupPolicyID = group_policy.ID
-			check_item.GroupPolicy = group_policy
-			AddCheckItemToMap(check_item)
+		if checkItem.ID == 0 {
+			checkItemID, _ := data.DAL.InsertCheckItem(checkItem.CheckPoint, checkItem.Operation, checkItem.KeyName, checkItem.RegexPolicy, groupPolicy.ID)
+			checkItem.ID = checkItemID
+			checkItem.GroupPolicyID = groupPolicy.ID
+			checkItem.GroupPolicy = groupPolicy
+			AddCheckItemToMap(checkItem)
 		} else {
-			data.DAL.UpdateCheckItemByID(check_item.CheckPoint, check_item.Operation, check_item.KeyName, check_item.RegexPolicy, group_policy.ID, check_item.ID)
-			UpdateCheckItemToMap(check_item)
+			data.DAL.UpdateCheckItemByID(checkItem.CheckPoint, checkItem.Operation, checkItem.KeyName, checkItem.RegexPolicy, groupPolicy.ID, checkItem.ID)
+			UpdateCheckItemToMap(checkItem)
 		}
-		new_check_items = append(new_check_items, check_item)
+		newCheckItems = append(newCheckItems, checkItem)
 	}
-	group_policy.CheckItems = new_check_items
+	groupPolicy.CheckItems = newCheckItems
 	/*
 		for _, check_item := range group_policy.CheckItems {
 			fmt.Println("UpdateCheckItems", check_item)
@@ -167,18 +167,18 @@ func UpdateCheckItems(group_policy *models.GroupPolicy, check_items []*models.Ch
 	return nil
 }
 
-func DeleteCheckItemsByGroupPolicy(group_policy *models.GroupPolicy) error {
-	for _, check_item := range group_policy.CheckItems {
+func DeleteCheckItemsByGroupPolicy(groupPolicy *models.GroupPolicy) error {
+	for _, checkItem := range groupPolicy.CheckItems {
 		//fmt.Println("DeleteCheckItemsByGroupPolicy, check_item:", check_item)
-		if value, ok := check_items_map.Load(check_item.CheckPoint); ok {
-			checkpoint_check_items := value.([]*models.CheckItem)
-			i := GetCheckItemIndex(checkpoint_check_items, check_item.ID)
+		if value, ok := checkPointCheckItemsMap.Load(checkItem.CheckPoint); ok {
+			checkpointCheckItems := value.([]*models.CheckItem)
+			i := GetCheckItemIndex(checkpointCheckItems, checkItem.ID)
 			//fmt.Println("DeleteCheckItemsByGroupPolicy", i)
-			checkpoint_check_items = DeleteCheckItemByIndex(checkpoint_check_items, i)
+			checkpointCheckItems = DeleteCheckItemByIndex(checkpointCheckItems, i)
 			//checkpoint_check_items = append(checkpoint_check_items[:i], checkpoint_check_items[i+1:]...)
-			check_items_map.Store(check_item.CheckPoint, checkpoint_check_items)
+			checkPointCheckItemsMap.Store(checkItem.CheckPoint, checkpointCheckItems)
 		}
-		data.DAL.DeleteCheckItemByID(check_item.ID)
+		data.DAL.DeleteCheckItemByID(checkItem.ID)
 	}
 	return nil
 }
@@ -187,12 +187,12 @@ func DebugTranverseCheckItems() {
 	if utils.Debug == false {
 		return
 	}
-	check_items_map.Range(func(key, value interface{}) bool {
-		check_point := key.(models.ChkPoint)
+	checkPointCheckItemsMap.Range(func(key, value interface{}) bool {
+		checkPoint := key.(models.ChkPoint)
 		//fmt.Println("DebugTranverseCheckItems CheckPoint:", check_point)
-		check_point_check_items := value.([]*models.CheckItem)
-		for _, check_point_check_item := range check_point_check_items {
-			fmt.Println("DebugTranverseCheckItems check_point:", check_point, "check_point_check_item:", check_point_check_item)
+		checkPointCheckItems := value.([]*models.CheckItem)
+		for _, checkPointCheckItem := range checkPointCheckItems {
+			fmt.Println("DebugTranverseCheckItems check_point:", checkPoint, "checkPointCheckItem:", checkPointCheckItem)
 		}
 		return true
 	})

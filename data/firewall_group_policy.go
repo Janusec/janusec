@@ -34,53 +34,53 @@ func (dal *MyDAL) DeleteGroupPolicyByID(id int64) error {
 	return err
 }
 
-func (dal *MyDAL) UpdateGroupPolicy(description string, app_id int64, vuln_id int64, hit_value int64, action models.PolicyAction, is_enabled bool, user_id int64, update_time int64, id int64) error {
+func (dal *MyDAL) UpdateGroupPolicy(description string, appID int64, vulnID int64, hitValue int64, action models.PolicyAction, isEnabled bool, userID int64, updateTime int64, id int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateGroupPolicy)
 	defer stmt.Close()
-	_, err = stmt.Exec(description, app_id, vuln_id, hit_value, action, is_enabled, user_id, update_time, id)
+	_, err = stmt.Exec(description, appID, vulnID, hitValue, action, isEnabled, userID, updateTime, id)
 	utils.CheckError("UpdateGroupPolicy", err)
 	return err
 }
 
-func (dal *MyDAL) SelectGroupPolicies() (group_policies []*models.GroupPolicy) {
+func (dal *MyDAL) SelectGroupPolicies() (groupPolicies []*models.GroupPolicy) {
 	rows, err := dal.db.Query(sqlSelectGroupPolicies)
 	utils.CheckError("SelectGroupPolicies", err)
 	defer rows.Close()
 	for rows.Next() {
-		group_policy := new(models.GroupPolicy)
-		err = rows.Scan(&group_policy.ID, &group_policy.Description, &group_policy.AppID, &group_policy.VulnID,
-			&group_policy.HitValue, &group_policy.Action, &group_policy.IsEnabled, &group_policy.UserID, &group_policy.UpdateTime)
+		groupPolicy := new(models.GroupPolicy)
+		err = rows.Scan(&groupPolicy.ID, &groupPolicy.Description, &groupPolicy.AppID, &groupPolicy.VulnID,
+			&groupPolicy.HitValue, &groupPolicy.Action, &groupPolicy.IsEnabled, &groupPolicy.UserID, &groupPolicy.UpdateTime)
 		utils.CheckError("SelectGroupPolicies Scan", err)
-		group_policies = append(group_policies, group_policy)
+		groupPolicies = append(groupPolicies, groupPolicy)
 	}
-	return group_policies
+	return groupPolicies
 }
 
-func (dal *MyDAL) SelectGroupPoliciesByAppID(app_id int64) (group_policies []*models.GroupPolicy, err error) {
-	rows, err := dal.db.Query(sqlSelectGroupPoliciesByAppID, app_id)
+func (dal *MyDAL) SelectGroupPoliciesByAppID(appID int64) (groupPolicies []*models.GroupPolicy, err error) {
+	rows, err := dal.db.Query(sqlSelectGroupPoliciesByAppID, appID)
 	utils.CheckError("SelectGroupPoliciesByAppID", err)
 	defer rows.Close()
 	for rows.Next() {
-		group_policy := new(models.GroupPolicy)
-		group_policy.AppID = app_id
-		err = rows.Scan(&group_policy.ID, &group_policy.Description, &group_policy.VulnID,
-			&group_policy.HitValue, &group_policy.Action, &group_policy.IsEnabled, &group_policy.UserID, &group_policy.UpdateTime)
+		groupPolicy := new(models.GroupPolicy)
+		groupPolicy.AppID = appID
+		err = rows.Scan(&groupPolicy.ID, &groupPolicy.Description, &groupPolicy.VulnID,
+			&groupPolicy.HitValue, &groupPolicy.Action, &groupPolicy.IsEnabled, &groupPolicy.UserID, &groupPolicy.UpdateTime)
 		utils.CheckError("SelectGroupPoliciesByAppID Scan", err)
 		if err != nil {
-			return group_policies, err
+			return groupPolicies, err
 		}
-		group_policies = append(group_policies, group_policy)
+		groupPolicies = append(groupPolicies, groupPolicy)
 	}
-	return group_policies, err
+	return groupPolicies, err
 }
 
-func (dal *MyDAL) InsertGroupPolicy(description string, app_id int64, vuln_id int64, hit_value int64, action models.PolicyAction, is_enabled bool, user_id int64, update_time int64) (new_id int64, err error) {
+func (dal *MyDAL) InsertGroupPolicy(description string, appID int64, vulnID int64, hitValue int64, action models.PolicyAction, isEnabled bool, userID int64, updateTime int64) (newID int64, err error) {
 	stmt, err := dal.db.Prepare(sqlInsertGroupPolicy)
 	utils.CheckError("InsertGroupPolicy Prepare", err)
 	defer stmt.Close()
-	err = stmt.QueryRow(description, app_id, vuln_id, hit_value, action, is_enabled, user_id, update_time).Scan(&new_id)
+	err = stmt.QueryRow(description, appID, vulnID, hitValue, action, isEnabled, userID, updateTime).Scan(&newID)
 	utils.CheckError("InsertGroupPolicy Scan", err)
-	return new_id, err
+	return newID, err
 }
 
 func (dal *MyDAL) ExistsGroupPolicy() bool {

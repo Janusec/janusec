@@ -15,19 +15,19 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
-func RPCSelectVulntypes() (vuln_types []*models.VulnType) {
-	rpc_request := &models.RPCRequest{
+func RPCSelectVulntypes() (vulnTypes []*models.VulnType) {
+	rpcRequest := &models.RPCRequest{
 		Action: "getvulntypes", Object: nil}
-	resp, err := data.GetResponse(rpc_request)
+	resp, err := data.GetResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectVulntypes GetResponse", err)
 		return nil
 	}
-	rpc_vuln_types := new(models.RPCVulntypes)
-	if err := json.Unmarshal(resp, rpc_vuln_types); err != nil {
+	rpcVulnTypes := new(models.RPCVulntypes)
+	if err := json.Unmarshal(resp, rpcVulnTypes); err != nil {
 		utils.CheckError("RPCSelectVulntypes Unmarshal", err)
 		return nil
 	}
-	vuln_types = rpc_vuln_types.Object
-	return vuln_types
+	vulnTypes = rpcVulnTypes.Object
+	return vulnTypes
 }

@@ -23,10 +23,10 @@ type SelfSignedCertificate struct {
 	PrivKeyContent string `json:"priv_key_content"`
 }
 
-func GenerateRSACertificate(param map[string]interface{}) (self_signed_cert *SelfSignedCertificate, err error) {
-	req_obj := param["object"].(map[string]interface{})
-	common_name := req_obj["common_name"].(string)
-	org := strings.ToUpper(common_name)
+func GenerateRSACertificate(param map[string]interface{}) (selfSignedCert *SelfSignedCertificate, err error) {
+	reqObj := param["object"].(map[string]interface{})
+	commonName := reqObj["common_name"].(string)
+	org := strings.ToUpper(commonName)
 	dotIndex := strings.Index(org, ".")
 	if dotIndex > 0 {
 		org = org[dotIndex+1:]
@@ -49,15 +49,15 @@ func GenerateRSACertificate(param map[string]interface{}) (self_signed_cert *Sel
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
-		DNSNames:              []string{common_name},
+		DNSNames:              []string{commonName},
 	}
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
 	//fmt.Println("derBytes=", derBytes)
 	if err != nil {
 		return nil, err
 	}
-	pub_cert_bytes := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
-	priv_key_bytes := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
-	self_signed_cert = &SelfSignedCertificate{CertContent: string(pub_cert_bytes), PrivKeyContent: string(priv_key_bytes)}
-	return self_signed_cert, nil
+	pubCertBytes := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	privKeyBytes := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
+	selfSignedCert = &SelfSignedCertificate{CertContent: string(pubCertBytes), PrivKeyContent: string(privKeyBytes)}
+	return selfSignedCert, nil
 }

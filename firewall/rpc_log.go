@@ -13,9 +13,9 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
-func RPCGroupHitLog(regex_hit_log *models.GroupHitLog) {
+func RPCGroupHitLog(regexHitLog *models.GroupHitLog) {
 	rpc_request := &models.RPCRequest{
-		Action: "log_group_hit", Object: regex_hit_log}
+		Action: "log_group_hit", Object: regexHitLog}
 	_, err := data.GetResponse(rpc_request)
 	utils.CheckError("RPCRegexHitLog", err)
 }

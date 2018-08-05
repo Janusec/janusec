@@ -20,29 +20,29 @@ var (
 	store = sessions.NewCookieStore([]byte("janusec-app-gateway"))
 )
 
-func IsLogIn(w http.ResponseWriter, r *http.Request) (is_logIn bool, user_id int64) {
+func IsLogIn(w http.ResponseWriter, r *http.Request) (isLogIn bool, userID int64) {
 	session, _ := store.Get(r, "sessionid")
 	username := session.Values["username"]
-	is_logIn = false
-	user_id = 0
+	isLogIn = false
+	userID = 0
 	if username != nil {
-		is_logIn = true
-		user_id = session.Values["user_id"].(int64)
+		isLogIn = true
+		userID = session.Values["user_id"].(int64)
 	}
-	//fmt.Println("IsLogIn:", is_logIn, "Username:", username)
-	return is_logIn, user_id
+	//fmt.Println("IsLogIn:", isLogIn, "Username:", username)
+	return isLogIn, userID
 }
 
 func GetAuthUser(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
 	session, _ := store.Get(r, "sessionid")
-	user_id := session.Values["user_id"]
+	userID := session.Values["user_id"]
 	username := session.Values["username"]
 	need_modify_pwd := session.Values["need_modify_pwd"]
 	if need_modify_pwd == nil {
 		need_modify_pwd = false
 	}
 	if username != nil {
-		authUser := &models.AuthUser{UserID: user_id.(int64), Username: username.(string), Logged: true, NeedModifyPWD: need_modify_pwd.(bool)}
+		authUser := &models.AuthUser{UserID: userID.(int64), Username: username.(string), Logged: true, NeedModifyPWD: need_modify_pwd.(bool)}
 		return authUser, nil
 	}
 	return nil, nil
@@ -52,14 +52,14 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{})
 	obj := param["object"].(map[string]interface{})
 	username := obj["username"].(string)
 	password := obj["passwd"].(string)
-	user_id, hashpwd, salt, need_modify_pwd := data.DAL.SelectHashPwdAndSalt(username)
+	userID, hashpwd, salt, need_modify_pwd := data.DAL.SelectHashPwdAndSalt(username)
 
 	tmp_hashpwd := data.SHA256Hash(password + salt)
 	//fmt.Printf("Login password=%s salt=%s hashpwd=%s tmp_hashpwd=%s", password, salt, hashpwd, tmp_hashpwd)
 	if tmp_hashpwd == hashpwd {
 		session, _ := store.Get(r, "sessionid")
 		session.Values["username"] = username
-		session.Values["user_id"] = user_id
+		session.Values["user_id"] = userID
 		session.Values["need_modify_pwd"] = need_modify_pwd
 		session.Save(r, w)
 		authUser := &models.AuthUser{Username: username, Logged: true, NeedModifyPWD: need_modify_pwd}
@@ -79,45 +79,45 @@ func Logout(w http.ResponseWriter, r *http.Request) error {
 }
 
 func GetAppUsers() ([]*models.AppUser, error) {
-	var app_users []*models.AppUser
+	var appUsers []*models.AppUser
 	query_users := data.DAL.SelectAppUsers()
 	for _, query_user := range query_users {
-		app_user := new(models.AppUser)
-		app_user.ID = query_user.ID
-		app_user.Username = query_user.Username
+		appUser := new(models.AppUser)
+		appUser.ID = query_user.ID
+		appUser.Username = query_user.Username
 		if query_user.Email.Valid {
-			app_user.Email = query_user.Email.String
+			appUser.Email = query_user.Email.String
 		} else {
-			app_user.Email = ""
+			appUser.Email = ""
 		}
-		app_user.IsSuperAdmin = query_user.IsSuperAdmin
-		app_user.IsCertAdmin = query_user.IsCertAdmin
-		app_user.IsAppAdmin = query_user.IsAppAdmin
-		app_users = append(app_users, app_user)
+		appUser.IsSuperAdmin = query_user.IsSuperAdmin
+		appUser.IsCertAdmin = query_user.IsCertAdmin
+		appUser.IsAppAdmin = query_user.IsAppAdmin
+		appUsers = append(appUsers, appUser)
 	}
-	return app_users, nil
+	return appUsers, nil
 }
 
 func GetAdmin(param map[string]interface{}) (*models.AppUser, error) {
-	var user_id = int64(param["id"].(float64))
-	return GetAppUserByID(user_id)
+	var userID = int64(param["id"].(float64))
+	return GetAppUserByID(userID)
 }
 
-func GetAppUserByID(user_id int64) (*models.AppUser, error) {
-	if user_id > 0 {
-		app_user := new(models.AppUser)
-		app_user.ID = user_id
-		query_user := data.DAL.SelectAppUserByID(user_id)
-		app_user.Username = query_user.Username
+func GetAppUserByID(userID int64) (*models.AppUser, error) {
+	if userID > 0 {
+		appUser := new(models.AppUser)
+		appUser.ID = userID
+		query_user := data.DAL.SelectAppUserByID(userID)
+		appUser.Username = query_user.Username
 		if query_user.Email.Valid {
-			app_user.Email = query_user.Email.String
+			appUser.Email = query_user.Email.String
 		} else {
-			app_user.Email = ""
+			appUser.Email = ""
 		}
-		app_user.IsSuperAdmin = query_user.IsSuperAdmin
-		app_user.IsCertAdmin = query_user.IsCertAdmin
-		app_user.IsAppAdmin = query_user.IsAppAdmin
-		return app_user, nil
+		appUser.IsSuperAdmin = query_user.IsSuperAdmin
+		appUser.IsCertAdmin = query_user.IsCertAdmin
+		appUser.IsAppAdmin = query_user.IsAppAdmin
+		return appUser, nil
 	} else {
 		return nil, errors.New("id error")
 	}
@@ -125,7 +125,7 @@ func GetAppUserByID(user_id int64) (*models.AppUser, error) {
 
 func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interface{}) (*models.AppUser, error) {
 	var user = param["object"].(map[string]interface{})
-	var user_id = int64(user["id"].(float64))
+	var userID = int64(user["id"].(float64))
 	var username = user["username"].(string)
 	var password string
 	if user["password"] == nil {
@@ -138,23 +138,23 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 		email = user["email"].(string)
 	}
 
-	var is_super_admin = user["is_super_admin"].(bool)
-	var is_cert_admin = user["is_cert_admin"].(bool)
-	var is_app_admin = user["is_app_admin"].(bool)
+	var isSuperAdmin = user["is_super_admin"].(bool)
+	var isCertAdmin = user["is_cert_admin"].(bool)
+	var isAppAdmin = user["is_app_admin"].(bool)
 	salt := data.GetRandomSaltString()
 	hashpwd := data.SHA256Hash(password + salt)
-	app_user := new(models.AppUser)
-	if user_id == 0 {
+	appUser := new(models.AppUser)
+	if userID == 0 {
 		// new user
-		new_id, err := data.DAL.InsertIfNotExistsAppUser(username, hashpwd, salt, email, is_super_admin, is_cert_admin, is_app_admin, true)
+		newID, err := data.DAL.InsertIfNotExistsAppUser(username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, true)
 		if err != nil {
 			return nil, err
 		}
-		app_user.ID = new_id
+		appUser.ID = newID
 	} else {
 		// update existed user
 		if len(password) > 0 {
-			err := data.DAL.UpdateAppUserWithPwd(username, hashpwd, salt, email, is_super_admin, is_cert_admin, is_app_admin, false, user_id)
+			err := data.DAL.UpdateAppUserWithPwd(username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, false, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -163,22 +163,22 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 			session.Save(r, w)
 
 		} else {
-			err := data.DAL.UpdateAppUserNoPwd(username, email, is_super_admin, is_cert_admin, is_app_admin, user_id)
+			err := data.DAL.UpdateAppUserNoPwd(username, email, isSuperAdmin, isCertAdmin, isAppAdmin, userID)
 			if err != nil {
 				return nil, err
 			}
 		}
-		app_user.ID = user_id
+		appUser.ID = userID
 	}
-	app_user.Username = username
-	app_user.Email = email
-	app_user.IsSuperAdmin = is_super_admin
-	app_user.IsCertAdmin = is_cert_admin
-	app_user.IsAppAdmin = is_app_admin
-	return app_user, nil
+	appUser.Username = username
+	appUser.Email = email
+	appUser.IsSuperAdmin = isSuperAdmin
+	appUser.IsCertAdmin = isCertAdmin
+	appUser.IsAppAdmin = isAppAdmin
+	return appUser, nil
 }
 
-func DeleteUser(user_id int64) error {
-	err := data.DAL.DeleteAppUser(user_id)
+func DeleteUser(userID int64) error {
+	err := data.DAL.DeleteAppUser(userID)
 	return err
 }

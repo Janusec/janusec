@@ -24,13 +24,13 @@ func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
 	rows, err := dal.db.Query(sqlSelectAllNodes)
 	utils.CheckError("SelectAllNodes", err)
 	defer rows.Close()
-	var db_nodes []*models.DBNode
+	var dbNodes []*models.DBNode
 	for rows.Next() {
-		db_node := new(models.DBNode)
-		err = rows.Scan(&db_node.ID, &db_node.EncryptedKey, &db_node.Name, &db_node.Version, &db_node.LastIP, &db_node.LastRequestTime)
-		db_nodes = append(db_nodes, db_node)
+		dbNode := new(models.DBNode)
+		err = rows.Scan(&dbNode.ID, &dbNode.EncryptedKey, &dbNode.Name, &dbNode.Version, &dbNode.LastIP, &dbNode.LastRequestTime)
+		dbNodes = append(dbNodes, dbNode)
 	}
-	return db_nodes
+	return dbNodes
 }
 
 func (dal *MyDAL) CreateTableIfNotExistsNodes() error {
@@ -38,16 +38,16 @@ func (dal *MyDAL) CreateTableIfNotExistsNodes() error {
 	return err
 }
 
-func (dal *MyDAL) InsertNode(hex_key string, name string, version string, last_ip string, last_req_time int64) (new_id int64) {
-	err := dal.db.QueryRow(sqlInsertNode, hex_key, name, version, last_ip, last_req_time).Scan(&new_id)
+func (dal *MyDAL) InsertNode(hexKey string, name string, version string, lastIP string, lastReqTime int64) (newID int64) {
+	err := dal.db.QueryRow(sqlInsertNode, hexKey, name, version, lastIP, lastReqTime).Scan(&newID)
 	utils.CheckError("InsertNode", err)
-	return new_id
+	return newID
 }
 
-func (dal *MyDAL) UpdateNodeLastInfo(version string, last_ip string, last_req_time int64, id int64) error {
+func (dal *MyDAL) UpdateNodeLastInfo(version string, lastIP string, lastReqTime int64, id int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateNodeLastInfo)
 	defer stmt.Close()
-	_, err = stmt.Exec(version, last_ip, last_req_time, id)
+	_, err = stmt.Exec(version, lastIP, lastReqTime, id)
 	utils.CheckError("UpdateNodeLastInfo", err)
 	return err
 }

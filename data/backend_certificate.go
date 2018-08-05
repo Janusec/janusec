@@ -32,41 +32,41 @@ func (dal *MyDAL) SelectCertificates() []*models.DBCertItem {
 	rows, err := dal.db.Query(sqlSelectCertificates)
 	utils.CheckError("SelectCertificates", err)
 	defer rows.Close()
-	var db_certs []*models.DBCertItem
+	var dbCerts []*models.DBCertItem
 	for rows.Next() {
-		db_cert := new(models.DBCertItem)
-		err = rows.Scan(&db_cert.ID, &db_cert.CommonName,
-			&db_cert.CertContent, &db_cert.EncryptedPrivKey,
-			&db_cert.ExpireTime, &db_cert.Description)
-		db_certs = append(db_certs, db_cert)
+		dbCert := new(models.DBCertItem)
+		err = rows.Scan(&dbCert.ID, &dbCert.CommonName,
+			&dbCert.CertContent, &dbCert.EncryptedPrivKey,
+			&dbCert.ExpireTime, &dbCert.Description)
+		dbCerts = append(dbCerts, dbCert)
 	}
-	return db_certs
+	return dbCerts
 }
 
-func (dal *MyDAL) InsertCertificate(common_name string, cert_content string, encrypted_priv_key []byte, expire_time int64, description string) (new_id int64) {
-	err := dal.db.QueryRow(sqlInsertCertificate, common_name, cert_content, encrypted_priv_key, expire_time, description).Scan(&new_id)
+func (dal *MyDAL) InsertCertificate(commonName string, certContent string, encryptedPrivKey []byte, expireTime int64, description string) (new_id int64) {
+	err := dal.db.QueryRow(sqlInsertCertificate, commonName, certContent, encryptedPrivKey, expireTime, description).Scan(&new_id)
 	utils.CheckError("InsertCertificate", err)
 	return new_id
 }
 
-func (dal *MyDAL) UpdateCertificate(common_name string, cert_content string, encrypted_priv_key []byte, expire_time int64, description string, id int64) error {
+func (dal *MyDAL) UpdateCertificate(commonName string, certContent string, encryptedPrivKey []byte, expireTime int64, description string, id int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCertificate)
 	defer stmt.Close()
-	_, err = stmt.Exec(common_name, cert_content, encrypted_priv_key, expire_time, description, id)
+	_, err = stmt.Exec(commonName, certContent, encryptedPrivKey, expireTime, description, id)
 	utils.CheckError("UpdateCertificate", err)
 	return err
 }
 
-func (dal *MyDAL) DeleteCertificate(cert_id int64) error {
+func (dal *MyDAL) DeleteCertificate(certID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteCertificate)
 	defer stmt.Close()
-	_, err = stmt.Exec(cert_id)
+	_, err = stmt.Exec(certID)
 	utils.CheckError("DeleteCertificate", err)
 	return err
 }
 
-func GetCertificateExpiryTime(cert_pem string) int64 {
-	block, _ := pem.Decode([]byte(cert_pem))
+func GetCertificateExpiryTime(certPem string) int64 {
+	block, _ := pem.Decode([]byte(certPem))
 	if block == nil {
 		//fmt.Println("GetCertificateExpiryTime: failed to parse certificate PEM")
 		return 0

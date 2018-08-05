@@ -29,8 +29,8 @@ func SelectDestination(app *models.Application) string {
 		dest = app.Destinations[0]
 	} else if destLen > 1 {
 		ns := time.Now().Nanosecond()
-		dest_index := ns % len(app.Destinations)
-		dest = app.Destinations[dest_index]
+		destIndex := ns % len(app.Destinations)
+		dest = app.Destinations[destIndex]
 	}
 	utils.DebugPrintln("SelectDestination", dest)
 	return dest.Destination

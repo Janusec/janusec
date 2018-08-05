@@ -19,29 +19,29 @@ import (
 
 func NewConfig(filename string) (*models.Config, error) {
 	config := new(models.Config)
-	config_bytes, err := ioutil.ReadFile(filename)
+	configBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	json.Unmarshal(config_bytes, config)
+	json.Unmarshal(configBytes, config)
 	if strings.ToLower(config.NodeRole) == "master" {
-		db_password := config.MasterNode.Database.Password
-		if len(db_password) <= 32 {
+		dbPassword := config.MasterNode.Database.Password
+		if len(dbPassword) <= 32 {
 			// Encrypt password
-			encrypted_password_bytes := AES256Encrypt([]byte(db_password), true)
-			encrypted_password := hex.EncodeToString(encrypted_password_bytes)
-			encrypted_config := models.EncryptedConfig(*config)
-			encrypted_config.MasterNode.Database.Password = encrypted_password
-			encrypted_config_bytes, _ := json.MarshalIndent(encrypted_config, "", "\t")
-			err = ioutil.WriteFile(filename, encrypted_config_bytes, 0644)
+			encryptedPasswordBytes := AES256Encrypt([]byte(dbPassword), true)
+			encryptedPassword := hex.EncodeToString(encryptedPasswordBytes)
+			encryptedConfig := models.EncryptedConfig(*config)
+			encryptedConfig.MasterNode.Database.Password = encryptedPassword
+			encryptedConfigBytes, _ := json.MarshalIndent(encryptedConfig, "", "\t")
+			err = ioutil.WriteFile(filename, encryptedConfigBytes, 0644)
 		} else {
 			// Decrypt password
-			encrypted_password, err := hex.DecodeString(db_password)
+			encryptedPassword, err := hex.DecodeString(dbPassword)
 			if err != nil {
 				return nil, err
 			}
-			password_bytes, _ := AES256Decrypt(encrypted_password, true)
-			config.MasterNode.Database.Password = string(password_bytes)
+			passwordBytes, _ := AES256Decrypt(encryptedPassword, true)
+			config.MasterNode.Database.Password = string(passwordBytes)
 		}
 	}
 	//fmt.Println("NewConfig config.Database.Password=",config.Database.Password)

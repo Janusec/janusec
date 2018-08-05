@@ -27,29 +27,29 @@ func (dal *MyDAL) CreateTableIfNotExistCheckItems() error {
 	return err
 }
 
-func (dal *MyDAL) InsertCheckItem(check_point models.ChkPoint, operation models.Operation, key_name string, regex_policy string, group_policy_id int64) (new_id int64, err error) {
+func (dal *MyDAL) InsertCheckItem(checkPoint models.ChkPoint, operation models.Operation, keyName string, regexPolicy string, groupPolicyID int64) (newID int64, err error) {
 	stmt, err := dal.db.Prepare(sqlInsertCheckItem)
 	utils.CheckError("sqlInsertCheckItem Prepare", err)
 	defer stmt.Close()
-	err = stmt.QueryRow(check_point, operation, key_name, regex_policy, group_policy_id).Scan(&new_id)
+	err = stmt.QueryRow(checkPoint, operation, keyName, regexPolicy, groupPolicyID).Scan(&newID)
 	utils.CheckError("sqlInsertCheckItem Scan", err)
-	return new_id, err
+	return newID, err
 }
 
-func (dal *MyDAL) SelectCheckItemsByGroupID(group_policy_id int64) (check_items []*models.CheckItem, err error) {
-	rows, err := dal.db.Query(sqlSelectCheckItemsByGroupID, group_policy_id)
+func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) (checkItems []*models.CheckItem, err error) {
+	rows, err := dal.db.Query(sqlSelectCheckItemsByGroupID, groupPolicyID)
 	utils.CheckError("SelectCheckItemsByGroupID", err)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		check_item := new(models.CheckItem)
-		err = rows.Scan(&check_item.ID, &check_item.CheckPoint, &check_item.Operation, &check_item.KeyName, &check_item.RegexPolicy)
+		checkItem := new(models.CheckItem)
+		err = rows.Scan(&checkItem.ID, &checkItem.CheckPoint, &checkItem.Operation, &checkItem.KeyName, &checkItem.RegexPolicy)
 		utils.CheckError("SelectCheckItemsByGroupID Scan", err)
-		check_items = append(check_items, check_item)
+		checkItems = append(checkItems, checkItem)
 	}
-	return check_items, nil
+	return checkItems, nil
 }
 
 func (dal *MyDAL) DeleteCheckItemByID(id int64) error {
@@ -66,11 +66,11 @@ func (dal *MyDAL) DeleteCheckItemsByGroupID(group_policy_id int64) error {
 }
 */
 
-func (dal *MyDAL) UpdateCheckItemByID(check_point models.ChkPoint, operation models.Operation, key_name string, regex_policy string, group_policy_id int64, check_item_id int64) error {
+func (dal *MyDAL) UpdateCheckItemByID(checkPoint models.ChkPoint, operation models.Operation, keyName string, regexPolicy string, groupPolicyID int64, checkItemID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCheckItemByID)
 	utils.CheckError("UpdateCheckItemByID Prepare", err)
 	defer stmt.Close()
-	_, err = stmt.Exec(check_point, operation, key_name, regex_policy, group_policy_id, check_item_id)
+	_, err = stmt.Exec(checkPoint, operation, keyName, regexPolicy, groupPolicyID, checkItemID)
 	utils.CheckError("UpdateCheckItemByID Exec", err)
 	return err
 }

@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	captcha_hit_info sync.Map // (client_id string, *HitInfo)
-	formTemplate     = template.Must(template.New("captcha").Parse(formTemplateSrc))
+	captchaHitInfo sync.Map // (clientID string, *HitInfo)
+	formTemplate   = template.Must(template.New("captcha").Parse(formTemplateSrc))
 )
 
 const (
@@ -30,25 +30,25 @@ const (
 func ShowCaptchaHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	go ClearExpiredCapthchaHitInfo()
 	id := r.FormValue("id")
-	captcha_context := models.CaptchaContext{CaptchaId: captcha.New(), ClientID: id}
-	if err := formTemplate.Execute(w, &captcha_context); err != nil {
+	captchaContext := models.CaptchaContext{CaptchaId: captcha.New(), ClientID: id}
+	if err := formTemplate.Execute(w, &captchaContext); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func ValidateCaptchaHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	client_id := r.FormValue("client_id")
+	clientID := r.FormValue("client_id")
 	if !captcha.VerifyString(r.FormValue("captcha_id"), r.FormValue("captcha_solution")) {
-		captcha_url := CaptchaEntrance + "?id=" + client_id
-		http.Redirect(w, r, captcha_url, http.StatusTemporaryRedirect)
+		captchaUrl := CaptchaEntrance + "?id=" + clientID
+		http.Redirect(w, r, captchaUrl, http.StatusTemporaryRedirect)
 	} else {
-		if map_hit_info, ok := captcha_hit_info.Load(client_id); ok {
-			hit_info := map_hit_info.(*models.HitInfo)
-			captcha_hit_info.Delete(client_id)
-			if hit_info.TypeID == 1 {
-				firewall.ClearCCStatByClientID(hit_info.PolicyID, client_id)
-				http.Redirect(w, r, hit_info.TargetURL, http.StatusMovedPermanently)
+		if mapHitInfo, ok := captchaHitInfo.Load(clientID); ok {
+			hitInfo := mapHitInfo.(*models.HitInfo)
+			captchaHitInfo.Delete(clientID)
+			if hitInfo.TypeID == 1 {
+				firewall.ClearCCStatByClientID(hitInfo.PolicyID, clientID)
+				http.Redirect(w, r, hitInfo.TargetURL, http.StatusMovedPermanently)
 			} else {
 				http.Redirect(w, r, "/", http.StatusMovedPermanently)
 			}
@@ -63,12 +63,12 @@ func ShowCaptchaImage() http.Handler {
 }
 
 func ClearExpiredCapthchaHitInfo() {
-	captcha_hit_info.Range(func(key, value interface{}) bool {
-		client_id := key.(string)
-		hit_info := value.(*models.HitInfo)
-		cur_time := time.Now().Unix()
-		if cur_time-hit_info.BlockTime > 600 {
-			captcha_hit_info.Delete(client_id)
+	captchaHitInfo.Range(func(key, value interface{}) bool {
+		clientID := key.(string)
+		hitInfo := value.(*models.HitInfo)
+		curTime := time.Now().Unix()
+		if curTime-hitInfo.BlockTime > 600 {
+			captchaHitInfo.Delete(clientID)
 		}
 		return true
 	})

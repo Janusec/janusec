@@ -32,70 +32,70 @@ func (dal *MyDAL) CreateTableIfNotExistsAppUsers() error {
 }
 
 func (dal *MyDAL) IsExistsAppUser(username string) bool {
-	var exist_admin int
-	dal.db.QueryRow(sqlIsExistUser, username).Scan(&exist_admin)
-	if exist_admin == 0 {
+	var existAdmin int
+	dal.db.QueryRow(sqlIsExistUser, username).Scan(&existAdmin)
+	if existAdmin == 0 {
 		return false
 	} else {
 		return true
 	}
 }
 
-func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt string, email string, is_super_admin, is_cert_admin, is_app_admin bool, need_modify_pwd bool) (new_id int64, err error) {
+func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, needModifyPwd bool) (newID int64, err error) {
 	if dal.IsExistsAppUser(username) == true {
 		return 0, errors.New("Error: Username exists.")
 	}
-	err = dal.db.QueryRow(sqlInsertAppUser, username, hashpwd, salt, email, is_super_admin, is_cert_admin, is_app_admin, need_modify_pwd).Scan(&new_id)
-	return new_id, err
+	err = dal.db.QueryRow(sqlInsertAppUser, username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd).Scan(&newID)
+	return newID, err
 }
 
-func (dal *MyDAL) SelectHashPwdAndSalt(username string) (user_id int64, hashpwd string, salt string, need_modify_pwd bool) {
-	err := dal.db.QueryRow(sqlSelectHashPwdAndSalt, username).Scan(&user_id, &hashpwd, &salt, &need_modify_pwd)
+func (dal *MyDAL) SelectHashPwdAndSalt(username string) (userID int64, hashpwd string, salt string, needModifyPwd bool) {
+	err := dal.db.QueryRow(sqlSelectHashPwdAndSalt, username).Scan(&userID, &hashpwd, &salt, &needModifyPwd)
 	utils.CheckError("SelectHashPwdAndSalt", err)
-	return user_id, hashpwd, salt, need_modify_pwd
+	return userID, hashpwd, salt, needModifyPwd
 }
 
 func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
 	rows, err := dal.db.Query(sqlSelectAppUsers)
 	utils.CheckError("SelectAppUsers", err)
 	defer rows.Close()
-	var query_users []*models.QueryAppUser
+	var queryUsers []*models.QueryAppUser
 	for rows.Next() {
-		query_user := new(models.QueryAppUser)
-		err = rows.Scan(&query_user.ID, &query_user.Username, &query_user.Email, &query_user.IsSuperAdmin, &query_user.IsCertAdmin, &query_user.IsAppAdmin)
-		query_users = append(query_users, query_user)
+		queryUser := new(models.QueryAppUser)
+		err = rows.Scan(&queryUser.ID, &queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin)
+		queryUsers = append(queryUsers, queryUser)
 	}
-	return query_users
+	return queryUsers
 }
 
-func (dal *MyDAL) SelectAppUserByID(user_id int64) *models.QueryAppUser {
-	query_user := new(models.QueryAppUser)
-	query_user.ID = user_id
-	err := dal.db.QueryRow(sqlSelectAppUserByID, user_id).Scan(&query_user.Username, &query_user.Email, &query_user.IsSuperAdmin, &query_user.IsCertAdmin, &query_user.IsAppAdmin)
+func (dal *MyDAL) SelectAppUserByID(userID int64) *models.QueryAppUser {
+	queryUser := new(models.QueryAppUser)
+	queryUser.ID = userID
+	err := dal.db.QueryRow(sqlSelectAppUserByID, userID).Scan(&queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin)
 	utils.CheckError("SelectAppUserByID", err)
-	return query_user
+	return queryUser
 }
 
-func (dal *MyDAL) UpdateAppUserWithPwd(username string, hashpwd string, salt string, email string, is_super_admin, is_cert_admin, is_app_admin bool, need_modify_pwd bool, user_id int64) error {
+func (dal *MyDAL) UpdateAppUserWithPwd(username string, hashpwd string, salt string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, needModifyPwd bool, userID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateAppUserWithPwd)
 	defer stmt.Close()
-	_, err = stmt.Exec(username, hashpwd, salt, email, is_super_admin, is_cert_admin, is_app_admin, need_modify_pwd, user_id)
+	_, err = stmt.Exec(username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd, userID)
 	utils.CheckError("UpdateAppUserWithPwd", err)
 	return err
 }
 
-func (dal *MyDAL) UpdateAppUserNoPwd(username string, email string, is_super_admin, is_cert_admin, is_app_admin bool, user_id int64) error {
+func (dal *MyDAL) UpdateAppUserNoPwd(username string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, userID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateAppUserNoPwd)
 	defer stmt.Close()
-	_, err = stmt.Exec(username, email, is_super_admin, is_cert_admin, is_app_admin, user_id)
+	_, err = stmt.Exec(username, email, isSuperAdmin, isCertAdmin, isAppAdmin, userID)
 	utils.CheckError("UpdateAppUserNoPwd", err)
 	return err
 }
 
-func (dal *MyDAL) DeleteAppUser(user_id int64) error {
+func (dal *MyDAL) DeleteAppUser(userID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteAppUser)
 	defer stmt.Close()
-	_, err = stmt.Exec(user_id)
+	_, err = stmt.Exec(userID)
 	utils.CheckError("DeleteAppUser", err)
 	return err
 }

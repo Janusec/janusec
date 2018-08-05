@@ -16,34 +16,34 @@ import (
 )
 
 var (
-	update_ticker *time.Ticker
+	updateTicker *time.Ticker
 )
 
 func UpdateTimeTick() {
-	update_ticker = time.NewTicker(data.Sync_Seconds * time.Second)
-	for range update_ticker.C {
+	updateTicker = time.NewTicker(data.Sync_Seconds * time.Second)
+	for range updateTicker.C {
 		//fmt.Println("UpdateTimeTick:", time.Now())
-		setting_items := data.RPCGetSettings()
-		for _, setting_item := range setting_items {
-			switch setting_item.Name {
+		settingItems := data.RPCGetSettings()
+		for _, settingItem := range settingItems {
+			switch settingItem.Name {
 			case "Backend_Last_Modified":
-				new_backend_last_modified := int64(setting_item.Value.(float64))
-				if data.Backend_Last_Modified < new_backend_last_modified {
-					data.Backend_Last_Modified = new_backend_last_modified
+				newBackendLastModified := int64(settingItem.Value.(float64))
+				if data.Backend_Last_Modified < newBackendLastModified {
+					data.Backend_Last_Modified = newBackendLastModified
 					go backend.LoadAppConfiguration()
 				}
 			case "Firewall_Last_Modified":
-				new_firewall_last_modified := int64(setting_item.Value.(float64))
-				if data.Firewall_Last_Modified < new_firewall_last_modified {
-					data.Firewall_Last_Modified = new_firewall_last_modified
+				newFirewallLastModified := int64(settingItem.Value.(float64))
+				if data.Firewall_Last_Modified < newFirewallLastModified {
+					data.Firewall_Last_Modified = newFirewallLastModified
 					go firewall.InitFirewall()
 				}
 			case "Sync_Seconds":
-				new_sync_seconds := time.Duration(setting_item.Value.(float64))
-				if data.Sync_Seconds != new_sync_seconds {
-					data.Sync_Seconds = new_sync_seconds
-					update_ticker.Stop()
-					update_ticker = time.NewTicker(data.Sync_Seconds * time.Second)
+				newSyncSeconds := time.Duration(settingItem.Value.(float64))
+				if data.Sync_Seconds != newSyncSeconds {
+					data.Sync_Seconds = newSyncSeconds
+					updateTicker.Stop()
+					updateTicker = time.NewTicker(data.Sync_Seconds * time.Second)
 				}
 			}
 		}
