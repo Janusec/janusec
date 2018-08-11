@@ -26,7 +26,7 @@ var (
 	DAL      *MyDAL
 	CFG      *models.Config
 	IsMaster bool
-	Version  string = "0.9.3"
+	Version  string = "0.9.4"
 	NodeKey  []byte
 )
 

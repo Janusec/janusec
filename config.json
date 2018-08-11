@@ -1,5 +1,4 @@
 {
-	"node_id": 0,
 	"node_role": "master",
 	"master_node": {
 		"admin_http_listen": ":9080",

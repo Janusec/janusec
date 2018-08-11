@@ -8,7 +8,7 @@
 package models
 
 type Config struct {
-	NodeID     int64            `json:"node_id"`
+	//NodeID     int64            `json:"node_id"`
 	NodeRole   string           `json:"node_role"`
 	MasterNode MasterNodeConfig `json:"master_node"`
 	SlaveNode  SlaveNodeConfig  `json:"slave_node"`
@@ -34,7 +34,7 @@ type DBConfig struct {
 }
 
 type EncryptedConfig struct {
-	NodeID     int64            `json:"node_id"`
+	//NodeID     int64            `json:"node_id"`
 	NodeRole   string           `json:"node_role"`
 	MasterNode MasterNodeConfig `json:"master_node"`
 	SlaveNode  SlaveNodeConfig  `json:"slave_node"`

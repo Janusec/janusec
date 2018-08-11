@@ -16,6 +16,7 @@ import (
 
 func InitDefaultSettings() {
 	data.DAL.LoadInstanceKey()
+	data.DAL.LoadNodesKey()
 	if data.DAL.ExistsSetting("Backend_Last_Modified") == false {
 		data.DAL.SaveIntSetting("Backend_Last_Modified", 0)
 	}

@@ -40,6 +40,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	go func() {
+		// for pprof performance monitor
 		http.ListenAndServe("0.0.0.0:9088", nil)
 	}()
 
@@ -48,7 +49,7 @@ func main() {
 	data.InitDAL()
 	if data.IsMaster {
 		backend.InitDatabase()
-		settings.InitDefaultSettings() // instance_key
+		settings.InitDefaultSettings() // instanceKey & nodesKey
 	}
 	backend.LoadAppConfiguration()
 	firewall.InitFirewall()
