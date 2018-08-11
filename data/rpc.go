@@ -23,13 +23,13 @@ func GenAuthKey() string {
 	nodeAuth := models.NodeAuth{CurTime: time.Now().Unix()}
 	nodeAuthBytes, err := json.Marshal(nodeAuth)
 	utils.CheckError("GenAuthKey", err)
-	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, NodeKey)
+	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, RootKey)
 	return hex.EncodeToString(encryptedAuthBytes)
 }
 
 func GetResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	rpcReq.ObjectID = 0
-	rpcReq.NodeID = CFG.NodeID
+	//rpcReq.NodeID = CFG.NodeID
 	rpcReq.NodeVersion = Version
 	rpcReq.AuthKey = GenAuthKey()
 	bytesData, err := json.Marshal(rpcReq)

@@ -40,6 +40,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	go func() {
+		// for pprof performance monitor
 		http.ListenAndServe("0.0.0.0:9088", nil)
 	}()
 

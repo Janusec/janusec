@@ -1,5 +1,4 @@
 {
-	"node_id": 1,
 	"node_role": "slave",
 	"master_node": {
 		"admin_http_listen": "",

@@ -17,8 +17,14 @@ const (
 	sqlCreateTableIfNotExistsNodes = `CREATE TABLE IF NOT EXISTS nodes(id bigserial PRIMARY KEY,version varchar(128),last_ip varchar(128),last_req_time bigint)`
 	sqlInsertNode                  = `INSERT INTO nodes(version,last_ip,last_req_time) VALUES($1,$2,$3) RETURNING id`
 	sqlUpdateNodeLastInfo          = `UPDATE nodes SET version=$1,last_ip=$2,last_req_time=$3 WHERE id=$4`
+	sqlDeleteNodeByID              = `DELETE FROM nodes WHERE id=$1`
 	//sqlUpdateNodeName              = `UPDATE nodes SET name=$1 WHERE id=$2`
 )
+
+func (dal *MyDAL) DeleteNodeByID(id int64) error {
+	_, err := dal.db.Exec(sqlDeleteNodeByID, id)
+	return err
+}
 
 func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
 	rows, err := dal.db.Query(sqlSelectAllNodes)

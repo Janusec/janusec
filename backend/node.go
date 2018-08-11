@@ -11,7 +11,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"net"
 	"net/http"
@@ -49,18 +48,37 @@ func GetDBNodeByID(id int64) (*models.DBNode, error) {
 	return nil, errors.New("Not found.")
 }
 
-func GetNodeByIP(ip string) *models.Node {
+func GetNodeByIP(ip string, nodeVersion string) *models.Node {
 	if node, ok := nodesMap.Load(ip); ok {
 		return node.(*models.Node)
 	} else {
-		return nil
+		curTime := time.Now().Unix()
+		newID := data.DAL.InsertNode(nodeVersion, ip, curTime)
+		node := &models.Node{ID: newID, Version: nodeVersion, LastIP: ip, LastRequestTime: curTime}
+		dbNode := &models.DBNode{ID: newID, Version: nodeVersion, LastIP: ip, LastRequestTime: curTime}
+		nodesMap.Store(ip, node)
+		dbNodes = append(dbNodes, dbNode)
+		return node
 	}
 }
 
+func GetDBNodeIndex(nodeID int64) int {
+	for i := 0; i < len(dbNodes); i++ {
+		if dbNodes[i].ID == nodeID {
+			return i
+		}
+	}
+	return -1
+}
+
 func DeleteNodeByID(id int64) error {
-	fmt.Println("ToDo DeleteNodeByID")
-	//nodesMap.Delete()
-	return nil
+	dbNode, err := GetDBNodeByID(id)
+	nodesMap.Delete(dbNode.LastIP)
+	utils.CheckError("DeleteNodeByID", err)
+	err = data.DAL.DeleteNodeByID(id)
+	i := GetDBNodeIndex(id)
+	dbNodes = append(dbNodes[:i], dbNodes[i+1:]...)
+	return err
 }
 
 /*
@@ -96,9 +114,8 @@ func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 	if err != nil {
 		return false
 	}
-	srcIP, _, _ := net.SplitHostPort(r.RemoteAddr)
-	node := GetNodeByIP(srcIP)
-	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, data.NodesKey)
+	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, data.RootKey)
+	//decryptedAuthBytes, err := data.AES256Decrypt(authBytes, true)
 	utils.CheckError("IsValidAuthKey DecryptWithKey", err)
 	if err != nil {
 		return false
@@ -112,8 +129,9 @@ func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 	if secondsDiff > 180.0 {
 		return false
 	}
-
+	srcIP, _, _ := net.SplitHostPort(r.RemoteAddr)
 	nodeVersion := param["node_version"].(string)
+	node := GetNodeByIP(srcIP, nodeVersion)
 	node.Version = nodeVersion
 	node.LastIP = srcIP
 	node.LastRequestTime = curTime

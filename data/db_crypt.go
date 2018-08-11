@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	rootKey, _           = hex.DecodeString("58309a83b94a93313a8de8f3ca815f709f4ea52066417b2ae592f2dbfd1c69ab")
+	RootKey, _           = hex.DecodeString("58309a83b94a93313a8de8f3ca815f709f4ea52066417b2ae592f2dbfd1c69ab")
 	instanceKey          []byte
 	NodesKey             []byte
 	HexEncryptedNodesKey string
@@ -86,7 +86,7 @@ func EncryptWithKey(plaintext []byte, key []byte) []byte {
 func AES256Encrypt(plaintext []byte, useRootkey bool) []byte {
 	key := instanceKey
 	if useRootkey == true {
-		key = rootKey
+		key = RootKey
 	}
 	ciphertext := EncryptWithKey(plaintext, key)
 	return ciphertext
@@ -117,7 +117,7 @@ func DecryptWithKey(ciphertext []byte, key []byte) ([]byte, error) {
 func AES256Decrypt(ciphertext []byte, useRootkey bool) ([]byte, error) {
 	key := instanceKey
 	if useRootkey == true {
-		key = rootKey
+		key = RootKey
 	}
 	plaintext, err := DecryptWithKey(ciphertext, key)
 	return plaintext, err
