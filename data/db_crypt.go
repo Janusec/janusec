@@ -16,12 +16,15 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/Janusec/janusec/models"
 	"github.com/Janusec/janusec/utils"
 )
 
 var (
-	rootKey, _  = hex.DecodeString("58309a83b94a93313a8de8f3ca815f709f4ea52066417b2ae592f2dbfd1c69ab")
-	instanceKey []byte
+	rootKey, _           = hex.DecodeString("58309a83b94a93313a8de8f3ca815f709f4ea52066417b2ae592f2dbfd1c69ab")
+	instanceKey          []byte
+	NodesKey             []byte
+	HexEncryptedNodesKey string
 )
 
 func (dal *MyDAL) LoadInstanceKey() {
@@ -37,6 +40,27 @@ func (dal *MyDAL) LoadInstanceKey() {
 		instanceKey, err = AES256Decrypt(decodeEncryptedKey, true)
 		utils.CheckError("LoadInstanceKey AES256Decrypt", err)
 	}
+}
+
+func (dal *MyDAL) LoadNodesKey() {
+	if dal.ExistsSetting("nodes_key") == false {
+		NodesKey = GenRandomAES256Key()
+		encryptedNodesKey := AES256Encrypt(NodesKey, true)
+		HexEncryptedNodesKey = hex.EncodeToString(encryptedNodesKey)
+		dal.SaveStringSetting("nodes_key", HexEncryptedNodesKey)
+	} else {
+		var err error
+		HexEncryptedNodesKey, err = dal.SelectStringSetting("nodes_key")
+		utils.CheckError("LoadNodesKey", err)
+		decodeEncryptedKey, _ := hex.DecodeString(HexEncryptedNodesKey)
+		NodesKey, err = AES256Decrypt(decodeEncryptedKey, true)
+		utils.CheckError("LoadNodesKey AES256Decrypt", err)
+	}
+}
+
+func GetHexEncryptedNodesKey() *models.NodesKey {
+	nodesKey := &models.NodesKey{HexEncryptedKey: HexEncryptedNodesKey}
+	return nodesKey
 }
 
 func GenRandomAES256Key() []byte {

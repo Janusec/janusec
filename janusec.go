@@ -48,7 +48,7 @@ func main() {
 	data.InitDAL()
 	if data.IsMaster {
 		backend.InitDatabase()
-		settings.InitDefaultSettings() // instance_key
+		settings.InitDefaultSettings() // instanceKey & nodesKey
 	}
 	backend.LoadAppConfiguration()
 	firewall.InitFirewall()

@@ -111,24 +111,6 @@ type QueryAppUser struct {
 	IsAppAdmin   bool
 }
 
-type Node struct {
-	ID              int64  `json:"id"`
-	Key             []byte `json:"-"`
-	Name            string `json:"name"`
-	Version         string `json:"version"`
-	LastIP          string `json:"last_ip"`
-	LastRequestTime int64  `json:"last_req_time"`
-}
-
-type DBNode struct {
-	ID              int64  `json:"id"`
-	EncryptedKey    string `json:"encrypted_key"`
-	Name            string `json:"name"`
-	Version         string `json:"version"`
-	LastIP          string `json:"last_ip"`
-	LastRequestTime int64  `json:"last_req_time"`
-}
-
 type Setting struct {
 	Name  string      `json:"name"`
 	Value interface{} `json:"value"`

@@ -17,6 +17,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/Janusec/janusec/backend"
+	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/firewall"
 	"github.com/Janusec/janusec/settings"
 	"github.com/Janusec/janusec/usermgmt"
@@ -60,13 +61,18 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	var obj interface{}
 	switch action {
+	case "getnodeskey":
+		obj = data.GetHexEncryptedNodesKey()
+		err = nil
 	case "getnodes":
 		obj, err = backend.GetNodes()
 	case "getnode":
 		id := int64(param["id"].(float64))
 		obj, err = backend.GetDBNodeByID(id)
-	case "updatenode":
-		obj, err = backend.UpdateNode(r, param)
+	case "delnode":
+		obj = nil
+		id := int64(param["id"].(float64))
+		err = backend.DeleteNodeByID(id)
 	case "getauthuser":
 		obj, err = usermgmt.GetAuthUser(w, r)
 	case "getapps":
@@ -77,6 +83,7 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "updateapp":
 		obj, err = backend.UpdateApplication(param)
 	case "delapp":
+		obj = nil
 		id := int64(param["id"].(float64))
 		err = backend.DeleteApplicationByID(id)
 	case "getcerts":

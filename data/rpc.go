@@ -20,7 +20,7 @@ import (
 )
 
 func GenAuthKey() string {
-	nodeAuth := models.NodeAuth{NodeID: CFG.NodeID, CurTime: time.Now().Unix()}
+	nodeAuth := models.NodeAuth{CurTime: time.Now().Unix()}
 	nodeAuthBytes, err := json.Marshal(nodeAuth)
 	utils.CheckError("GenAuthKey", err)
 	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, NodeKey)

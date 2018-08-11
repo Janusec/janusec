@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	sqlSelectAllNodes              = `SELECT id,key,name,version,last_ip,last_req_time FROM nodes`
-	sqlCreateTableIfNotExistsNodes = `CREATE TABLE IF NOT EXISTS nodes(id bigserial PRIMARY KEY,key varchar(256),name varchar(256),version varchar(128),last_ip varchar(128),last_req_time bigint)`
-	sqlInsertNode                  = `INSERT INTO nodes(key,name,version,last_ip,last_req_time) VALUES($1,$2,$3,$4,$5) RETURNING id`
+	sqlSelectAllNodes              = `SELECT id,version,last_ip,last_req_time FROM nodes`
+	sqlCreateTableIfNotExistsNodes = `CREATE TABLE IF NOT EXISTS nodes(id bigserial PRIMARY KEY,version varchar(128),last_ip varchar(128),last_req_time bigint)`
+	sqlInsertNode                  = `INSERT INTO nodes(version,last_ip,last_req_time) VALUES($1,$2,$3) RETURNING id`
 	sqlUpdateNodeLastInfo          = `UPDATE nodes SET version=$1,last_ip=$2,last_req_time=$3 WHERE id=$4`
-	sqlUpdateNodeName              = `UPDATE nodes SET name=$1 WHERE id=$2`
+	//sqlUpdateNodeName              = `UPDATE nodes SET name=$1 WHERE id=$2`
 )
 
 func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
@@ -27,7 +27,7 @@ func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
 	var dbNodes []*models.DBNode
 	for rows.Next() {
 		dbNode := new(models.DBNode)
-		err = rows.Scan(&dbNode.ID, &dbNode.EncryptedKey, &dbNode.Name, &dbNode.Version, &dbNode.LastIP, &dbNode.LastRequestTime)
+		err = rows.Scan(&dbNode.ID, &dbNode.Version, &dbNode.LastIP, &dbNode.LastRequestTime)
 		dbNodes = append(dbNodes, dbNode)
 	}
 	return dbNodes
@@ -38,8 +38,8 @@ func (dal *MyDAL) CreateTableIfNotExistsNodes() error {
 	return err
 }
 
-func (dal *MyDAL) InsertNode(hexKey string, name string, version string, lastIP string, lastReqTime int64) (newID int64) {
-	err := dal.db.QueryRow(sqlInsertNode, hexKey, name, version, lastIP, lastReqTime).Scan(&newID)
+func (dal *MyDAL) InsertNode(version string, lastIP string, lastReqTime int64) (newID int64) {
+	err := dal.db.QueryRow(sqlInsertNode, version, lastIP, lastReqTime).Scan(&newID)
 	utils.CheckError("InsertNode", err)
 	return newID
 }
@@ -52,6 +52,7 @@ func (dal *MyDAL) UpdateNodeLastInfo(version string, lastIP string, lastReqTime 
 	return err
 }
 
+/*
 func (dal *MyDAL) UpdateNodeName(name string, id int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateNodeName)
 	defer stmt.Close()
@@ -59,3 +60,4 @@ func (dal *MyDAL) UpdateNodeName(name string, id int64) error {
 	utils.CheckError("UpdateNodeName", err)
 	return err
 }
+*/

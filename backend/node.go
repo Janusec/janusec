@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"net"
 	"net/http"
@@ -24,15 +25,14 @@ import (
 
 var (
 	dbNodes  []*models.DBNode
-	nodesMap sync.Map //map[int64]*models.Node
+	nodesMap sync.Map //map[ip string]*models.Node
 )
 
 func LoadNodes() {
 	dbNodes = data.DAL.SelectAllNodes()
 	for _, dbNode := range dbNodes {
-		key := data.NodeHexKeyToCryptKey(dbNode.EncryptedKey)
-		node := &models.Node{ID: dbNode.ID, Key: key, Name: dbNode.Name, Version: dbNode.Version, LastIP: dbNode.LastIP, LastRequestTime: dbNode.LastRequestTime}
-		nodesMap.Store(node.ID, node)
+		node := &models.Node{ID: dbNode.ID, Version: dbNode.Version, LastIP: dbNode.LastIP, LastRequestTime: dbNode.LastRequestTime}
+		nodesMap.Store(node.LastIP, node)
 	}
 }
 
@@ -49,14 +49,21 @@ func GetDBNodeByID(id int64) (*models.DBNode, error) {
 	return nil, errors.New("Not found.")
 }
 
-func GetNodeByID(id int64) *models.Node {
-	if node, ok := nodesMap.Load(id); ok {
+func GetNodeByIP(ip string) *models.Node {
+	if node, ok := nodesMap.Load(ip); ok {
 		return node.(*models.Node)
 	} else {
 		return nil
 	}
 }
 
+func DeleteNodeByID(id int64) error {
+	fmt.Println("ToDo DeleteNodeByID")
+	//nodesMap.Delete()
+	return nil
+}
+
+/*
 func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBNode, err error) {
 	nodeInterface := param["object"].(map[string]interface{})
 	nodeID := int64(nodeInterface["id"].(float64))
@@ -66,10 +73,9 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 		hexKey := data.CryptKeyToNodeHexKey(keyBytes)
 		srcIP := "unknown"
 		nodeVersion := "unknown"
-		newID := data.DAL.InsertNode(hexKey, name, nodeVersion, srcIP, 0)
-		node := &models.Node{ID: newID, Key: keyBytes, Name: name, Version: nodeVersion, LastIP: srcIP, LastRequestTime: 0}
-		dbNode := &models.DBNode{ID: newID, EncryptedKey: hexKey, Name: name, Version: nodeVersion, LastIP: srcIP, LastRequestTime: 0}
-		//nodesMap[newID] = node
+		newID := data.DAL.InsertNode(nodeVersion, srcIP, 0)
+		node := &models.Node{ID: newID, Version: nodeVersion, LastIP: srcIP, LastRequestTime: 0}
+		dbNode := &models.DBNode{ID: newID, Version: nodeVersion, LastIP: srcIP, LastRequestTime: 0}
 		nodesMap.Store(newID, node)
 		dbNodes = append(dbNodes, dbNode)
 		return dbNode, nil
@@ -82,43 +88,40 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 		return dbNode, nil
 	}
 }
+*/
 
 func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
-	authKey := param["authKey"].(string)
+	authKey := param["auth_key"].(string)
 	authBytes, err := hex.DecodeString(authKey)
 	if err != nil {
 		return false
 	}
-	nodeID := int64(param["node_id"].(float64))
-	node := GetNodeByID(nodeID)
-	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, node.Key)
+	srcIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+	node := GetNodeByIP(srcIP)
+	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, data.NodesKey)
 	utils.CheckError("IsValidAuthKey DecryptWithKey", err)
 	if err != nil {
 		return false
 	}
-	// check id and timestamp
+	// check timestamp
 	nodeAuth := new(models.NodeAuth)
 	err = json.Unmarshal(decryptedAuthBytes, nodeAuth)
 	utils.CheckError("IsValidAuthKey Unmarshal", err)
-
-	if nodeAuth.NodeID != nodeID {
-		return false
-	}
 	curTime := time.Now().Unix()
 	secondsDiff := math.Abs(float64(curTime - nodeAuth.CurTime))
 	if secondsDiff > 180.0 {
 		return false
 	}
-	srcIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+
 	nodeVersion := param["node_version"].(string)
 	node.Version = nodeVersion
 	node.LastIP = srcIP
 	node.LastRequestTime = curTime
-	dbNode, err := GetDBNodeByID(nodeID)
+	dbNode, err := GetDBNodeByID(node.ID)
 	utils.CheckError("IsValidAuthKey GetDBNodeByID", err)
 	dbNode.Version = nodeVersion
 	dbNode.LastIP = srcIP
 	dbNode.LastRequestTime = curTime
-	data.DAL.UpdateNodeLastInfo(nodeVersion, srcIP, curTime, nodeID)
+	data.DAL.UpdateNodeLastInfo(nodeVersion, srcIP, curTime, node.ID)
 	return true
 }
