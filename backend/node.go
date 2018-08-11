@@ -84,7 +84,7 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 }
 
 func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
-	authKey := param["authKey"].(string)
+	authKey := param["auth_key"].(string)
 	authBytes, err := hex.DecodeString(authKey)
 	if err != nil {
 		return false
