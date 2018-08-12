@@ -27,6 +27,7 @@ func RoutineTick() {
 			//fmt.Println("RoutineTick", time.Now())
 			expiredTime := time.Now().Unix() - logExpireSeconds
 			data.DAL.DeleteHitLogsBeforeTime(expiredTime)
+			data.DAL.DeleteCCLogsBeforeTime(expiredTime)
 		}
 	}
 }
