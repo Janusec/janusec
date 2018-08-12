@@ -27,8 +27,8 @@ import (
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	app := backend.GetApplicationByDomain(r.Host)
 	if app == nil {
-		block_into := &models.HitInfo{PolicyID: 0, VulnName: "Unknown Host"}
-		GenerateBlockPage(w, block_into)
+		hitInfo := &models.HitInfo{PolicyID: 0, VulnName: "Unknown Host"}
+		GenerateBlockPage(w, hitInfo)
 		return
 	}
 	if (r.TLS == nil) && (app.RedirectHttps == true) {
@@ -57,50 +57,61 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// dynamic
 	if app.WAFEnabled {
 		srcIP := GetClientIP(r, app)
-		if isCC, ccPolicy, clientID := firewall.IsCCAttack(r, app.ID, srcIP); isCC == true {
-			target_url := r.URL.Path
+		if isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app.ID, srcIP); isCC == true {
+			targetUrl := r.URL.Path
 			if len(r.URL.RawQuery) > 0 {
-				target_url += "?" + r.URL.RawQuery
+				targetUrl += "?" + r.URL.RawQuery
 			}
-			hit_info := &models.HitInfo{TypeID: 1,
+			hitInfo := &models.HitInfo{TypeID: 1,
 				PolicyID: ccPolicy.AppID, VulnName: "CC",
 				Action: ccPolicy.Action, ClientID: clientID,
-				TargetURL: target_url, BlockTime: time.Now().Unix()}
-			if hit_info.Action == models.Action_Block_100 {
-				GenerateBlockPage(w, hit_info)
+				TargetURL: targetUrl, BlockTime: time.Now().Unix()}
+			switch ccPolicy.Action {
+			case models.Action_Block_100:
+				if needLog {
+					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+				}
+				GenerateBlockPage(w, hitInfo)
 				return
-			}
-			if hit_info.Action == models.Action_CAPTCHA_300 {
-				captchaHitInfo.Store(hit_info.ClientID, hit_info)
-				captcha_url := CaptchaEntrance + "?id=" + hit_info.ClientID
-				http.Redirect(w, r, captcha_url, http.StatusTemporaryRedirect)
+			case models.Action_BypassAndLog_200:
+				if needLog {
+					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+				}
+			case models.Action_CAPTCHA_300:
+				if needLog {
+					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+				}
+				captchaHitInfo.Store(hitInfo.ClientID, hitInfo)
+				captchaUrl := CaptchaEntrance + "?id=" + hitInfo.ClientID
+				http.Redirect(w, r, captchaUrl, http.StatusTemporaryRedirect)
 				return
 			}
 		}
 
-		if is_hit, policy := firewall.IsRequestHitPolicy(r, app.ID, srcIP); is_hit == true {
+		if isHit, policy := firewall.IsRequestHitPolicy(r, app.ID, srcIP); isHit == true {
 			switch policy.Action {
 			case models.Action_Block_100:
-				vuln_name, _ := firewall.VulnMap.Load(policy.VulnID)
-				hit_info := &models.HitInfo{TypeID: 2, PolicyID: policy.ID, VulnName: vuln_name.(string)}
+				vulnName, _ := firewall.VulnMap.Load(policy.VulnID)
+				hitInfo := &models.HitInfo{TypeID: 2, PolicyID: policy.ID, VulnName: vulnName.(string)}
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
-				GenerateBlockPage(w, hit_info)
+				GenerateBlockPage(w, hitInfo)
 				return
 			case models.Action_BypassAndLog_200:
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 			case models.Action_CAPTCHA_300:
+				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 				clientID := GenClientID(r, app.ID, srcIP)
-				target_url := r.URL.Path
+				targetUrl := r.URL.Path
 				if len(r.URL.RawQuery) > 0 {
-					target_url += "?" + r.URL.RawQuery
+					targetUrl += "?" + r.URL.RawQuery
 				}
-				hit_info := &models.HitInfo{TypeID: 2,
+				hitInfo := &models.HitInfo{TypeID: 2,
 					PolicyID: policy.ID, VulnName: "Group Policy Hit",
 					Action: policy.Action, ClientID: clientID,
-					TargetURL: target_url, BlockTime: time.Now().Unix()}
-				captchaHitInfo.Store(clientID, hit_info)
-				captcha_url := CaptchaEntrance + "?id=" + clientID
-				http.Redirect(w, r, captcha_url, http.StatusTemporaryRedirect)
+					TargetURL: targetUrl, BlockTime: time.Now().Unix()}
+				captchaHitInfo.Store(clientID, hitInfo)
+				captchaUrl := CaptchaEntrance + "?id=" + clientID
+				http.Redirect(w, r, captchaUrl, http.StatusTemporaryRedirect)
 				return
 			default:
 				// models.Action_Pass_400 do nothing

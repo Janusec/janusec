@@ -19,3 +19,10 @@ func RPCGroupHitLog(regexHitLog *models.GroupHitLog) {
 	_, err := data.GetResponse(rpc_request)
 	utils.CheckError("RPCRegexHitLog", err)
 }
+
+func RPCCCLog(ccLog *models.CCLog) {
+	rpc_request := &models.RPCRequest{
+		Action: "log_cc", Object: ccLog}
+	_, err := data.GetResponse(rpc_request)
+	utils.CheckError("RPCCCLog", err)
+}

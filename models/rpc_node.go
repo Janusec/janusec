@@ -15,7 +15,6 @@ type RPCResponse struct {
 type RPCRequest struct {
 	Action      string      `json:"action"`
 	ObjectID    int64       `json:"id"`
-	NodeID      int64       `json:"node_id"`
 	NodeVersion string      `json:"node_version"`
 	AuthKey     string      `json:"auth_key"`
 	Object      interface{} `json:"object"`
@@ -27,6 +26,14 @@ type RPCGroupHitLogRequest struct {
 	NodeID   int64        `json:"node_id"`
 	AuthKey  string       `json:"auth_key"`
 	Object   *GroupHitLog `json:"object"`
+}
+
+type RPCCCLogRequest struct {
+	Action   string `json:"action"`
+	ObjectID int64  `json:"id"`
+	NodeID   int64  `json:"node_id"`
+	AuthKey  string `json:"auth_key"`
+	Object   *CCLog `json:"object"`
 }
 
 type RPCCertItems struct {

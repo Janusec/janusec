@@ -34,9 +34,9 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	action := param["action"]
-	nodeID := param["node_id"]
+	authKey := param["auth_key"]
 	var userID int64
-	if nodeID != nil {
+	if authKey != nil {
 		// For slave nodes
 		if backend.IsValidAuthKey(r, param) == false {
 			GenResponseByObject(w, nil, errors.New("AuthKey invalid!"))
@@ -150,13 +150,23 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "log_group_hit":
 		obj = nil
 		err = firewall.LogGroupHitRequestAPI(r)
+	case "log_cc":
+		obj = nil
+		err = firewall.LogCCRequestAPI(r)
 	case "getregexlogscount":
 		obj, err = firewall.GetGroupLogCount(param)
+	case "getcclogscount":
+		obj, err = firewall.GetCCLogCount(param)
 	case "getregexlog":
 		id := int64(param["id"].(float64))
 		obj, err = firewall.GetGroupLogByID(id)
+	case "getcclog":
+		id := int64(param["id"].(float64))
+		obj, err = firewall.GetCCLogByID(id)
 	case "getregexlogs":
 		obj, err = firewall.GetGroupLogs(param)
+	case "getcclogs":
+		obj, err = firewall.GetCCLogs(param)
 	case "getvulnstat":
 		obj, err = firewall.GetVulnStat(param)
 	case "getweekstat":
