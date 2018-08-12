@@ -29,7 +29,6 @@ func GenAuthKey() string {
 
 func GetResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	rpcReq.ObjectID = 0
-	//rpcReq.NodeID = CFG.NodeID
 	rpcReq.NodeVersion = Version
 	rpcReq.AuthKey = GenAuthKey()
 	bytesData, err := json.Marshal(rpcReq)

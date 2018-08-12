@@ -15,22 +15,22 @@ import (
 	"github.com/Janusec/janusec/models"
 )
 
-func GenerateBlockPage(w http.ResponseWriter, block_info *models.HitInfo) {
+func GenerateBlockPage(w http.ResponseWriter, hitInfo *models.HitInfo) {
 	tmpl := template.New("Janusec")
-	tmpl, _ = tmpl.Parse(block_html)
+	tmpl, _ = tmpl.Parse(blockHTML)
 	w.WriteHeader(403)
-	tmpl.Execute(w, block_info)
+	tmpl.Execute(w, hitInfo)
 }
 
-func GenerateBlockConcent(hit_info *models.HitInfo) []byte {
+func GenerateBlockConcent(hitInfo *models.HitInfo) []byte {
 	tmpl := template.New("Janusec")
-	tmpl, _ = tmpl.Parse(block_html)
+	tmpl, _ = tmpl.Parse(blockHTML)
 	buf := new(bytes.Buffer)
-	tmpl.Execute(buf, hit_info)
+	tmpl.Execute(buf, hitInfo)
 	return buf.Bytes()
 }
 
-var block_html string = `<!DOCTYPE html>
+var blockHTML string = `<!DOCTYPE html>
 <html>
 <head>
 <title>403 Forbidden</title></head>

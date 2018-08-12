@@ -83,10 +83,10 @@ func GetCCPolicyRespByAppID(appID int64) (*models.CCPolicy, error) {
 	return ccPolicy, nil
 }
 
-func IsCCAttack(r *http.Request, appID int64, src_ip string) (bool, *models.CCPolicy, string) {
+func IsCCAttack(r *http.Request, appID int64, src_ip string) (bool, *models.CCPolicy, string, bool) {
 	ccPolicy := GetCCPolicyByAppID(appID)
 	if ccPolicy.IsEnabled == false {
-		return false, nil, ""
+		return false, nil, "", false
 	}
 	if ccPolicy.AppID == 0 {
 		appID = 0 // Important: stat within general policy
@@ -109,11 +109,16 @@ func IsCCAttack(r *http.Request, appID int64, src_ip string) (bool, *models.CCPo
 	clientIDStat, _ := appCCCount.LoadOrStore(clientID, &models.ClientStat{Count: 0, IsBlackIP: false, RemainSeconds: 0})
 	clientStat := clientIDStat.(*models.ClientStat)
 	if clientStat.IsBlackIP == true {
-		return true, ccPolicy, clientID
+		needLog := false
+		if clientStat.Count == 0 {
+			clientStat.Count += 1
+			needLog = true
+		}
+		return true, ccPolicy, clientID, needLog
 	}
 	clientStat.Count += 1
 	//fmt.Println("IsCCAttack:", r.URL.Path, clientID, clientStat.Count, clientStat.IsBlackIP, clientStat.RemainSeconds)
-	return false, nil, ""
+	return false, nil, "", false
 }
 
 func InitCCPolicy() {

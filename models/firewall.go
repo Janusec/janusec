@@ -133,6 +133,33 @@ type RegexMatch struct {
 	PreProcess bool   `json:"preprocess"`
 }
 
+type CCLog struct {
+	ID          int64        `json:"id"`
+	RequestTime int64        `json:"request_time"`
+	ClientIP    string       `json:"client_ip"`
+	Host        string       `json:"host"`
+	Method      string       `json:"method"`
+	UrlPath     string       `json:"url_path"`
+	UrlQuery    string       `json:"url_query"`
+	ContentType string       `json:"content_type"`
+	UserAgent   string       `json:"user_agent"`
+	Cookies     string       `json:"cookies"`
+	RawRequest  string       `json:"raw_request"`
+	Action      PolicyAction `json:"action"`
+	AppID       int64        `json:"app_id"`
+}
+
+type SimpleCCLog struct {
+	ID          int64        `json:"id"`
+	RequestTime int64        `json:"request_time"`
+	ClientIP    string       `json:"client_ip"`
+	Host        string       `json:"host"`
+	Method      string       `json:"method"`
+	UrlPath     string       `json:"url_path"`
+	Action      PolicyAction `json:"action"`
+	AppID       int64        `json:"app_id"`
+}
+
 type GroupHitLog struct {
 	ID          int64        `json:"id"`
 	RequestTime int64        `json:"request_time"`
@@ -163,7 +190,7 @@ type SimpleGroupHitLog struct {
 	AppID       int64        `json:"app_id"`
 }
 
-type GroupHitLogsCount struct {
+type HitLogsCount struct {
 	AppID     int64 `json:"app_id"`
 	StartTime int64 `json:"start_time"`
 	EndTime   int64 `json:"end_time"`
