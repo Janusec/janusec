@@ -68,7 +68,7 @@ func InitGroupPolicy() {
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Attempt", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
 			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
-			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|procedure)\s+[\w\p{L}]+=[\w\p{L}]+($|--|#)`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|procedure)\s+[\w\p{L}]+=[\w\p{L}]+(\s|$|--|#)`, groupPolicyID)
 			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Attempt 2", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
