@@ -43,7 +43,13 @@ func rewriteResponse(resp *http.Response) (err error) {
 			}
 		}
 	}
-	//srcIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+
+	// Hide X-Powered-By
+	xPoweredBy := resp.Header.Get("X-Powered-By")
+	if xPoweredBy != "" {
+		resp.Header.Set("X-Powered-By", "Janusec")
+	}
+
 	if app.WAFEnabled {
 		srcIP := GetClientIP(r, app)
 		if isHit, policy := firewall.IsResponseHitPolicy(resp, app.ID); isHit {
