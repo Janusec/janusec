@@ -24,6 +24,7 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
+// ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	app := backend.GetApplicationByDomain(r.Host)
 	if app == nil {
@@ -32,7 +33,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if (r.TLS == nil) && (app.RedirectHttps == true) {
-		RedirectHttpsFunc(w, r)
+		RedirectHTTPSFunc(w, r)
 		return
 	}
 	r.URL.Scheme = app.InternalScheme
@@ -58,14 +59,14 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	if app.WAFEnabled {
 		srcIP := GetClientIP(r, app)
 		if isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app.ID, srcIP); isCC == true {
-			targetUrl := r.URL.Path
+			targetURL := r.URL.Path
 			if len(r.URL.RawQuery) > 0 {
-				targetUrl += "?" + r.URL.RawQuery
+				targetURL += "?" + r.URL.RawQuery
 			}
 			hitInfo := &models.HitInfo{TypeID: 1,
 				PolicyID: ccPolicy.AppID, VulnName: "CC",
 				Action: ccPolicy.Action, ClientID: clientID,
-				TargetURL: targetUrl, BlockTime: time.Now().Unix()}
+				TargetURL: targetURL, BlockTime: time.Now().Unix()}
 			switch ccPolicy.Action {
 			case models.Action_Block_100:
 				if needLog {
@@ -82,8 +83,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
 				}
 				captchaHitInfo.Store(hitInfo.ClientID, hitInfo)
-				captchaUrl := CaptchaEntrance + "?id=" + hitInfo.ClientID
-				http.Redirect(w, r, captchaUrl, http.StatusTemporaryRedirect)
+				captchaURL := CaptchaEntrance + "?id=" + hitInfo.ClientID
+				http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
 				return
 			}
 		}
@@ -101,17 +102,17 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			case models.Action_CAPTCHA_300:
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 				clientID := GenClientID(r, app.ID, srcIP)
-				targetUrl := r.URL.Path
+				targetURL := r.URL.Path
 				if len(r.URL.RawQuery) > 0 {
-					targetUrl += "?" + r.URL.RawQuery
+					targetURL += "?" + r.URL.RawQuery
 				}
 				hitInfo := &models.HitInfo{TypeID: 2,
 					PolicyID: policy.ID, VulnName: "Group Policy Hit",
 					Action: policy.Action, ClientID: clientID,
-					TargetURL: targetUrl, BlockTime: time.Now().Unix()}
+					TargetURL: targetURL, BlockTime: time.Now().Unix()}
 				captchaHitInfo.Store(clientID, hitInfo)
-				captchaUrl := CaptchaEntrance + "?id=" + clientID
-				http.Redirect(w, r, captchaUrl, http.StatusTemporaryRedirect)
+				captchaURL := CaptchaEntrance + "?id=" + clientID
+				http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
 				return
 			default:
 				// models.Action_Pass_400 do nothing
@@ -159,8 +160,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	proxy.ServeHTTP(w, r)
 }
 
-// redirect 80 to 443
-func RedirectHttpsFunc(w http.ResponseWriter, r *http.Request) {
+// RedirectHTTPSFunc redirect 80 to 443
+func RedirectHTTPSFunc(w http.ResponseWriter, r *http.Request) {
 	target := "https://" + r.Host + r.URL.Path
 	if len(r.URL.RawQuery) > 0 {
 		target += "?" + r.URL.RawQuery
@@ -168,6 +169,7 @@ func RedirectHttpsFunc(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, target, http.StatusMovedPermanently)
 }
 
+// GenClientID generate unique client id
 func GenClientID(r *http.Request, appID int64, srcIP string) string {
 	preHashContent := srcIP
 	url := r.URL.Path
@@ -180,6 +182,7 @@ func GenClientID(r *http.Request, appID int64, srcIP string) string {
 	return clientID
 }
 
+// GetClientIP acquire the client IP address
 func GetClientIP(r *http.Request, app *models.Application) (clientIP string) {
 	switch app.ClientIPMethod {
 	case models.IPMethod_REMOTE_ADDR:

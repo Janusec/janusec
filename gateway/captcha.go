@@ -24,9 +24,11 @@ var (
 )
 
 const (
+	// CaptchaEntrance : captcha confirm url
 	CaptchaEntrance = "/captcha/confirm"
 )
 
+// ShowCaptchaHandlerFunc ...
 func ShowCaptchaHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	go ClearExpiredCapthchaHitInfo()
 	id := r.FormValue("id")
@@ -36,12 +38,13 @@ func ShowCaptchaHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ValidateCaptchaHandlerFunc ...
 func ValidateCaptchaHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	clientID := r.FormValue("client_id")
 	if !captcha.VerifyString(r.FormValue("captcha_id"), r.FormValue("captcha_solution")) {
-		captchaUrl := CaptchaEntrance + "?id=" + clientID
-		http.Redirect(w, r, captchaUrl, http.StatusTemporaryRedirect)
+		captchaURL := CaptchaEntrance + "?id=" + clientID
+		http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
 	} else {
 		if mapHitInfo, ok := captchaHitInfo.Load(clientID); ok {
 			hitInfo := mapHitInfo.(*models.HitInfo)
@@ -58,10 +61,12 @@ func ValidateCaptchaHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ShowCaptchaImage ...
 func ShowCaptchaImage() http.Handler {
 	return captcha.Server(captcha.StdWidth, captcha.StdHeight)
 }
 
+// ClearExpiredCapthchaHitInfo ...
 func ClearExpiredCapthchaHitInfo() {
 	captchaHitInfo.Range(func(key, value interface{}) bool {
 		clientID := key.(string)

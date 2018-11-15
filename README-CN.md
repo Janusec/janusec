@@ -40,7 +40,7 @@ https://www.janusec.com/
 * PostgreSQL 9.3~9.6 or 10 (开发环境需要，生产环境仅主节点需要)  
 * CentOS/RHEL 7, Debian 9  
 * systemd  
-* Golang 1.9+  
+* Golang 1.9+ (开发环境需要，生产环境不需要)  
 
 ## 快速启动入门指引  
 
@@ -48,7 +48,8 @@ https://www.janusec.com/cn/quick-start/
 
 ## 开发者快速启动  
 
-> go get github.com/Janusec/janusec  
+> go get -u github.com/Janusec/janusec  
+> cd $GOPATH/src/github.com/Janusec/janusec  
 
 编辑 config.json 中的 PostgreSQL 设置  
 
@@ -86,4 +87,6 @@ Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-
 
 ## Support
 
-QQ群: 776900157  
+* 网站: [https://www.janusec.com/](https://www.janusec.com/)  
+* Email: `support#janusec.com`  
+* QQ群: 776900157  , @U2 (作者)  

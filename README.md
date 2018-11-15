@@ -41,7 +41,7 @@ Detailed documentation is available at [Janusec Application Gateway Documentatio
 * PostgreSQL 9.3~9.6 or 10 (Required by Development and Master Node of Deployment)  
 * CentOS/RHEL 7, Debian 9  
 * systemd  
-* Golang 1.9+  
+* Golang 1.9+ (Required by Development Only)  
 
 ## Quick Start for Deployment  
 
@@ -49,7 +49,8 @@ https://www.janusec.com/documentation/quick-start/
 
 ## Quick Start for Developer  
 
-> go get github.com/Janusec/janusec  
+> go get -u github.com/Janusec/janusec  
+> cd $GOPATH/src/github.com/Janusec/janusec  
 
 Edit config.json with PostgreSQL  
 
@@ -85,3 +86,9 @@ Release directory is `./static/` , and source code is available at [Janusec-Admi
 ## LICENSE
 
 Janusec Application Gateway source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)).  
+
+## Support
+
+* Website:  [https://www.janusec.com/](https://www.janusec.com/)  
+* Email: `support#janusec.com`  
+* QQ Group: 776900157  , @U2 (The Author)  

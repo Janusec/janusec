@@ -25,19 +25,19 @@ func rewriteResponse(resp *http.Response) (err error) {
 	utils.DebugPrintln("rewriteResponse")
 	r := resp.Request
 	app := backend.GetApplicationByDomain(r.Host)
-	locationUrl, err := resp.Location()
-	if locationUrl != nil {
-		port := locationUrl.Port()
+	locationURL, err := resp.Location()
+	if locationURL != nil {
+		port := locationURL.Port()
 		if (port != "80") && (port != "443") {
-			host := locationUrl.Hostname()
+			host := locationURL.Hostname()
 			//app := backend.GetApplicationByDomain(host)
 			if app != nil {
-				newLocation := strings.Replace(locationUrl.String(), host+":"+port, host, -1)
+				newLocation := strings.Replace(locationURL.String(), host+":"+port, host, -1)
 				userScheme := "http"
 				if resp.Request.TLS != nil {
 					userScheme = "https"
 				}
-				newLocation = strings.Replace(newLocation, locationUrl.Scheme, userScheme, 1)
+				newLocation = strings.Replace(newLocation, locationURL.Scheme, userScheme, 1)
 				//fmt.Println("newLocation", newLocation)
 				resp.Header.Set("Location", newLocation)
 			}
@@ -58,30 +58,30 @@ func rewriteResponse(resp *http.Response) (err error) {
 				vulnName, _ := firewall.VulnMap.Load(policy.VulnID)
 				hitInfo := &models.HitInfo{TypeID: 2, PolicyID: policy.ID, VulnName: vulnName.(string)}
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
-				block_content := GenerateBlockConcent(hitInfo)
-				//fmt.Println("rewriteResponse Action_Block_100 block_content", string(block_content))
-				body := ioutil.NopCloser(bytes.NewReader(block_content))
+				blockContent := GenerateBlockConcent(hitInfo)
+				//fmt.Println("rewriteResponse Action_Block_100 blockContent", string(blockContent))
+				body := ioutil.NopCloser(bytes.NewReader(blockContent))
 				resp.Body = body
-				resp.ContentLength = int64(len(block_content))
+				resp.ContentLength = int64(len(blockContent))
 				resp.StatusCode = 403
 				return nil
 			case models.Action_BypassAndLog_200:
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 			case models.Action_CAPTCHA_300:
 				clientID := GenClientID(r, app.ID, srcIP)
-				targetUrl := r.URL.Path
+				targetURL := r.URL.Path
 				if len(r.URL.RawQuery) > 0 {
-					targetUrl += "?" + r.URL.RawQuery
+					targetURL += "?" + r.URL.RawQuery
 				}
 				hitInfo := &models.HitInfo{TypeID: 2,
 					PolicyID: policy.ID, VulnName: "Group Policy Hit",
 					Action: policy.Action, ClientID: clientID,
-					TargetURL: targetUrl, BlockTime: time.Now().Unix()}
+					TargetURL: targetURL, BlockTime: time.Now().Unix()}
 				captchaHitInfo.Store(clientID, hitInfo)
-				captchaUrl := CaptchaEntrance + "?id=" + clientID
-				resp.Header.Set("Location", captchaUrl)
+				captchaURL := CaptchaEntrance + "?id=" + clientID
+				resp.Header.Set("Location", captchaURL)
 				resp.ContentLength = 0
-				//http.Redirect(w, r, captchaUrl, http.StatusTemporaryRedirect)
+				//http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
 				return
 			default:
 				// models.Action_Pass_400 do nothing
