@@ -64,6 +64,7 @@ Janusec will encrypt the password automatically.
 Then:  
 
 > go build  
+> su (switch to root)  
 > ./janusec  
 
 ## Web Administration  

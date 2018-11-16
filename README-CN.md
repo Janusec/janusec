@@ -62,6 +62,7 @@ https://www.janusec.com/cn/quick-start/
 Janusec将自动加密数据库口令，然后：  
 
 > go build  
+> su (切换到root用户)  
 > ./janusec  
 
 ## Web化管理  
