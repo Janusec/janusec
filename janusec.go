@@ -39,10 +39,12 @@ func main() {
 	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	go func() {
-		// for pprof performance monitor
-		http.ListenAndServe("0.0.0.0:9088", nil)
-	}()
+	// for pprof performance monitor
+	/*
+		go func() {
+			http.ListenAndServe("0.0.0.0:9088", nil)
+		}()
+	*/
 
 	log.Printf("Janusec Application Gateway %s Starting ...\n", data.Version)
 	utils.DebugPrintln("Warning: Janusec is running in Debug mode.")
