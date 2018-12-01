@@ -76,6 +76,7 @@ Then:
 ## Release  
 
 > go build  
+> su  
 > `./release.sh`  (Only support Linux Now)  
 
 The release package is under ./dist .
@@ -91,5 +92,6 @@ Janusec Application Gateway source files are made available under the terms of t
 ## Support
 
 * Website:  [https://www.janusec.com/](https://www.janusec.com/)  
+* Mirror: [https://janusec.github.io/](https://janusec.github.io/)  
 * Email: `support#janusec.com`  
-* QQ Group: 776900157  , @U2 (The Author)  
+* QQ Group: 776900157  , @[U2](https://github.com/zhyale) (The Author)  

@@ -74,6 +74,7 @@ Janusec将自动加密数据库口令，然后：
 ## 发布  
 
 > go build  
+> su  
 > ./release.sh (暂只支持在Linux环境运行)  
 
 发布包在 ./dist目录下.
@@ -88,6 +89,7 @@ Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-
 
 ## Support
 
-* 网站: [https://www.janusec.com/](https://www.janusec.com/)  
+* 官方网站: [https://www.janusec.com/](https://www.janusec.com/)  
+* 镜像网站: [https://janusec.github.io/](https://janusec.github.io/)  
 * Email: `support#janusec.com`  
-* QQ群: 776900157  , @U2 (作者)  
+* QQ群: 776900157  , @[U2](https://github.com/zhyale) (作者)  
