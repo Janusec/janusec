@@ -8,7 +8,7 @@
 
 ![Janusec Application Gateway](https://www.janusec.com/images/gateway1.png)  
 
-Janusec Application Gateway, an application security solutions which provides WAF (Web Application Firewall), unified web administration portal, private key protection, web routing and scalable load balancing. With Janusec, you can build secure and scalable applications.  
+Janusec Application Gateway, an application security solution which provides WAF (Web Application Firewall), CC attack defense, unified web administration portal, private key protection, web routing and scalable load balancing. With Janusec, you can build secure and scalable applications.  
 
 ### Key Features  
 

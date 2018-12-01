@@ -6,7 +6,7 @@
 
 ![Janusec应用网关](https://www.janusec.com/images/gateway1.png)  
 
-Janusec应用网关(Janusec Application Gateway)，提供WAF (Web Application Firewall, Web应用防火墙)、统一Web化管理入口、证书私钥保护，Web路由以及可扩展的负载均衡等功能，是应用安全领域的最佳实践。  
+Janusec应用网关(Janusec Application Gateway)，提供WAF (Web Application Firewall, Web应用防火墙)、CC攻击防御、统一Web化管理入口、证书私钥保护，Web路由以及可扩展的负载均衡等功能。  
 
 ### 主要特性  
 
