@@ -22,6 +22,7 @@ import (
 	"github.com/Janusec/janusec/firewall"
 	"github.com/Janusec/janusec/models"
 	"github.com/Janusec/janusec/utils"
+	"golang.org/x/net/http2"
 )
 
 // ReverseHandlerFunc used for reverse handler
@@ -135,7 +136,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return nil, err
 			}
-			cfg := &tls.Config{ServerName: r.Host}
+			cfg := &tls.Config{ServerName: r.Host, NextProtos: []string{"h2", "http/1.1"}}
 			tlsConn := tls.Client(conn, cfg)
 			if err := tlsConn.Handshake(); err != nil {
 				conn.Close()
@@ -144,6 +145,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			return tlsConn, nil //net.Dial("tcp", dest)
 		},
 	}
+	http2.ConfigureTransport(transport)
 
 	proxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {

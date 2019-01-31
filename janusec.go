@@ -62,6 +62,7 @@ func main() {
 			cert, err := backend.GetCertificateByDomain(helloInfo.ServerName)
 			return cert, err
 		},
+		NextProtos: []string{"h2", "http/1.1"},
 		MinVersion: tls.VersionTLS11,
 		CipherSuites: []uint16{
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
