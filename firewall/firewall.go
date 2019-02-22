@@ -27,8 +27,9 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
-var staticSuffix []string = []string{".js", ".css", ".png", ".jpg", ".gif", ".bmp"}
+var staticSuffix = []string{".js", ".css", ".png", ".jpg", ".gif", ".bmp"}
 
+// IsStaticResource ...
 func IsStaticResource(url string) bool {
 	if strings.Contains(url, "?") {
 		return false
@@ -41,6 +42,7 @@ func IsStaticResource(url string) bool {
 	return false
 }
 
+// UnEscapeRawValue ...
 func UnEscapeRawValue(rawQuery string) string {
 	rawQuery = strings.Replace(rawQuery, "%%", "%25%", -1)
 	rawQuery = strings.Replace(rawQuery, "%'", "%25'", -1)
@@ -54,6 +56,7 @@ func UnEscapeRawValue(rawQuery string) string {
 	return decodeQuery
 }
 
+// IsRequestHitPolicy ...
 func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *models.GroupPolicy) {
 	if r.Method == "GET" && IsStaticResource(r.URL.Path) {
 		return false, nil
@@ -104,36 +107,39 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 	if strings.HasPrefix(mediaType, "multipart/form-data") {
 		// ChkPoint_UploadFileExt
 		r.ParseMultipartForm(1024)
-		for _, filesHeader := range r.MultipartForm.File {
-			for _, fileHeader := range filesHeader {
-				fileExtension := filepath.Ext(fileHeader.Filename) // .php
-				matched, policy = IsMatchGroupPolicy(ctxMap, appID, fileExtension, models.ChkPointUploadFileExt, "", false)
+		if r.MultipartForm != nil {
+			for _, filesHeader := range r.MultipartForm.File {
+				for _, fileHeader := range filesHeader {
+					fileExtension := filepath.Ext(fileHeader.Filename) // .php
+					matched, policy = IsMatchGroupPolicy(ctxMap, appID, fileExtension, models.ChkPointUploadFileExt, "", false)
+					if matched == true {
+						return matched, policy
+					}
+				}
+			}
+
+			// Multipart Content
+			body1 := ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+			multiReader := multipart.NewReader(body1, mediaParams["boundary"])
+			for {
+				p, err := multiReader.NextPart()
+				if err == io.EOF {
+					break
+				}
+				partContent, err := ioutil.ReadAll(p)
+				//fmt.Println("part_content=", string(part_content))
+				matched, policy = IsMatchGroupPolicy(ctxMap, appID, string(partContent), models.ChkPointGetPostValue, "", true)
 				if matched == true {
 					return matched, policy
 				}
 			}
 		}
 
-		// Multipart Content
-		body1 := ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
-		multiReader := multipart.NewReader(body1, mediaParams["boundary"])
-		for {
-			p, err := multiReader.NextPart()
-			if err == io.EOF {
-				break
-			}
-			partContent, err := ioutil.ReadAll(p)
-			//fmt.Println("part_content=", string(part_content))
-			matched, policy = IsMatchGroupPolicy(ctxMap, appID, string(partContent), models.ChkPointGetPostValue, "", true)
-			if matched == true {
-				return matched, policy
-			}
-		}
 	} else if strings.HasPrefix(mediaType, "application/json") {
 		var params interface{}
 		err := json.Unmarshal(bodyBuf, &params)
 		utils.CheckError("IsRequestHitPolicy Unmarshal", err)
-		matched, policy := IsJsonValueHitPolicy(ctxMap, appID, params)
+		matched, policy := IsJSONValueHitPolicy(ctxMap, appID, params)
 		if matched == true {
 			return matched, policy
 		}
@@ -205,18 +211,18 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 	}
 
 	// ChkPoint_Header
-	for header_key, header_values := range r.Header {
+	for headerKey, headerValues := range r.Header {
 		// ChkPoint_HeaderKey
-		matched, policy = IsMatchGroupPolicy(ctxMap, appID, header_key, models.ChkPointHeaderKey, "", false)
+		matched, policy = IsMatchGroupPolicy(ctxMap, appID, headerKey, models.ChkPointHeaderKey, "", false)
 		if matched == true {
 			return matched, policy
 		}
 		// ChkPoint_HeaderValue
-		for _, header_value := range header_values {
+		for _, headerValue := range headerValues {
 
-			//header_value = UnEscapeRawValue(header_value)
-			matched, policy = IsMatchGroupPolicy(ctxMap, appID, header_value, models.ChkPointHeaderValue, header_key, false)
-			//fmt.Println("ChkPoint_HeaderValue", header_key, header_value, matched)
+			//headerValue = UnEscapeRawValue(headerValue)
+			matched, policy = IsMatchGroupPolicy(ctxMap, appID, headerValue, models.ChkPointHeaderValue, headerKey, false)
+			//fmt.Println("ChkPoint_HeaderValue", headerKey, headerValue, matched)
 			if matched == true {
 				return matched, policy
 			}
@@ -232,43 +238,44 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 	return false, nil
 }
 
-func IsResponseHitPolicy(resp *http.Response, app_id int64) (bool, *models.GroupPolicy) {
+// IsResponseHitPolicy ...
+func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupPolicy) {
 	ctxMap := resp.Request.Context().Value("groupPolicyHitValue").(*sync.Map)
 	// ChkPoint_ResponseStatusCode
-	matched, policy := IsMatchGroupPolicy(ctxMap, app_id, strconv.Itoa(resp.StatusCode), models.ChkPointResponseStatusCode, "", false)
+	matched, policy := IsMatchGroupPolicy(ctxMap, appID, strconv.Itoa(resp.StatusCode), models.ChkPointResponseStatusCode, "", false)
 	//fmt.Println("IsResponseHitPolicy ResponseStatusCode", matched)
 	if matched == true {
 		return matched, policy
 	}
 	// ChkPoint_ResponseHeaderKey
-	for header_key, header_values := range resp.Header {
+	for headerKey, headerValues := range resp.Header {
 		// ChkPoint_ResponseHeaderKey
-		matched, policy = IsMatchGroupPolicy(ctxMap, app_id, header_key, models.ChkPointResponseHeaderKey, "", false)
+		matched, policy = IsMatchGroupPolicy(ctxMap, appID, headerKey, models.ChkPointResponseHeaderKey, "", false)
 		if matched == true {
 			return matched, policy
 		}
 		// ChkPoint_ResponseHeaderValue
-		for _, header_value := range header_values {
-			matched, policy = IsMatchGroupPolicy(ctxMap, app_id, header_value, models.ChkPointResponseHeaderValue, header_key, false)
-			//fmt.Println("ChkPoint_ResponseHeaderValue", header_key, header_value, matched)
+		for _, headerValue := range headerValues {
+			matched, policy = IsMatchGroupPolicy(ctxMap, appID, headerValue, models.ChkPointResponseHeaderValue, headerKey, false)
+			//fmt.Println("ChkPoint_ResponseHeaderValue", headerKey, headerValue, matched)
 			if matched == true {
 				return matched, policy
 			}
 		}
 	}
 	// ChkPoint_ResponseBodyLength
-	body_length := strconv.FormatInt(resp.ContentLength, 10)
-	matched, policy = IsMatchGroupPolicy(ctxMap, app_id, body_length, models.ChkPointResponseBodyLength, "", false)
+	bodyLength := strconv.FormatInt(resp.ContentLength, 10)
+	matched, policy = IsMatchGroupPolicy(ctxMap, appID, bodyLength, models.ChkPointResponseBodyLength, "", false)
 	//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBodyLength", matched)
 	if matched == true {
 		return matched, policy
 	}
 	// ChkPoint_ResponseBody
-	body_buf, _ := ioutil.ReadAll(resp.Body)
-	resp.Body = ioutil.NopCloser(bytes.NewBuffer(body_buf))
+	bodyBuf, _ := ioutil.ReadAll(resp.Body)
+	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	defer resp.Body.Close()
-	body1 := string(body_buf)
-	matched, policy = IsMatchGroupPolicy(ctxMap, app_id, body1, models.ChkPointResponseBody, "", false)
+	body1 := string(bodyBuf)
+	matched, policy = IsMatchGroupPolicy(ctxMap, appID, body1, models.ChkPointResponseBody, "", false)
 	//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBody", matched)
 	if matched == true {
 		return matched, policy
@@ -278,27 +285,28 @@ func IsResponseHitPolicy(resp *http.Response, app_id int64) (bool, *models.Group
 	return false, nil
 }
 
-func IsJsonValueHitPolicy(ctxMap *sync.Map, app_id int64, value interface{}) (bool, *models.GroupPolicy) {
-	value_kind := reflect.TypeOf(value).Kind()
-	switch value_kind {
+// IsJSONValueHitPolicy ...
+func IsJSONValueHitPolicy(ctxMap *sync.Map, appID int64, value interface{}) (bool, *models.GroupPolicy) {
+	valueKind := reflect.TypeOf(value).Kind()
+	switch valueKind {
 	case reflect.String:
 		value2 := value.(string)
-		matched, policy := IsMatchGroupPolicy(ctxMap, app_id, value2, models.ChkPointGetPostValue, "", true)
+		matched, policy := IsMatchGroupPolicy(ctxMap, appID, value2, models.ChkPointGetPostValue, "", true)
 		if matched == true {
 			return matched, policy
 		}
 	case reflect.Map:
 		value2 := value.(map[string]interface{})
-		for _, sub_value := range value2 {
-			matched, policy := IsJsonValueHitPolicy(ctxMap, app_id, sub_value)
+		for _, subValue := range value2 {
+			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, subValue)
 			if matched == true {
 				return matched, policy
 			}
 		}
 	case reflect.Slice:
 		value2 := value.([]interface{})
-		for _, sub_value := range value2 {
-			matched, policy := IsJsonValueHitPolicy(ctxMap, app_id, sub_value)
+		for _, subValue := range value2 {
+			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, subValue)
 			if matched == true {
 				return matched, policy
 			}

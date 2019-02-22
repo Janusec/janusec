@@ -15,6 +15,7 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
+// RPCSelectVulntypes ...
 func RPCSelectVulntypes() (vulnTypes []*models.VulnType) {
 	rpcRequest := &models.RPCRequest{
 		Action: "getvulntypes", Object: nil}

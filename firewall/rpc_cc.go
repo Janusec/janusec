@@ -15,6 +15,7 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
+// RPCSelectCCPolicies ...
 func RPCSelectCCPolicies() (ccPolicies []*models.CCPolicy) {
 	rpcRequest := &models.RPCRequest{
 		Action: "getccpolicies", Object: nil}

@@ -11,13 +11,14 @@ import (
 	"github.com/Janusec/janusec/models"
 )
 
+// InitFirewall ...
 func InitFirewall() {
 	InitCCPolicy()
 	ccPolicies.Range(func(key, value interface{}) bool {
-		app_id := key.(int64)
-		cc_policy := value.(*models.CCPolicy)
-		if cc_policy.IsEnabled == true {
-			go CCAttackTick(app_id)
+		appID := key.(int64)
+		ccPolicy := value.(*models.CCPolicy)
+		if ccPolicy.IsEnabled == true {
+			go CCAttackTick(appID)
 		}
 		return true
 	})

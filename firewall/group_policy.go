@@ -27,6 +27,7 @@ var (
 	groupPolicies []*models.GroupPolicy
 )
 
+// InitGroupPolicy ...
 func InitGroupPolicy() {
 	var dbGroupPolicies []*models.GroupPolicy
 	if data.IsMaster {
@@ -153,19 +154,22 @@ func InitGroupPolicy() {
 	}
 }
 
-func GetGroupPolicies(app_id int64) ([]*models.GroupPolicy, error) {
+// GetGroupPolicies ...
+func GetGroupPolicies(appID int64) ([]*models.GroupPolicy, error) {
 	return groupPolicies, nil
 }
 
+// GetGroupPolicyByID ...
 func GetGroupPolicyByID(id int64) (*models.GroupPolicy, error) {
 	for _, groupPolicy := range groupPolicies {
 		if groupPolicy.ID == id {
 			return groupPolicy, nil
 		}
 	}
-	return nil, errors.New("Not found.")
+	return nil, errors.New("Not found")
 }
 
+// GetGroupPolicyIndex ...
 func GetGroupPolicyIndex(id int64) int {
 	for i := 0; i < len(groupPolicies); i++ {
 		if groupPolicies[i].ID == id {
@@ -175,6 +179,7 @@ func GetGroupPolicyIndex(id int64) int {
 	return -1
 }
 
+// DeleteGroupPolicyByID ...
 func DeleteGroupPolicyByID(id int64) error {
 	groupPolicy, err := GetGroupPolicyByID(id)
 	if err != nil {
@@ -188,6 +193,7 @@ func DeleteGroupPolicyByID(id int64) error {
 	return nil
 }
 
+// UpdateGroupPolicy ...
 func UpdateGroupPolicy(r *http.Request, userID int64) (*models.GroupPolicy, error) {
 	var setGroupPolicyRequest models.RPCSetGroupPolicy
 	err := json.NewDecoder(r.Body).Decode(&setGroupPolicyRequest)
@@ -196,7 +202,7 @@ func UpdateGroupPolicy(r *http.Request, userID int64) (*models.GroupPolicy, erro
 	curGroupPolicy := setGroupPolicyRequest.Object
 	curGroupPolicy.UpdateTime = time.Now().Unix()
 	if curGroupPolicy == nil {
-		return nil, errors.New("UpdateGroupPolicy parse body null.")
+		return nil, errors.New("UpdateGroupPolicy parse body null")
 	}
 	checkItems := curGroupPolicy.CheckItems
 	curGroupPolicy.HitValue = 0
@@ -229,6 +235,7 @@ func UpdateGroupPolicy(r *http.Request, userID int64) (*models.GroupPolicy, erro
 	return curGroupPolicy, nil
 }
 
+// IsMatchGroupPolicy ...
 func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkPoint models.ChkPoint, designatedKey string, needDecode bool) (bool, *models.GroupPolicy) {
 	if len(value) == 0 {
 		return false, nil
@@ -292,6 +299,7 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 	return false, nil
 }
 
+// PreProcessString ...
 func PreProcessString(value string) string {
 	value2 := strings.Replace(value, `'`, ``, -1)
 	value2 = strings.Replace(value2, `"`, ``, -1)
@@ -300,10 +308,12 @@ func PreProcessString(value string) string {
 	return value2
 }
 
+// IsMatch ...
 func IsMatch(pattern string, str string) (bool, error) {
 	return regexp.MatchString(pattern, str)
 }
 
+// TestRegex ...
 func TestRegex(param map[string]interface{}) (*models.RegexMatch, error) {
 	obj := param["object"].(map[string]interface{})
 	pattern := obj["pattern"].(string)

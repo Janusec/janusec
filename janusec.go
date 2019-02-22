@@ -19,6 +19,7 @@ import (
 	"runtime"
 	"sync"
 
+	"net/http/pprof"
 	_ "net/http/pprof"
 
 	"github.com/Janusec/janusec/backend"
@@ -38,13 +39,6 @@ func main() {
 		os.Exit(0)
 	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	// for pprof performance monitor
-	/*
-		go func() {
-			http.ListenAndServe("0.0.0.0:9088", nil)
-		}()
-	*/
 
 	log.Printf("Janusec Application Gateway %s Starting ...\n", data.Version)
 	utils.DebugPrintln("Warning: Janusec is running in Debug mode.")
@@ -81,6 +75,11 @@ func main() {
 		adminMux := http.NewServeMux()
 		adminMux.HandleFunc("/janusec-api/", frontend.ApiHandlerFunc)
 		adminMux.HandleFunc("/", frontend.AdminHandlerFunc)
+		adminMux.HandleFunc("/debug/pprof/", pprof.Index)
+		adminMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		adminMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		adminMux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		adminMux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
 		go func() {
 			listen, _ := net.Listen("tcp", data.CFG.MasterNode.AdminHTTPListen)
@@ -108,6 +107,7 @@ func main() {
 	//}()
 }
 
+// AddContextHandler to add context handler
 func AddContextHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// map[GroupPolicyID int64](Value int64)

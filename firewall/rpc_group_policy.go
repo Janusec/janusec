@@ -15,6 +15,7 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
+// RPCSelectGroupPolicies ...
 func RPCSelectGroupPolicies() (groupPolicies []*models.GroupPolicy) {
 	rpcRequest := &models.RPCRequest{
 		Action: "getgrouppolicies", Object: nil}

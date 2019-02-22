@@ -14,9 +14,7 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
-/*
-Clear Expired Logs
-*/
+// RoutineTick Clear Expired Logs
 func RoutineTick() {
 	if data.IsMaster {
 		logExpireSeconds, err := data.DAL.SelectIntSetting("Log_Expire_Seconds")

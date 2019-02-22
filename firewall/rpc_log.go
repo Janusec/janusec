@@ -13,16 +13,18 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
+// RPCGroupHitLog ...
 func RPCGroupHitLog(regexHitLog *models.GroupHitLog) {
-	rpc_request := &models.RPCRequest{
+	rpcRequest := &models.RPCRequest{
 		Action: "log_group_hit", Object: regexHitLog}
-	_, err := data.GetResponse(rpc_request)
+	_, err := data.GetResponse(rpcRequest)
 	utils.CheckError("RPCRegexHitLog", err)
 }
 
+// RPCCCLog ...
 func RPCCCLog(ccLog *models.CCLog) {
-	rpc_request := &models.RPCRequest{
+	rpcRequest := &models.RPCRequest{
 		Action: "log_cc", Object: ccLog}
-	_, err := data.GetResponse(rpc_request)
+	_, err := data.GetResponse(rpcRequest)
 	utils.CheckError("RPCCCLog", err)
 }

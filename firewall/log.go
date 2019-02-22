@@ -19,6 +19,7 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
+// InitHitLog ...
 func InitHitLog() {
 	if data.IsMaster {
 		data.DAL.CreateTableIfNotExistsGroupHitLog()
@@ -26,6 +27,7 @@ func InitHitLog() {
 	}
 }
 
+// LogCCRequest ...
 func LogCCRequest(r *http.Request, appID int64, clientIP string, policy *models.CCPolicy) {
 	requestTime := time.Now().Unix()
 	contentType := r.Header.Get("Content-Type")
@@ -57,6 +59,7 @@ func LogCCRequest(r *http.Request, appID int64, clientIP string, policy *models.
 	}
 }
 
+// LogGroupHitRequest ...
 func LogGroupHitRequest(r *http.Request, appID int64, clientIP string, policy *models.GroupPolicy) {
 	requestTime := time.Now().Unix()
 	contentType := r.Header.Get("Content-Type")
@@ -90,6 +93,7 @@ func LogGroupHitRequest(r *http.Request, appID int64, clientIP string, policy *m
 	}
 }
 
+// LogCCRequestAPI ...
 func LogCCRequestAPI(r *http.Request) error {
 	var ccLogReq models.RPCCCLogRequest
 	err := json.NewDecoder(r.Body).Decode(&ccLogReq)
@@ -97,11 +101,12 @@ func LogCCRequestAPI(r *http.Request) error {
 	utils.CheckError("LogCCRequestAPI Decode", err)
 	ccLog := ccLogReq.Object
 	if ccLog == nil {
-		return errors.New("LogCCRequestAPI parse body null.")
+		return errors.New("LogCCRequestAPI parse body null")
 	}
 	return data.DAL.InsertCCLog(ccLog.RequestTime, ccLog.ClientIP, ccLog.Host, ccLog.Method, ccLog.UrlPath, ccLog.UrlQuery, ccLog.ContentType, ccLog.UserAgent, ccLog.Cookies, ccLog.RawRequest, int64(ccLog.Action), ccLog.AppID)
 }
 
+// LogGroupHitRequestAPI ...
 func LogGroupHitRequestAPI(r *http.Request) error {
 	var regexHitLogReq models.RPCGroupHitLogRequest
 	err := json.NewDecoder(r.Body).Decode(&regexHitLogReq)
@@ -109,11 +114,12 @@ func LogGroupHitRequestAPI(r *http.Request) error {
 	utils.CheckError("LogGroupHitRequestAPI Decode", err)
 	regexHitLog := regexHitLogReq.Object
 	if regexHitLog == nil {
-		return errors.New("LogGroupHitRequestAPI parse body null.")
+		return errors.New("LogGroupHitRequestAPI parse body null")
 	}
 	return data.DAL.InsertGroupHitLog(regexHitLog.RequestTime, regexHitLog.ClientIP, regexHitLog.Host, regexHitLog.Method, regexHitLog.UrlPath, regexHitLog.UrlQuery, regexHitLog.ContentType, regexHitLog.UserAgent, regexHitLog.Cookies, regexHitLog.RawRequest, int64(regexHitLog.Action), regexHitLog.PolicyID, regexHitLog.VulnID, regexHitLog.AppID)
 }
 
+// GetCCLogCount ...
 func GetCCLogCount(param map[string]interface{}) (*models.HitLogsCount, error) {
 	appID := int64(param["app_id"].(float64))
 	startTime := int64(param["start_time"].(float64))
@@ -123,6 +129,7 @@ func GetCCLogCount(param map[string]interface{}) (*models.HitLogsCount, error) {
 	return logsCount, err
 }
 
+// GetGroupLogCount ...
 func GetGroupLogCount(param map[string]interface{}) (*models.HitLogsCount, error) {
 	appID := int64(param["app_id"].(float64))
 	startTime := int64(param["start_time"].(float64))
@@ -132,6 +139,7 @@ func GetGroupLogCount(param map[string]interface{}) (*models.HitLogsCount, error
 	return logsCount, err
 }
 
+// GetVulnStat ...
 func GetVulnStat(param map[string]interface{}) (vulnStat []*models.VulnStat, err error) {
 	appID := int64(param["app_id"].(float64))
 	startTime := int64(param["start_time"].(float64))
@@ -144,6 +152,7 @@ func GetVulnStat(param map[string]interface{}) (vulnStat []*models.VulnStat, err
 	return vulnStat, err
 }
 
+// GetWeekStat ...
 func GetWeekStat(param map[string]interface{}) (weekStat []int64, err error) {
 	appID := int64(param["app_id"].(float64))
 	vulnID := int64(param["vuln_id"].(float64))
@@ -177,6 +186,7 @@ func GetWeekStat(param map[string]interface{}) (weekStat []int64, err error) {
 	return weekStat, nil
 }
 
+// GetCCLogs ...
 func GetCCLogs(param map[string]interface{}) ([]*models.SimpleCCLog, error) {
 	appID := int64(param["app_id"].(float64))
 	startTime := int64(param["start_time"].(float64))
@@ -187,6 +197,7 @@ func GetCCLogs(param map[string]interface{}) ([]*models.SimpleCCLog, error) {
 	return simpleCCLogs, nil
 }
 
+// GetGroupLogs ...
 func GetGroupLogs(param map[string]interface{}) ([]*models.SimpleGroupHitLog, error) {
 	appID := int64(param["app_id"].(float64))
 	startTime := int64(param["start_time"].(float64))
@@ -197,11 +208,13 @@ func GetGroupLogs(param map[string]interface{}) ([]*models.SimpleGroupHitLog, er
 	return simpleRegexHitLogs, nil
 }
 
+// GetGroupLogByID ...
 func GetGroupLogByID(id int64) (*models.GroupHitLog, error) {
 	regexHitLog, err := data.DAL.SelectGroupHitLogByID(id)
 	return regexHitLog, err
 }
 
+// GetCCLogByID ...
 func GetCCLogByID(id int64) (*models.CCLog, error) {
 	ccLog, err := data.DAL.SelectCCLogByID(id)
 	return ccLog, err

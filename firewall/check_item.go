@@ -20,6 +20,7 @@ var (
 	checkPointCheckItemsMap sync.Map //(models.ChkPoint, []*models.CheckItem)
 )
 
+// GetCheckItemIndex ...
 func GetCheckItemIndex(checkItems []*models.CheckItem, id int64) int {
 	for i := 0; i < len(checkItems); i++ {
 		if checkItems[i].ID == id {
@@ -29,12 +30,14 @@ func GetCheckItemIndex(checkItems []*models.CheckItem, id int64) int {
 	return -1
 }
 
+// DeleteCheckItemByIndex ...
 func DeleteCheckItemByIndex(source []*models.CheckItem, index int) []*models.CheckItem {
 	lastIndex := len(source) - 1
 	source[index] = source[lastIndex]
 	return source[:lastIndex]
 }
 
+// GetCheckPointMapByCheckItemID ...
 func GetCheckPointMapByCheckItemID(checkItem *models.CheckItem, toBeDelete bool) (hitCheckPoint models.ChkPoint, checkPointCheckItems []*models.CheckItem, index int) {
 	if toBeDelete {
 		// check_point of check_item will not changed.
@@ -67,6 +70,7 @@ func GetCheckPointMapByCheckItemID(checkItem *models.CheckItem, toBeDelete bool)
 	return hitCheckPoint, checkPointCheckItems, index
 }
 
+// AddCheckItemToMap ...
 func AddCheckItemToMap(checkItem *models.CheckItem) {
 	//fmt.Println("AddCheckItemToMap", check_item)
 	value, _ := checkPointCheckItemsMap.LoadOrStore(checkItem.CheckPoint, []*models.CheckItem{})
@@ -76,6 +80,7 @@ func AddCheckItemToMap(checkItem *models.CheckItem) {
 
 }
 
+// UpdateCheckItemToMap ...
 func UpdateCheckItemToMap(checkItem *models.CheckItem) {
 	hitCheckPoint, checkPointCheckItems, index := GetCheckPointMapByCheckItemID(checkItem, false)
 	checkPointCheckItems = DeleteCheckItemByIndex(checkPointCheckItems, index)
@@ -97,6 +102,7 @@ func UpdateCheckItemToMap(checkItem *models.CheckItem) {
 	}
 }
 
+// LoadCheckItems ...
 func LoadCheckItems() {
 	for _, groupPolicy := range groupPolicies {
 		var checkItems []*models.CheckItem
@@ -122,6 +128,7 @@ func LoadCheckItems() {
 	}
 }
 
+// ContainsCheckItemID ...
 func ContainsCheckItemID(checkItems []*models.CheckItem, checkItemID int64) bool {
 	for _, checkItem := range checkItems {
 		if checkItem.ID == checkItemID {
@@ -131,6 +138,7 @@ func ContainsCheckItemID(checkItems []*models.CheckItem, checkItemID int64) bool
 	return false
 }
 
+// UpdateCheckItems ...
 func UpdateCheckItems(groupPolicy *models.GroupPolicy, checkItems []*models.CheckItem) error {
 	for _, checkItem := range groupPolicy.CheckItems {
 		// delete outdated check_items from DB
@@ -167,6 +175,7 @@ func UpdateCheckItems(groupPolicy *models.GroupPolicy, checkItems []*models.Chec
 	return nil
 }
 
+// DeleteCheckItemsByGroupPolicy ...
 func DeleteCheckItemsByGroupPolicy(groupPolicy *models.GroupPolicy) error {
 	for _, checkItem := range groupPolicy.CheckItems {
 		//fmt.Println("DeleteCheckItemsByGroupPolicy, check_item:", check_item)
@@ -183,6 +192,7 @@ func DeleteCheckItemsByGroupPolicy(groupPolicy *models.GroupPolicy) error {
 	return nil
 }
 
+// DebugTranverseCheckItems ...
 func DebugTranverseCheckItems() {
 	if utils.Debug == false {
 		return

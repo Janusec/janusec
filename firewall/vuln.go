@@ -16,9 +16,12 @@ import (
 
 var (
 	vulnTypes []*models.VulnType
-	VulnMap   sync.Map //VulnMap map[int64]string
+
+	// VulnMap map[int64]string
+	VulnMap sync.Map
 )
 
+// InitVulnType ...
 func InitVulnType() {
 	if data.IsMaster {
 		data.DAL.CreateTableIfNotExistsVulnType()
@@ -58,6 +61,7 @@ func InitVulnType() {
 	}
 }
 
+// GetVulnTypes ...
 func GetVulnTypes() ([]*models.VulnType, error) {
 	return vulnTypes, nil
 }
