@@ -38,6 +38,7 @@ func main() {
 		fmt.Println(data.Version)
 		os.Exit(0)
 	}
+	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	log.Printf("Janusec Application Gateway %s Starting ...\n", data.Version)

@@ -40,7 +40,7 @@ https://www.janusec.com/
 * PostgreSQL 9.3~9.6 or 10 (开发环境需要，生产环境仅主节点需要)  
 * CentOS/RHEL 7, Debian 9  
 * systemd  
-* Golang 1.9+ (开发环境需要，生产环境不需要)  
+* Golang 1.12+ (开发环境需要，生产环境不需要)  
 
 ## 快速启动入门指引  
 
