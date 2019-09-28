@@ -45,8 +45,22 @@ func GetApplicationByID(appID int64) (*models.Application, error) {
 	return nil, errors.New("Not found.")
 }
 
+func GetWildDomainName(domain string) string {
+	index := strings.Index(domain, ".")
+	if index > 0 {
+		wildDomain := "*" + domain[index:]
+		return wildDomain
+	}
+	return ""
+}
+
 func GetApplicationByDomain(domain string) *models.Application {
 	if domainRelation, ok := DomainsMap.Load(domain); ok {
+		app := domainRelation.(models.DomainRelation).App //DomainsMap[domain].App
+		return app
+	}
+	wildDomain := GetWildDomainName(domain) // *.janusec.com
+	if domainRelation, ok := DomainsMap.Load(wildDomain); ok {
 		app := domainRelation.(models.DomainRelation).App //DomainsMap[domain].App
 		return app
 	}
