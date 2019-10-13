@@ -61,7 +61,9 @@ func GetApplicationByDomain(domain string) *models.Application {
 	}
 	wildDomain := GetWildDomainName(domain) // *.janusec.com
 	if domainRelation, ok := DomainsMap.Load(wildDomain); ok {
-		app := domainRelation.(models.DomainRelation).App //DomainsMap[domain].App
+		domainRelation2 := domainRelation.(models.DomainRelation)
+		app := domainRelation2.App //DomainsMap[domain].App
+		DomainsMap.Store(domain, models.DomainRelation{App: app, Cert: domainRelation2.Cert})
 		return app
 	}
 	return nil
