@@ -8,6 +8,8 @@
 
 Janusec应用网关(Janusec Application Gateway)，提供WAF (Web Application Firewall, Web应用防火墙)、CC攻击防御、统一Web化管理入口、证书私钥保护，Web路由以及可扩展的负载均衡等功能。  
 
+Janusec Application Gateway 的设计理念在[《数据安全架构设计与实战》](https://github.com/zhyale/book1)一书中有介绍。  
+
 ### 主要特性  
 
 * WAF (Web应用防火墙), 拦截SQL Injection, XSS, 敏感数据泄露, CC攻击等  
@@ -93,3 +95,7 @@ Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-
 * 镜像网站: [https://janusec.github.io/](https://janusec.github.io/)  
 * Email: `support#janusec.com`  
 * QQ群: 776900157  , @[U2](https://github.com/zhyale) (作者)  
+* 作者微信公众号： 数据安全架构与治理（Data-Security）  
+
+![数据安全架构与治理（Data-Security）](Data-Security.png)  
+
