@@ -169,6 +169,7 @@ func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
 	}
 	for _, oldDomain := range app.Domains {
 		if !InterfaceContainsDomainID(appDomains, oldDomain.ID) {
+			DomainsMap.Delete(oldDomain.Name)
 			data.DAL.DeleteDomainByDomainID(oldDomain.ID)
 		}
 	}
