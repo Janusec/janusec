@@ -27,6 +27,7 @@ import (
 
 // ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
+	//utils.DebugPrintln("Gateway ReverseHandlerFunc", r.Host)
 	app := backend.GetApplicationByDomain(r.Host)
 	if app == nil {
 		hitInfo := &models.HitInfo{PolicyID: 0, VulnName: "Unknown Host"}
@@ -39,6 +40,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	r.URL.Scheme = app.InternalScheme
 	r.URL.Host = r.Host
+
 	//appID_str := strconv.Itoa(app.AppID)
 	//fmt.Println("ReverseHandlerFunc, r.URL.Path:", r.URL.Path)
 	/*
@@ -146,7 +148,6 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	http2.ConfigureTransport(transport)
-
 	proxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
 			//req.URL.Scheme = app.InternalScheme
@@ -158,6 +159,11 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		dump, err := httputil.DumpRequest(r, true)
 		utils.CheckError("ReverseHandlerFunc DumpRequest", err)
 		fmt.Println(string(dump))
+	}
+	if r.URL.Scheme == "ws" {
+		r.URL.Scheme = "http"
+	} else if r.URL.Scheme == "wss" {
+		r.URL.Scheme = "https"
 	}
 	proxy.ServeHTTP(w, r)
 }
