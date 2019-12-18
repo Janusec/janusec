@@ -160,11 +160,6 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		utils.CheckError("ReverseHandlerFunc DumpRequest", err)
 		fmt.Println(string(dump))
 	}
-	if r.URL.Scheme == "ws" {
-		r.URL.Scheme = "http"
-	} else if r.URL.Scheme == "wss" {
-		r.URL.Scheme = "https"
-	}
 	proxy.ServeHTTP(w, r)
 }
 
