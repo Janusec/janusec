@@ -6,7 +6,7 @@
 
 ## Build Scalable Application Security Infrastructures  
 
-![Janusec Application Gateway](https://www.janusec.com/images/gateway1.png)  
+![Janusec Application Gateway](gateway1.png)  
 
 Janusec Application Gateway, an application security solution which provides WAF (Web Application Firewall), CC attack defense, unified web administration portal, private key protection, web routing and scalable load balancing. With Janusec, you can build secure and scalable applications.  
 
@@ -24,17 +24,17 @@ Janusec Application Gateway, an application security solution which provides WAF
 
 ### SQL Injection Screenshot
 
-![Janusec Application Gateway Screenshot](https://www.janusec.com/images/waf-demo1.png)  
+![Janusec Application Gateway Screenshot](waf-demo1.png)  
 
 ### Sensitive Data Leakage Screenshot
 
-![Janusec Application Gateway Screenshot](https://www.janusec.com/images/waf-demo2.png)  
+![Janusec Application Gateway Screenshot](waf-demo2.png)  
 
-## Official Web Site  
+## Product Web Site  
 
-https://www.janusec.com/  
+https://janusec.github.io/  
 
-Detailed documentation is available at [Janusec Application Gateway Documentation](https://www.janusec.com/documentation/quick-start/).
+Detailed documentation is available at [Janusec Application Gateway Documentation](https://janusec.github.io/documentation/quick-start/).
 
 ## Requirements  
 
@@ -45,7 +45,7 @@ Detailed documentation is available at [Janusec Application Gateway Documentatio
 
 ## Quick Start for Deployment  
 
-https://www.janusec.com/documentation/quick-start/
+https://janusec.github.io/documentation/quick-start/
 
 ## Quick Start for Developer  
 
@@ -71,7 +71,7 @@ Then:
 
 > http://127.0.0.1:9080/  (The first address)  
 
-[Janusec Application Gateway Configuration](https://www.janusec.com/documentation/quick-start/)  
+[Janusec Application Gateway Configuration](https://janusec.github.io/documentation/quick-start/)  
 
 ## Release  
 
@@ -91,7 +91,7 @@ Janusec Application Gateway source files are made available under the terms of t
 
 ## Support
 
-* Website:  [https://www.janusec.com/](https://www.janusec.com/)  
-* Mirror: [https://janusec.github.io/](https://janusec.github.io/)  
+* Product: [https://janusec.github.io/](https://janusec.github.io/)  
+* Official site: [https://www.janusec.com/](https://www.janusec.com/)  
 * Email: `support#janusec.com`  
 * QQ Group: 776900157  , @[U2](https://github.com/zhyale) (The Author)  

@@ -4,7 +4,7 @@
 
 ## 构建可扩展的应用安全基础设施  
 
-![Janusec应用网关](https://www.janusec.com/images/gateway1.png)  
+![Janusec应用网关](gateway1.png)  
 
 Janusec应用网关(Janusec Application Gateway)，提供WAF (Web Application Firewall, Web应用防火墙)、CC攻击防御、统一Web化管理入口、证书私钥保护，Web路由以及可扩展的负载均衡等功能。  
 
@@ -24,18 +24,18 @@ Janusec Application Gateway 的设计理念在[《数据安全架构设计与实
 
 ### SQL注入截图
 
-![Janusec Application Gateway Screenshot](https://www.janusec.com/images/waf-demo1.png)  
+![Janusec Application Gateway Screenshot](waf-demo1.png)  
 
 ### 敏感信息泄露截图
 
-![Janusec Application Gateway Screenshot](https://www.janusec.com/images/waf-demo2.png)  
+![Janusec Application Gateway Screenshot](waf-demo2.png)  
 
 
 ## 官方网站  
 
 https://www.janusec.com/  
 
-详细文档可在这里获取 [Janusec应用网关快速入门](https://www.janusec.com/cn/quick-start/).
+详细文档可在这里获取 [Janusec应用网关快速入门](https://janusec.github.io/cn/quick-start/).
 
 ## 需求  
 
@@ -46,7 +46,7 @@ https://www.janusec.com/
 
 ## 快速启动入门指引  
 
-https://www.janusec.com/cn/quick-start/
+https://janusec.github.io/cn/quick-start/
 
 ## 开发者快速启动  
 
@@ -71,7 +71,7 @@ Janusec将自动加密数据库口令，然后：
 
 > http://127.0.0.1:9080/  (首次使用地址)  
 
-[Janusec应用网关配置](https://www.janusec.com/cn/quick-start/)  
+[Janusec应用网关配置](https://janusec.github.io/cn/quick-start/)  
 
 ## 发布  
 
@@ -91,8 +91,8 @@ Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-
 
 ## Support
 
+* 产品网站: [https://janusec.github.io/](https://janusec.github.io/)  
 * 官方网站: [https://www.janusec.com/](https://www.janusec.com/)  
-* 镜像网站: [https://janusec.github.io/](https://janusec.github.io/)  
 * Email: `support#janusec.com`  
 * QQ群: 776900157  , @[U2](https://github.com/zhyale) (作者)  
 * 作者微信公众号： 数据安全架构与治理（Data-Security）  
