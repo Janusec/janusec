@@ -182,3 +182,12 @@ func DeleteUser(userID int64) error {
 	err := data.DAL.DeleteAppUser(userID)
 	return err
 }
+
+func GetLoginUsername(r *http.Request) string {
+	session, _ := store.Get(r, "sessionid")
+	username := session.Values["username"]
+	if username != nil {
+		return username.(string)
+	}
+	return ""
+}

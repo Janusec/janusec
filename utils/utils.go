@@ -8,19 +8,31 @@
 package utils
 
 import (
-	"fmt"
 	"log"
+	"os"
 	"strings"
+	"time"
 )
 
-const (
-	Debug = false
+var (
+	logger *log.Logger
+	Debug  = false
 )
 
 func CheckError(msg string, err error) {
 	if err != nil {
 		log.Println(msg, err)
 	}
+}
+
+func InitLogger() {
+	logFilename := "./log/janusec" + time.Now().Format("20060102") + ".log"
+	logFile, err := os.OpenFile(logFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
+	if err != nil {
+		CheckError("InitLogger", err)
+		os.Exit(1)
+	}
+	logger = log.New(logFile, "[Janusec] ", log.LstdFlags)
 }
 
 func GetDirAll(path string) string {
@@ -31,6 +43,8 @@ func GetDirAll(path string) string {
 
 func DebugPrintln(a ...interface{}) {
 	if Debug {
-		fmt.Println(a)
+		log.Println(a)
+	} else {
+		logger.Println(a)
 	}
 }

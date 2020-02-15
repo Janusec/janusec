@@ -12,17 +12,18 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
 	//"net/http/httputil"
 	"strings"
 	//"io/ioutil"
 	"github.com/Janusec/janusec/backend"
 	"github.com/Janusec/janusec/firewall"
 	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	//"github.com/Janusec/janusec/utils"
 )
 
 func rewriteResponse(resp *http.Response) (err error) {
-	utils.DebugPrintln("rewriteResponse")
+	//utils.DebugPrintln("rewriteResponse")
 	r := resp.Request
 	app := backend.GetApplicationByDomain(r.Host)
 	locationURL, err := resp.Location()

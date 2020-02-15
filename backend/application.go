@@ -15,7 +15,7 @@ import (
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/firewall"
 	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	//"github.com/Janusec/janusec/utils"
 )
 
 var (
@@ -32,7 +32,7 @@ func SelectDestination(app *models.Application) string {
 		destIndex := ns % len(app.Destinations)
 		dest = app.Destinations[destIndex]
 	}
-	utils.DebugPrintln("SelectDestination", dest)
+	//utils.DebugPrintln("SelectDestination", dest)
 	return dest.Destination
 }
 

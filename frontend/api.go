@@ -25,7 +25,7 @@ import (
 )
 
 func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	utils.DebugPrintln("apiHandlerFunc", r.URL.Path)
+	//utils.DebugPrintln("apiHandlerFunc", r.URL.Path)
 	bodyBuf, _ := ioutil.ReadAll(r.Body)
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	decoder := json.NewDecoder(r.Body)

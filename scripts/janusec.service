@@ -5,8 +5,8 @@ After=network.target
 After=postgresql.service
  
 [Service]
-Type=forking
-ExecStart=/usr/local/janusec/janusec.sh
+Type=simple
+ExecStart=/usr/local/janusec/janusec
 Restart=always
  
 [Install]

@@ -1,6 +1,7 @@
 /.vscode
 /dist
-janusec
-janusec.exe
+/janusec
+/janusec.exe
+/log/*
 *.zip
 *.tar.gz

@@ -30,16 +30,16 @@ read option
 
 case $option in
 1) printf "Installing as Master Node \n"
-if [ ! -d ${install_dir} ]; then
-    mkdir -p ${install_dir}
+if [ ! -d ${install_dir}/log ]; then
+    mkdir -p ${install_dir}/log
 fi
 if [ ! -f ${install_dir}/config.json ]; then
     \cp ./config.json.master_bak ${install_dir}/config.json
 fi
 ;;
 2) printf "Installing as Slave Node \n"
-if [ ! -d ${install_dir} ]; then
-    mkdir -p ${install_dir}
+if [ ! -d ${install_dir}/log ]; then
+    mkdir -p ${install_dir}/log
 fi
 if [ ! -f ${install_dir}/config.json ]; then
     \cp ./config.json.slave_bak ${install_dir}/config.json

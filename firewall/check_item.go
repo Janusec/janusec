@@ -66,7 +66,7 @@ func GetCheckPointMapByCheckItemID(checkItem *models.CheckItem, toBeDelete bool)
 			return true
 		})
 	}
-	utils.DebugPrintln("GetCheckPointAndIndexFromMapByCheckItemID, old hit_check_point", hitCheckPoint, index)
+	//utils.DebugPrintln("GetCheckPointAndIndexFromMapByCheckItemID, old hit_check_point", hitCheckPoint, index)
 	return hitCheckPoint, checkPointCheckItems, index
 }
 

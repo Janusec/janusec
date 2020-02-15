@@ -12,12 +12,14 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sync"
+	"syscall"
 
 	"net/http/pprof"
 	_ "net/http/pprof"
@@ -38,11 +40,17 @@ func main() {
 		fmt.Println(data.Version)
 		os.Exit(0)
 	}
-	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
+	dir, _ := os.Executable()
+	exePath := filepath.Dir(dir)
+	os.Chdir(exePath)
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	log.Printf("Janusec Application Gateway %s Starting ...\n", data.Version)
-	utils.DebugPrintln("Warning: Janusec is running in Debug mode.")
+	utils.InitLogger()
+	SetOSEnv()
+	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
+	utils.DebugPrintln("Janusec Application Gateway", data.Version, "Starting ...")
+	if utils.Debug {
+		utils.DebugPrintln("Warning: Janusec is running in Debug mode.")
+	}
 	data.InitDAL()
 	if data.IsMaster {
 		backend.InitDatabase()
@@ -76,6 +84,7 @@ func main() {
 		adminMux := http.NewServeMux()
 		adminMux.HandleFunc("/janusec-api/", frontend.ApiHandlerFunc)
 		adminMux.HandleFunc("/", frontend.AdminHandlerFunc)
+		adminMux.HandleFunc("/webssh", frontend.WebSSHHandlerFunc)
 		adminMux.HandleFunc("/debug/pprof/", pprof.Index)
 		adminMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		adminMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
@@ -115,4 +124,28 @@ func AddContextHandler(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), "groupPolicyHitValue", &sync.Map{})
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func SetOSEnv() {
+	/*
+		#!/bin/bash
+		ulimit -n 1024000
+		sysctl -w net.core.somaxconn=65535
+		sysctl -w net.ipv4.tcp_max_syn_backlog=1024000
+	*/
+	rLimit := syscall.Rlimit{Cur: 1024000, Max: 1024000}
+	err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+	if err != nil {
+		utils.DebugPrintln("Setrlimit", err)
+	}
+	cmd := exec.Command("sysctl", "-w", "net.core.somaxconn=65535")
+	err = cmd.Run()
+	if err != nil {
+		utils.DebugPrintln("sysctl set net.core.somaxconn error:", err)
+	}
+	cmd = exec.Command("sysctl", "-w", "net.ipv4.tcp_max_syn_backlog=1024000")
+	err = cmd.Run()
+	if err != nil {
+		utils.DebugPrintln("sysctl set net.ipv4.tcp_max_syn_backlog error:", err)
+	}
 }
