@@ -13,6 +13,6 @@
 	},
 	"slave_node": {		
 		"node_key": "node_key_generated_in_node_management",
-		"sync_addr": "http://master_node_ip:9080/janusec-api/"
+		"sync_addr": "http://master_node_ip/janusec-admin/api"
 	}	
 }

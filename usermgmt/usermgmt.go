@@ -61,6 +61,7 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{})
 		session.Values["username"] = username
 		session.Values["user_id"] = userID
 		session.Values["need_modify_pwd"] = need_modify_pwd
+		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
 		session.Save(r, w)
 		authUser := &models.AuthUser{Username: username, Logged: true, NeedModifyPWD: need_modify_pwd}
 		return authUser, nil
@@ -74,6 +75,7 @@ func Logout(w http.ResponseWriter, r *http.Request) error {
 	session.Values["username"] = nil
 	session.Values["user_id"] = nil
 	session.Values["need_modify_pwd"] = nil
+	session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 0}
 	session.Save(r, w)
 	return nil
 }
@@ -160,8 +162,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 			}
 			session, _ := store.Get(r, "sessionid")
 			session.Values["need_modify_pwd"] = false
+			session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
 			session.Save(r, w)
-
 		} else {
 			err := data.DAL.UpdateAppUserNoPwd(username, email, isSuperAdmin, isCertAdmin, isAppAdmin, userID)
 			if err != nil {

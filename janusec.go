@@ -21,9 +21,7 @@ import (
 	"sync"
 	"syscall"
 
-	"net/http/pprof"
-	_ "net/http/pprof"
-
+	// _ "net/http/pprof"
 	"github.com/Janusec/janusec/backend"
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/firewall"
@@ -81,31 +79,39 @@ func main() {
 	}
 
 	if data.IsMaster {
-		adminMux := http.NewServeMux()
-		adminMux.HandleFunc("/janusec-api/", frontend.ApiHandlerFunc)
-		adminMux.HandleFunc("/", frontend.AdminHandlerFunc)
-		adminMux.HandleFunc("/webssh", frontend.WebSSHHandlerFunc)
-		adminMux.HandleFunc("/debug/pprof/", pprof.Index)
-		adminMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		adminMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		adminMux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		adminMux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+		/*
+			adminMux := http.NewServeMux()
+			adminMux.HandleFunc("/janusec-api/", frontend.ApiHandlerFunc)
+			adminMux.HandleFunc("/", frontend.AdminHandlerFunc)
+			adminMux.HandleFunc("/webssh", frontend.WebSSHHandlerFunc)
+			adminMux.HandleFunc("/debug/pprof/", pprof.Index)
+			adminMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+			adminMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+			adminMux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+			adminMux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
-		go func() {
-			listen, _ := net.Listen("tcp", data.CFG.MasterNode.AdminHTTPListen)
-			err := http.Serve(listen, adminMux)
-			utils.CheckError("Main Admin Listen", err)
-		}()
-		go func() {
-			listen, _ := tls.Listen("tcp", data.CFG.MasterNode.AdminHTTPSListen, tlsconfig)
-			utils.CheckError("Main Admin tls.Listen", http.Serve(listen, adminMux))
-		}()
+			go func() {
+				listen, _ := net.Listen("tcp", data.CFG.MasterNode.AdminHTTPListen)
+				err := http.Serve(listen, adminMux)
+				utils.CheckError("Main Admin Listen", err)
+			}()
+			go func() {
+				listen, _ := tls.Listen("tcp", data.CFG.MasterNode.AdminHTTPSListen, tlsconfig)
+				utils.CheckError("Main Admin tls.Listen", http.Serve(listen, adminMux))
+			}()
+		*/
 	}
 	gateMux := http.NewServeMux()
-	gateMux.HandleFunc("/", gateway.ReverseHandlerFunc)
+	// Add API and admin
+	gateMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
+	gateMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
+	gateMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
+	// Add CAPTCHA
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)
 	gateMux.Handle("/captcha/png/", gateway.ShowCaptchaImage())
+	// Reverse Proxy
+	gateMux.HandleFunc("/", gateway.ReverseHandlerFunc)
 	ctxGateMux := AddContextHandler(gateMux)
 	go func() {
 		listen, _ := net.Listen("tcp", ":80")

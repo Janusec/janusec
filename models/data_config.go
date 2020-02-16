@@ -15,9 +15,9 @@ type Config struct {
 }
 
 type MasterNodeConfig struct {
-	AdminHTTPListen  string   `json:"admin_http_listen"`
-	AdminHTTPSListen string   `json:"admin_https_listen"`
-	Database         DBConfig `json:"database"`
+	//AdminHTTPListen  string   `json:"admin_http_listen"`
+	//AdminHTTPSListen string   `json:"admin_https_listen"`
+	Database DBConfig `json:"database"`
 }
 
 type SlaveNodeConfig struct {

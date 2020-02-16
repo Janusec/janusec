@@ -69,7 +69,8 @@ Janusec将自动加密数据库口令，然后：
 
 ## Web化管理  
 
-> http://127.0.0.1:9080/  (首次使用地址)  
+> http://127.0.0.1/janusec-admin/  (首次使用地址，将IP地址改为实际IP地址)  
+> https://your_domain_name/janusec-admin/ (配置证书和应用后)  
 
 [Janusec应用网关配置](https://janusec.github.io/cn/quick-start/)  
 

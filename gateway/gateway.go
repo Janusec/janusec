@@ -27,7 +27,7 @@ import (
 
 // ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	//utils.DebugPrintln("Gateway ReverseHandlerFunc", r.Host)
+	//fmt.Println("Gateway ReverseHandlerFunc", r.Host)
 	app := backend.GetApplicationByDomain(r.Host)
 	if app == nil {
 		hitInfo := &models.HitInfo{PolicyID: 0, VulnName: "Unknown Host"}

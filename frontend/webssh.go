@@ -109,7 +109,7 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var logBuf bytes.Buffer
-	outputTicker := time.NewTicker(150 * time.Millisecond)
+	outputTicker := time.NewTicker(120 * time.Millisecond)
 	go RoutineOutput(outputTicker, wsConn, &sshOutput)
 	for {
 		select {

@@ -69,7 +69,8 @@ Then:
 
 ## Web Administration  
 
-> http://127.0.0.1:9080/  (The first address)  
+> http://127.0.0.1/janusec-admin/  (The first address)  
+> https://your_domain_name/janusec-admin/  (Ready after application configuration)    
 
 [Janusec Application Gateway Configuration](https://janusec.github.io/documentation/quick-start/)  
 
@@ -83,7 +84,7 @@ The release package is under ./dist .
 
 ## Web Administration Portal
 
-Release directory is `./static/` , and source code is available at [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) with Angular 5.  
+Release directory is `./static/janusec-admin/` , and source code is available at [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) with Angular 9.  
 
 ## LICENSE
 
