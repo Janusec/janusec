@@ -44,7 +44,7 @@ https://www.janusec.com/
 * systemd  
 * Golang 1.12+ (开发环境需要，生产环境不需要)  
 
-## 快速启动入门指引  
+## 快速入门指引  
 
 https://janusec.github.io/cn/quick-start/
 
@@ -84,7 +84,7 @@ Janusec将自动加密数据库口令，然后：
 
 ## Web化管理相关文件
 
-Web化管理所需的文件在 `./static/` 目录, 源码在 [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) ，前端源码使用Angular 5.  
+Web化管理所需的文件在 `./static/` 目录, 源码在 [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) ，前端源码使用Angular 9.  
 
 ## LICENSE
 
@@ -92,7 +92,7 @@ Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-
 
 ## Support
 
-* 产品网站: [https://janusec.github.io/](https://janusec.github.io/)  
+* 产品网站: [https://janusec.github.io/cn/](https://janusec.github.io/cn/)  
 * 官方网站: [https://www.janusec.com/](https://www.janusec.com/)  
 * Email: `support#janusec.com`  
 * QQ群: 776900157  , @[U2](https://github.com/zhyale) (作者)  
