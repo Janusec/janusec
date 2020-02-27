@@ -37,24 +37,30 @@ type DBApplication struct {
 }
 
 type DomainRelation struct {
-	App  *Application
-	Cert *CertItem
+	App      *Application
+	Cert     *CertItem
+	Redirect bool
+	Location string
 }
 
 type Domain struct {
-	ID     int64        `json:"id"`
-	Name   string       `json:"name"`
-	AppID  int64        `json:"app_id"`
-	CertID int64        `json:"cert_id"`
-	App    *Application `json:"-"`
-	Cert   *CertItem    `json:"-"`
+	ID       int64        `json:"id"`
+	Name     string       `json:"name"`
+	AppID    int64        `json:"app_id"`
+	CertID   int64        `json:"cert_id"`
+	Redirect bool         `json:"redirect"`
+	Location string       `json:"location"`
+	App      *Application `json:"-"`
+	Cert     *CertItem    `json:"-"`
 }
 
 type DBDomain struct {
-	ID     int64  `json:"id"`
-	Name   string `json:"name"`
-	AppID  int64  `json:"app_id"`
-	CertID int64  `json:"cert_id"`
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	AppID    int64  `json:"app_id"`
+	CertID   int64  `json:"cert_id"`
+	Redirect bool   `json:"redirect"`
+	Location string `json:"location"`
 }
 
 type Destination struct {

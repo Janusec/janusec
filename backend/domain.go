@@ -16,7 +16,7 @@ import (
 
 var (
 	Domains    []*models.Domain
-	DomainsMap sync.Map //DomainsMap (string,models.DomainRelation)
+	DomainsMap sync.Map //DomainsMap (string, models.DomainRelation)
 )
 
 func LoadDomains() {
@@ -34,11 +34,17 @@ func LoadDomains() {
 	for _, dbDomain := range dbDomains {
 		pApp, _ := GetApplicationByID(dbDomain.AppID)
 		pCert, _ := GetCertificateByID(dbDomain.CertID)
-		domain := &models.Domain{ID: dbDomain.ID, Name: dbDomain.Name,
-			AppID: dbDomain.AppID, CertID: dbDomain.CertID,
-			App: pApp, Cert: pCert}
+		domain := &models.Domain{
+			ID:       dbDomain.ID,
+			Name:     dbDomain.Name,
+			AppID:    dbDomain.AppID,
+			CertID:   dbDomain.CertID,
+			Redirect: dbDomain.Redirect,
+			Location: dbDomain.Location,
+			App:      pApp,
+			Cert:     pCert}
 		Domains = append(Domains, domain)
-		DomainsMap.Store(domain.Name, models.DomainRelation{App: pApp, Cert: pCert})
+		DomainsMap.Store(domain.Name, models.DomainRelation{App: pApp, Cert: pCert, Redirect: dbDomain.Redirect, Location: dbDomain.Location})
 	}
 }
 
@@ -105,16 +111,18 @@ func UpdateDomain(app *models.Application, domainMapInterface interface{}) *mode
 	domainID := int64(domainMap["id"].(float64))
 	domainName := domainMap["name"].(string)
 	certID := int64(domainMap["cert_id"].(float64))
+	redirect := domainMap["redirect"].(bool)
+	location := domainMap["location"].(string)
 	pCert, _ := GetCertificateByID(certID)
 	domain := GetDomainByID(domainID)
 	if domainID == 0 {
 		// New domain
-		newDomainID := data.DAL.InsertDomain(domainName, app.ID, certID)
+		newDomainID := data.DAL.InsertDomain(domainName, app.ID, certID, redirect, location)
 		domain = new(models.Domain)
 		domain.ID = newDomainID
 		Domains = append(Domains, domain)
 	} else {
-		data.DAL.UpdateDomain(domainName, app.ID, certID, domain.ID)
+		data.DAL.UpdateDomain(domainName, app.ID, certID, redirect, location, domain.ID)
 	}
 	domain.Name = domainName
 	domain.AppID = app.ID

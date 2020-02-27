@@ -28,6 +28,11 @@ import (
 // ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println("Gateway ReverseHandlerFunc", r.Host)
+	domain := backend.GetDomainByName(r.Host)
+	if domain != nil && domain.Redirect == true {
+		RedirectRequest(w, r, domain.Location)
+		return
+	}
 	app := backend.GetApplicationByDomain(r.Host)
 	if app == nil {
 		hitInfo := &models.HitInfo{PolicyID: 0, VulnName: "Unknown Host"}
@@ -35,7 +40,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if (r.TLS == nil) && (app.RedirectHttps == true) {
-		RedirectHTTPSFunc(w, r)
+		RedirectRequest(w, r, "https://"+r.Host+r.URL.Path)
 		return
 	}
 	r.URL.Scheme = app.InternalScheme
@@ -163,13 +168,12 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	proxy.ServeHTTP(w, r)
 }
 
-// RedirectHTTPSFunc redirect 80 to 443
-func RedirectHTTPSFunc(w http.ResponseWriter, r *http.Request) {
-	target := "https://" + r.Host + r.URL.Path
+// RedirectRequest, for example: redirect 80 to 443
+func RedirectRequest(w http.ResponseWriter, r *http.Request, location string) {
 	if len(r.URL.RawQuery) > 0 {
-		target += "?" + r.URL.RawQuery
+		location += "?" + r.URL.RawQuery
 	}
-	http.Redirect(w, r, target, http.StatusMovedPermanently)
+	http.Redirect(w, r, location, http.StatusMovedPermanently)
 }
 
 // GenClientID generate unique client id
