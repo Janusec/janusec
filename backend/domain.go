@@ -127,9 +127,11 @@ func UpdateDomain(app *models.Application, domainMapInterface interface{}) *mode
 	domain.Name = domainName
 	domain.AppID = app.ID
 	domain.CertID = certID
+	domain.Redirect = redirect
+	domain.Location = location
 	domain.App = app
 	domain.Cert = pCert
-	DomainsMap.Store(domainName, models.DomainRelation{App: app, Cert: pCert})
+	DomainsMap.Store(domainName, models.DomainRelation{App: app, Cert: pCert, Redirect: redirect, Location: location})
 	return domain
 }
 

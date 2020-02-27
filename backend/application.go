@@ -63,7 +63,7 @@ func GetApplicationByDomain(domain string) *models.Application {
 	if domainRelation, ok := DomainsMap.Load(wildDomain); ok {
 		domainRelation2 := domainRelation.(models.DomainRelation)
 		app := domainRelation2.App //DomainsMap[domain].App
-		DomainsMap.Store(domain, models.DomainRelation{App: app, Cert: domainRelation2.Cert})
+		DomainsMap.Store(domain, models.DomainRelation{App: app, Cert: domainRelation2.Cert, Redirect: false, Location: ""})
 		return app
 	}
 	return nil
