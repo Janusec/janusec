@@ -60,7 +60,7 @@ MIT
 @angular/forms
 MIT
 
-@angular/http
+@angular/localize
 MIT
 
 @angular/material
