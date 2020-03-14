@@ -17,12 +17,19 @@ type Config struct {
 type MasterNodeConfig struct {
 	//AdminHTTPListen  string   `json:"admin_http_listen"`
 	//AdminHTTPSListen string   `json:"admin_https_listen"`
-	Database DBConfig `json:"database"`
+	Admin    AdminConfig `json:"admin"`
+	Database DBConfig    `json:"database"`
 }
 
 type SlaveNodeConfig struct {
 	NodeKey  string `json:"node_key"`
 	SyncAddr string `json:"sync_addr"`
+}
+
+type AdminConfig struct {
+	Listen      bool   `json:"listen"`
+	ListenHTTP  string `json:"listen_http"`
+	ListenHTTPS string `json:"listen_https"`
 }
 
 type DBConfig struct {

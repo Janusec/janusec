@@ -1,6 +1,11 @@
 {
 	"node_role": "master",
 	"master_node": {
+        "admin": {
+            "listen": true,
+            "listen_http": ":9080",
+		    "listen_https": ":9443"
+        },
 		"database": {
 			"host": "127.0.0.1",
 			"port": "5432",

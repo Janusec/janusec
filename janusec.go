@@ -77,35 +77,35 @@ func main() {
 			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
 			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256},
 	}
-
-	if data.IsMaster {
-		/*
-			adminMux := http.NewServeMux()
-			adminMux.HandleFunc("/janusec-api/", frontend.ApiHandlerFunc)
-			adminMux.HandleFunc("/", frontend.AdminHandlerFunc)
-			adminMux.HandleFunc("/webssh", frontend.WebSSHHandlerFunc)
-			adminMux.HandleFunc("/debug/pprof/", pprof.Index)
-			adminMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-			adminMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-			adminMux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-			adminMux.HandleFunc("/debug/pprof/trace", pprof.Trace)
-
-			go func() {
-				listen, _ := net.Listen("tcp", data.CFG.MasterNode.AdminHTTPListen)
-				err := http.Serve(listen, adminMux)
-				utils.CheckError("Main Admin Listen", err)
-			}()
-			go func() {
-				listen, _ := tls.Listen("tcp", data.CFG.MasterNode.AdminHTTPSListen, tlsconfig)
-				utils.CheckError("Main Admin tls.Listen", http.Serve(listen, adminMux))
-			}()
-		*/
-	}
 	gateMux := http.NewServeMux()
-	// Add API and admin
-	gateMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
-	gateMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
-	gateMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
+	if data.IsMaster {
+		admin := data.CFG.MasterNode.Admin
+		if admin.Listen == true {
+			adminMux := http.NewServeMux()
+			adminMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
+			adminMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
+			adminMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
+			if len(admin.ListenHTTP) > 0 {
+				go func() {
+					listen, _ := net.Listen("tcp", admin.ListenHTTP)
+					err := http.Serve(listen, adminMux)
+					utils.CheckError("Main Admin Listen", err)
+				}()
+			}
+			if len(admin.ListenHTTPS) > 0 {
+				go func() {
+					listen, _ := tls.Listen("tcp", admin.ListenHTTPS, tlsconfig)
+					utils.CheckError("Main Admin tls.Listen", http.Serve(listen, adminMux))
+				}()
+			}
+		} else {
+			// Add API and admin
+			gateMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
+			gateMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
+			gateMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
+		}
+	}
+
 	// Add CAPTCHA
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)
