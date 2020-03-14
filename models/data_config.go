@@ -15,10 +15,9 @@ type Config struct {
 }
 
 type MasterNodeConfig struct {
-	//AdminHTTPListen  string   `json:"admin_http_listen"`
-	//AdminHTTPSListen string   `json:"admin_https_listen"`
-	Admin    AdminConfig `json:"admin"`
-	Database DBConfig    `json:"database"`
+	Admin    AdminConfig  `json:"admin"`
+	Database DBConfig     `json:"database"`
+	Wxwork   WxworkConfig `json:"wxwork"`
 }
 
 type SlaveNodeConfig struct {
@@ -30,6 +29,7 @@ type AdminConfig struct {
 	Listen      bool   `json:"listen"`
 	ListenHTTP  string `json:"listen_http"`
 	ListenHTTPS string `json:"listen_https"`
+	OAuth       string `json:"oauth"`
 }
 
 type DBConfig struct {
@@ -45,4 +45,12 @@ type EncryptedConfig struct {
 	NodeRole   string           `json:"node_role"`
 	MasterNode MasterNodeConfig `json:"master_node"`
 	SlaveNode  SlaveNodeConfig  `json:"slave_node"`
+}
+
+type WxworkConfig struct {
+	DisplayName string `json:"display_name"`
+	Callback    string `json:"callback"`
+	CorpID      string `json:"corpid"`
+	AgentID     string `json:"agentid"`
+	CorpSecret  string `json:"corpsecret"`
 }

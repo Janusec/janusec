@@ -8,8 +8,6 @@
 package data
 
 import (
-	"errors"
-
 	"github.com/Janusec/janusec/models"
 	"github.com/Janusec/janusec/utils"
 )
@@ -41,12 +39,25 @@ func (dal *MyDAL) IsExistsAppUser(username string) bool {
 	}
 }
 
-func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, needModifyPwd bool) (newID int64, err error) {
-	if dal.IsExistsAppUser(username) == true {
-		return 0, errors.New("Error: Username exists.")
+func (dal *MyDAL) GetAppUserIDByName(username string) (id int64, err error) {
+	sqlSelectID := "SELECT id FROM appusers WHERE username=$1"
+	err = dal.db.QueryRow(sqlSelectID, username).Scan(&id)
+	return id, err
+}
+
+func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, needModifyPwd bool) (id int64, err error) {
+	/*
+		if dal.IsExistsAppUser(username) == true {
+			return 0, errors.New("Error: Username exists.")
+		}
+	*/
+	id, err = dal.GetAppUserIDByName(username)
+	utils.DebugPrintln("InsertIfNotExistsAppUser id=", id, err)
+	if err == nil {
+		return id, err
 	}
-	err = dal.db.QueryRow(sqlInsertAppUser, username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd).Scan(&newID)
-	return newID, err
+	err = dal.db.QueryRow(sqlInsertAppUser, username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd).Scan(&id)
+	return id, err
 }
 
 func (dal *MyDAL) SelectHashPwdAndSalt(username string) (userID int64, hashpwd string, salt string, needModifyPwd bool) {

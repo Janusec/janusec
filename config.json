@@ -4,15 +4,23 @@
         "admin": {
             "listen": true,
             "listen_http": ":9080",
-		    "listen_https": ":9443"
-        },
+            "listen_https": ":9443",
+            "oauth": "wxwork"
+        },        
 		"database": {
 			"host": "127.0.0.1",
 			"port": "5432",
 			"user": "postgres",
 			"password": "8c7d4114c208e8679376fe1aa49096e0361c8c2dbdde937bad07806028442343d20f9a5994",
 			"dbname": "janusec"
-		}
+        },
+        "wxwork": {
+            "display_name": "Login with WeChat Work",
+            "callback": "https://gate.janusec.com:9443/janusec-admin/oauth/callback",
+            "corpid": "wwd03ba1f6c692e1f8",
+            "agentid": "1000002",
+            "corpsecret": "BgZtz_hssdZXtoaiktbZV5em-AyGhOgLlm18rU_NdZI"
+        }
 	},
 	"slave_node": {
 		"node_key": "",

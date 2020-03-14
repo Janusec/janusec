@@ -85,6 +85,8 @@ func main() {
 			adminMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
 			adminMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
 			adminMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
+			adminMux.HandleFunc("/janusec-admin/oauth/callback", frontend.OAuthCallBackHandleFunc)
+			adminMux.HandleFunc("/janusec-admin/oauth/get", frontend.OAuthGetHandleFunc)
 			if len(admin.ListenHTTP) > 0 {
 				go func() {
 					listen, _ := net.Listen("tcp", admin.ListenHTTP)
@@ -103,6 +105,8 @@ func main() {
 			gateMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
 			gateMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
 			gateMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
+			gateMux.HandleFunc("/janusec-admin/oauth/callback", frontend.OAuthCallBackHandleFunc)
+			gateMux.HandleFunc("/janusec-admin/oauth/get", frontend.OAuthGetHandleFunc)
 		}
 	}
 
