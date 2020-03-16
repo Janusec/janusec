@@ -12,22 +12,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 	"github.com/gorilla/sessions"
 
-	"github.com/Janusec/iknow/common"
-	"github.com/Janusec/janusec/utils"
+	"github.com/patrickmn/go-cache"
 )
 
-/*
-type WxworkRequest struct {
-	CorpID     string `json:"corpid"`
-	CorpSecret string `json:"corpsecret"`
-	//Code         string `json:"code"`
-}
-*/
+var (
+	OAuthCache = cache.New(5*time.Minute, 5*time.Minute)
+)
 
 type WxworkAccessToken struct {
 	ErrCode     int64  `json:"errcode"`
@@ -43,47 +40,61 @@ type WxworkUser struct {
 }
 
 // https://work.weixin.qq.com/api/doc/90000/90135/91025
-// Step 1: To https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=CORPID&agentid=AGENTID&redirect_uri=REDIRECT_URI&state=STATE
+// Step 1: To https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=CORPID&agentid=AGENTID&redirect_uri=REDIRECT_URI&state=admin
+// If state==admin, for janusec-admin; else for frontend applications
 func CallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
-	// Step 2.1: Callback with code, http://gate.janusec.com/?code=BM8k8U6RwtQtNY&state=janusec&appid=wwd03ba1f8
+	// Step 2.1: Callback with code, http://gate.janusec.com/?code=BM8k8U6RwtQtNY&state=admin&appid=wwd03ba1f8
 	code := r.FormValue("code")
-	utils.DebugPrintln("CallbackWithCode", code)
+	state := r.FormValue("state")
 	// Step 2.2: Within Callback, get access_token
 	// https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wwd03ba1f8&corpsecret=NdZI
 	// Response format: https://work.weixin.qq.com/api/doc/90000/90135/91039
 	accessTokenURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
 		data.CFG.MasterNode.Wxwork.CorpID, data.CFG.MasterNode.Wxwork.CorpSecret)
-	request, err := http.NewRequest("GET", accessTokenURL, nil)
-	resp, err := GetResponse(request)
-	utils.DebugPrintln("CallbackWithCode Get Access Token", err)
+	request, _ := http.NewRequest("GET", accessTokenURL, nil)
+	resp, _ := GetResponse(request)
 	tokenResponse := WxworkAccessToken{}
-	err = json.Unmarshal(resp, &tokenResponse)
-	utils.DebugPrintln("CallbackWithCode Parse Access Token", err)
+	json.Unmarshal(resp, &tokenResponse)
 	// Step 2.3: Get UserID, https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=ACCESS_TOKEN&code=CODE
 	userURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=%s&code=%s", tokenResponse.AccessToken, code)
-	request, err = http.NewRequest("GET", userURL, nil)
-	resp, err = GetResponse(request)
+	request, _ = http.NewRequest("GET", userURL, nil)
+	resp, _ = GetResponse(request)
 	wxworkUser := WxworkUser{}
 	json.Unmarshal(resp, &wxworkUser)
-	utils.DebugPrintln("CallbackWithCode Get UserID", wxworkUser.UserID)
-	// Insert into db if not existed
-	id, err := data.DAL.InsertIfNotExistsAppUser(wxworkUser.UserID, "", "", "", false, false, false, false)
-	// create session
-	session, _ := store.Get(r, "sessionid")
-	session.Values["username"] = wxworkUser.UserID
-	session.Values["user_id"] = id
-	session.Values["need_modify_pwd"] = false
-	session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.ExpiresIn}
-	session.Save(r, w)
-	authUser := &models.AuthUser{Username: wxworkUser.UserID, Logged: true, NeedModifyPWD: false}
-	return authUser, nil
+	if state == "admin" {
+		// Insert into db if not existed
+		id, _ := data.DAL.InsertIfNotExistsAppUser(wxworkUser.UserID, "", "", "", false, false, false, false)
+		// create session
+		authUser := &models.AuthUser{
+			UserID:        id,
+			Username:      wxworkUser.UserID,
+			Logged:        true,
+			IsSuperAdmin:  false,
+			IsCertAdmin:   false,
+			IsAppAdmin:    false,
+			NeedModifyPWD: false}
+		session, _ := store.Get(r, "sessionid")
+		session.Values["authuser"] = authUser
+		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.ExpiresIn}
+		session.Save(r, w)
+		return authUser, nil
+	}
+	// Gateway OAuth for employees and internal application
+	oauthStateI, found := OAuthCache.Get(state)
+	if found {
+		oauthState := oauthStateI.(models.OAuthState)
+		oauthState.Username = wxworkUser.UserID
+		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
+		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
+	}
+	return nil, nil
 }
 
 func GetResponse(request *http.Request) (respBytes []byte, err error) {
 	request.Header.Set("Accept", "application/json")
 	client := http.Client{}
 	resp, err := client.Do(request)
-	common.CheckError("GetResponse Do", err)
+	utils.CheckError("GetResponse Do", err)
 	if err != nil {
 		return nil, err
 	}

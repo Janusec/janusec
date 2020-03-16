@@ -33,7 +33,7 @@ func LoadDomains() {
 	}
 	for _, dbDomain := range dbDomains {
 		pApp, _ := GetApplicationByID(dbDomain.AppID)
-		pCert, _ := GetCertificateByID(dbDomain.CertID)
+		pCert, _ := SysCallGetCertByID(dbDomain.CertID)
 		domain := &models.Domain{
 			ID:       dbDomain.ID,
 			Name:     dbDomain.Name,
@@ -113,7 +113,7 @@ func UpdateDomain(app *models.Application, domainMapInterface interface{}) *mode
 	certID := int64(domainMap["cert_id"].(float64))
 	redirect := domainMap["redirect"].(bool)
 	location := domainMap["location"].(string)
-	pCert, _ := GetCertificateByID(certID)
+	pCert, _ := SysCallGetCertByID(certID)
 	domain := GetDomainByID(domainID)
 	if domainID == 0 {
 		// New domain

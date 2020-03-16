@@ -82,7 +82,10 @@ func LoadApps() {
 				WAFEnabled:     dbApp.WAFEnabled,
 				ClientIPMethod: dbApp.ClientIPMethod,
 				Description:    dbApp.Description,
-				Destinations:   []*models.Destination{}}
+				Destinations:   []*models.Destination{},
+				OAuthRequired:  dbApp.OAuthRequired,
+				SessionSeconds: dbApp.SessionSeconds,
+				Owner:          dbApp.Owner}
 			Apps = append(Apps, app)
 		}
 	} else {
@@ -128,8 +131,17 @@ func LoadAppDomainNames() {
 	}
 }
 
-func GetApplications() ([]*models.Application, error) {
-	return Apps, nil
+func GetApplications(authUser *models.AuthUser) ([]*models.Application, error) {
+	if authUser.IsAppAdmin {
+		return Apps, nil
+	}
+	var myApps []*models.Application
+	for _, app := range Apps {
+		if app.Owner == authUser.Username {
+			myApps = append(myApps, app)
+		}
+	}
+	return myApps, nil
 }
 
 func UpdateDestinations(app *models.Application, destinations []interface{}) {
@@ -190,10 +202,13 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 	if description, ok = application["description"].(string); !ok {
 		description = ""
 	}
+	oauthRequired := application["oauth_required"].(bool)
+	sessionSeconds := int64(application["session_seconds"].(float64))
+	owner := application["owner"].(string)
 	var app *models.Application
 	if appID == 0 {
 		// new application
-		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description)
+		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner)
 		app = &models.Application{
 			ID: newID, Name: appName,
 			InternalScheme: internalScheme,
@@ -203,12 +218,15 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 			HSTSEnabled:    hstsEnabled,
 			WAFEnabled:     wafEnabled,
 			ClientIPMethod: ipMethod,
-			Description:    description}
+			Description:    description,
+			OAuthRequired:  oauthRequired,
+			SessionSeconds: sessionSeconds,
+			Owner:          owner}
 		Apps = append(Apps, app)
 	} else {
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
-			data.DAL.UpdateApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, appID)
+			data.DAL.UpdateApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, appID)
 			app.Name = appName
 			app.InternalScheme = internalScheme
 			app.RedirectHttps = redirectHttps
@@ -216,6 +234,9 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 			app.WAFEnabled = wafEnabled
 			app.ClientIPMethod = ipMethod
 			app.Description = description
+			app.OAuthRequired = oauthRequired
+			app.SessionSeconds = sessionSeconds
+			app.Owner = owner
 		} else {
 			return nil, errors.New("Application not found.")
 		}

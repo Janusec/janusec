@@ -1,18 +1,29 @@
 {
 	"node_role": "slave",
 	"master_node": {
-		"admin_http_listen": "",
-		"admin_https_listen": "",
+        "admin": {
+            "listen": false,
+            "listen_http": "",
+            "listen_https": "",
+            "oauth": ""
+        },
 		"database": {
 			"host": "",
 			"port": "",
 			"user": "",
 			"password": "",
 			"dbname": ""
-		}
+        },
+        "wxwork": {
+            "display_name": "",
+            "callback": "",
+            "corpid": "",
+            "agentid": "",
+            "corpsecret": ""
+        }
 	},
-	"slave_node": {		
+	"slave_node": {
 		"node_key": "node_key_generated_in_node_management",
-		"sync_addr": "http://master_node_ip/janusec-admin/api"
-	}	
+		"sync_addr": "http://127.0.0.1/janusec-admin/api"
+	}
 }

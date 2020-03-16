@@ -22,48 +22,44 @@ var (
 
 func IsLogIn(w http.ResponseWriter, r *http.Request) (isLogIn bool, userID int64) {
 	session, _ := store.Get(r, "sessionid")
-	username := session.Values["username"]
-	isLogIn = false
-	userID = 0
-	if username != nil {
-		isLogIn = true
-		userID = session.Values["user_id"].(int64)
+	authUserI := session.Values["authuser"]
+	if authUserI != nil {
+		authUser := authUserI.(models.AuthUser)
+		return true, authUser.UserID
 	}
-	//fmt.Println("IsLogIn:", isLogIn, "Username:", username)
-	return isLogIn, userID
+	return false, 0
 }
 
 func GetAuthUser(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
 	session, _ := store.Get(r, "sessionid")
-	userID := session.Values["user_id"]
-	username := session.Values["username"]
-	need_modify_pwd := session.Values["need_modify_pwd"]
-	if need_modify_pwd == nil {
-		need_modify_pwd = false
+	authUserI := session.Values["authuser"]
+	if authUserI != nil {
+		authUser := authUserI.(models.AuthUser)
+		return &authUser, nil
 	}
-	if username != nil {
-		authUser := &models.AuthUser{UserID: userID.(int64), Username: username.(string), Logged: true, NeedModifyPWD: need_modify_pwd.(bool)}
-		return authUser, nil
-	}
-	return nil, nil
+	return nil, errors.New("Please login")
 }
 
 func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{}) (*models.AuthUser, error) {
 	obj := param["object"].(map[string]interface{})
 	username := obj["username"].(string)
 	password := obj["passwd"].(string)
-	userID, hashpwd, salt, need_modify_pwd := data.DAL.SelectHashPwdAndSalt(username)
+	appUser := data.DAL.SelectAppUserByName(username)
 
-	tmp_hashpwd := data.SHA256Hash(password + salt)
-	//fmt.Printf("Login password=%s salt=%s hashpwd=%s tmp_hashpwd=%s", password, salt, hashpwd, tmp_hashpwd)
-	if tmp_hashpwd == hashpwd {
+	tmpHashpwd := data.SHA256Hash(password + appUser.Salt)
+	if tmpHashpwd == appUser.HashPwd {
+		authUser := &models.AuthUser{
+			UserID:        appUser.ID,
+			Username:      username,
+			Logged:        true,
+			IsSuperAdmin:  appUser.IsSuperAdmin,
+			IsCertAdmin:   appUser.IsCertAdmin,
+			IsAppAdmin:    appUser.IsAppAdmin,
+			NeedModifyPWD: appUser.NeedModifyPWD}
 		session, _ := store.Get(r, "sessionid")
-		session.Values["username"] = username
-		session.Values["user_id"] = userID
-		session.Values["need_modify_pwd"] = need_modify_pwd
+		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
 		session.Save(r, w)
-		authUser := &models.AuthUser{Username: username, Logged: true, NeedModifyPWD: need_modify_pwd}
 		return authUser, nil
 	} else {
 		return nil, errors.New("Login failed.")
@@ -72,15 +68,13 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{})
 
 func Logout(w http.ResponseWriter, r *http.Request) error {
 	session, _ := store.Get(r, "sessionid")
-	session.Values["username"] = nil
-	session.Values["user_id"] = nil
-	session.Values["need_modify_pwd"] = nil
+	session.Values["authuser"] = nil
 	session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 0}
 	session.Save(r, w)
 	return nil
 }
 
-func GetAppUsers() ([]*models.AppUser, error) {
+func GetAppUsers(authUser *models.AuthUser) ([]*models.AppUser, error) {
 	var appUsers []*models.AppUser
 	query_users := data.DAL.SelectAppUsers()
 	for _, query_user := range query_users {
@@ -95,9 +89,12 @@ func GetAppUsers() ([]*models.AppUser, error) {
 		appUser.IsSuperAdmin = query_user.IsSuperAdmin
 		appUser.IsCertAdmin = query_user.IsCertAdmin
 		appUser.IsAppAdmin = query_user.IsAppAdmin
-		appUsers = append(appUsers, appUser)
+		if authUser.IsSuperAdmin || authUser.UserID == appUser.ID {
+			appUsers = append(appUsers, appUser)
+		}
 	}
 	return appUsers, nil
+
 }
 
 func GetAdmin(param map[string]interface{}) (*models.AppUser, error) {
@@ -125,7 +122,7 @@ func GetAppUserByID(userID int64) (*models.AppUser, error) {
 	}
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interface{}) (*models.AppUser, error) {
+func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interface{}, authUser *models.AuthUser) (*models.AppUser, error) {
 	var user = param["object"].(map[string]interface{})
 	var userID = int64(user["id"].(float64))
 	var username = user["username"].(string)
@@ -139,10 +136,14 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 	if user["email"] != nil {
 		email = user["email"].(string)
 	}
-
-	var isSuperAdmin = user["is_super_admin"].(bool)
-	var isCertAdmin = user["is_cert_admin"].(bool)
-	var isAppAdmin = user["is_app_admin"].(bool)
+	isSuperAdmin := false
+	isCertAdmin := false
+	isAppAdmin := false
+	if authUser.IsSuperAdmin {
+		isSuperAdmin = user["is_super_admin"].(bool)
+		isCertAdmin = user["is_cert_admin"].(bool)
+		isAppAdmin = user["is_app_admin"].(bool)
+	}
 	salt := data.GetRandomSaltString()
 	hashpwd := data.SHA256Hash(password + salt)
 	appUser := new(models.AppUser)
@@ -161,7 +162,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 				return nil, err
 			}
 			session, _ := store.Get(r, "sessionid")
-			session.Values["need_modify_pwd"] = false
+			authUser := session.Values["authuser"].(models.AuthUser)
+			authUser.NeedModifyPWD = false
+			session.Values["authuser"] = authUser
 			session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
 			session.Save(r, w)
 		} else {
@@ -187,9 +190,10 @@ func DeleteUser(userID int64) error {
 
 func GetLoginUsername(r *http.Request) string {
 	session, _ := store.Get(r, "sessionid")
-	username := session.Values["username"]
-	if username != nil {
-		return username.(string)
+	authUserI := session.Values["authuser"]
+	if authUserI != nil {
+		authUser := authUserI.(models.AuthUser)
+		return authUser.Username
 	}
 	return ""
 }

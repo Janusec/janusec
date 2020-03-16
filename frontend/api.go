@@ -19,6 +19,7 @@ import (
 	"github.com/Janusec/janusec/backend"
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/firewall"
+	"github.com/Janusec/janusec/models"
 	"github.com/Janusec/janusec/settings"
 	"github.com/Janusec/janusec/usermgmt"
 	"github.com/Janusec/janusec/utils"
@@ -36,19 +37,29 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	action := param["action"]
 	authKey := param["auth_key"]
 	var userID int64
+	var authUser *models.AuthUser
 	if authKey != nil {
 		// For slave nodes
 		if backend.IsValidAuthKey(r, param) == false {
 			GenResponseByObject(w, nil, errors.New("AuthKey invalid!"))
 			return
 		}
+		// for privilege check and sync data from slave nodes
+		authUser = &models.AuthUser{
+			UserID:        0,
+			Username:      "node",
+			Logged:        true,
+			IsSuperAdmin:  true,
+			IsCertAdmin:   true,
+			IsAppAdmin:    true,
+			NeedModifyPWD: false,
+		}
 	} else {
-		// For administrators
+		// For administrators and OAuth users
 		if action != "login" {
-			var isLogin bool
-			isLogin, userID = usermgmt.IsLogIn(w, r)
-			if isLogin == false {
-				GenResponseByObject(w, nil, errors.New("Please login!"))
+			authUser, err = usermgmt.GetAuthUser(w, r)
+			if authUser == nil {
+				GenResponseByObject(w, nil, err)
 				return
 			}
 		}
@@ -76,7 +87,7 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "getauthuser":
 		obj, err = usermgmt.GetAuthUser(w, r)
 	case "getapps":
-		obj, err = backend.GetApplications()
+		obj, err = backend.GetApplications(authUser)
 	case "getapp":
 		id := int64(param["id"].(float64))
 		obj, err = backend.GetApplicationByID(id)
@@ -87,12 +98,12 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		id := int64(param["id"].(float64))
 		err = backend.DeleteApplicationByID(id)
 	case "getcerts":
-		obj, err = backend.GetCertificates()
+		obj, err = backend.GetCertificates(authUser)
 	case "getcert":
 		id := int64(param["id"].(float64))
-		obj, err = backend.GetCertificateByID(id)
+		obj, err = backend.GetCertificateByID(id, authUser)
 	case "updatecert":
-		obj, err = backend.UpdateCertificate(param)
+		obj, err = backend.UpdateCertificate(param, authUser)
 	case "delcert":
 		id := int64(param["id"].(float64))
 		obj = nil
@@ -103,11 +114,11 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj = backend.Domains
 		err = nil
 	case "getadmins":
-		obj, err = usermgmt.GetAppUsers()
+		obj, err = usermgmt.GetAppUsers(authUser)
 	case "getadmin":
 		obj, err = usermgmt.GetAdmin(param)
 	case "updateadmin":
-		obj, err = usermgmt.UpdateUser(w, r, param)
+		obj, err = usermgmt.UpdateUser(w, r, param, authUser)
 	case "deladmin":
 		id := int64(param["id"].(float64))
 		obj = nil

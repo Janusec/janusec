@@ -1,16 +1,29 @@
 {
 	"node_role": "master",
 	"master_node": {
+        "admin": {
+            "listen": true,
+            "listen_http": ":9080",
+            "listen_https": ":9443",
+            "oauth": ""
+        },
 		"database": {
 			"host": "127.0.0.1",
 			"port": "5432",
 			"user": "postgres",
-			"password": "your_database_password",
+			"password": "123456",
 			"dbname": "janusec"
-		}
+        },
+        "wxwork": {
+            "display_name": "Login with WeChat Work",
+            "callback": "http://gateway.your_domain.com:9080/janusec-admin/oauth/callback",
+            "corpid": "wwd99999992e1f8",
+            "agentid": "1000002",
+            "corpsecret": "ZXtoaiktbZV9em-AyGhOgLlm18rU_NdZIXFGTkjh"
+        }
 	},
-	"slave_node": {		
+	"slave_node": {
 		"node_key": "",
-		"sync_addr": ""
-	}	
+		"sync_addr": "http://gateway.your_domain.com:9080/janusec-admin/api"
+	}
 }

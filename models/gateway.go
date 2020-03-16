@@ -21,3 +21,8 @@ type CaptchaContext struct {
 	CaptchaId string
 	ClientID  string
 }
+
+type OAuthState struct {
+	CallbackURL string
+	Username    string
+}

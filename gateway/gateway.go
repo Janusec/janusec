@@ -21,8 +21,15 @@ import (
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/firewall"
 	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/usermgmt"
 	"github.com/Janusec/janusec/utils"
+	"github.com/gorilla/sessions"
+	"github.com/patrickmn/go-cache"
 	"golang.org/x/net/http2"
+)
+
+var (
+	store = sessions.NewCookieStore([]byte("janusec"))
 )
 
 // ReverseHandlerFunc used for reverse handler
@@ -64,17 +71,20 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	   }
 	*/
 	// dynamic
+	srcIP := GetClientIP(r, app)
 	if app.WAFEnabled {
-		srcIP := GetClientIP(r, app)
 		if isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app.ID, srcIP); isCC == true {
 			targetURL := r.URL.Path
 			if len(r.URL.RawQuery) > 0 {
 				targetURL += "?" + r.URL.RawQuery
 			}
 			hitInfo := &models.HitInfo{TypeID: 1,
-				PolicyID: ccPolicy.AppID, VulnName: "CC",
-				Action: ccPolicy.Action, ClientID: clientID,
-				TargetURL: targetURL, BlockTime: time.Now().Unix()}
+				PolicyID:  ccPolicy.AppID,
+				VulnName:  "CC",
+				Action:    ccPolicy.Action,
+				ClientID:  clientID,
+				TargetURL: targetURL,
+				BlockTime: time.Now().Unix()}
 			switch ccPolicy.Action {
 			case models.Action_Block_100:
 				if needLog {
@@ -126,6 +136,49 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				// models.Action_Pass_400 do nothing
 			}
 		}
+	}
+
+	// Check OAuth
+	if app.OAuthRequired && data.CFG.MasterNode.Admin.OAuth != "" {
+		session, _ := store.Get(r, "janusec-token")
+		username := session.Values["username"]
+		if username == nil {
+			// Exec OAuth2 Authentication
+			ua := r.UserAgent() //r.Header.Get("User-Agent")
+			state := data.SHA256Hash(domain.Name + srcIP + ua)
+			stateSession := session.Values["state"]
+			if stateSession == nil {
+				var entranceURL string
+				switch data.CFG.MasterNode.Admin.OAuth {
+				case "wxwork":
+					entranceURL = fmt.Sprintf("https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s&state=%s",
+						data.CFG.MasterNode.Wxwork.CorpID,
+						data.CFG.MasterNode.Wxwork.AgentID,
+						data.CFG.MasterNode.Wxwork.Callback, state)
+				}
+				// Save Application URL for CallBack
+				oauthState := models.OAuthState{
+					CallbackURL: r.URL.String(),
+					Username:    ""}
+				usermgmt.OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
+				session.Values["state"] = state
+				session.Options = &sessions.Options{Path: "/", MaxAge: int(app.SessionSeconds)}
+				session.Save(r, w)
+				http.Redirect(w, r, entranceURL, http.StatusTemporaryRedirect)
+				return
+			}
+			// Has "state" in session, get UserID from cache
+			state = stateSession.(string)
+			oauthStateI, _ := usermgmt.OAuthCache.Get(state)
+			oauthState := oauthStateI.(models.OAuthState)
+			session.Values["username"] = oauthState.Username
+			session.Options = &sessions.Options{Path: "/", MaxAge: int(app.SessionSeconds)}
+			session.Save(r, w)
+			http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
+			return
+		}
+		// Exist username in session, Forward username to destination
+		r.Header.Set("Authorization", "user "+username.(string))
 	}
 
 	dest := backend.SelectDestination(app)
@@ -208,4 +261,13 @@ func GetClientIP(r *http.Request, app *models.Application) (clientIP string) {
 		clientIP, _, _ = net.SplitHostPort(r.RemoteAddr)
 	}
 	return clientIP
+}
+
+func OAuthLogout(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "janusec-token")
+	session.Values["username"] = nil
+	session.Values["state"] = nil
+	session.Options = &sessions.Options{Path: "/", MaxAge: -1}
+	session.Save(r, w)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

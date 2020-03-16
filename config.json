@@ -6,7 +6,7 @@
             "listen_http": ":9080",
             "listen_https": ":9443",
             "oauth": "wxwork"
-        },        
+        },
 		"database": {
 			"host": "127.0.0.1",
 			"port": "5432",
@@ -23,7 +23,7 @@
         }
 	},
 	"slave_node": {
-		"node_key": "",
-		"sync_addr": "http://127.0.0.1/janusec-admin/api"
+		"node_key": "node_key_generated_in_node_management",
+		"sync_addr": "http://127.0.0.1:9080/janusec-admin/api"
 	}
 }

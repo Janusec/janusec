@@ -10,6 +10,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"net"
@@ -27,6 +28,7 @@ import (
 	"github.com/Janusec/janusec/firewall"
 	"github.com/Janusec/janusec/frontend"
 	"github.com/Janusec/janusec/gateway"
+	"github.com/Janusec/janusec/models"
 	"github.com/Janusec/janusec/settings"
 	"github.com/Janusec/janusec/utils"
 )
@@ -44,7 +46,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	utils.InitLogger()
 	SetOSEnv()
-	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
+
 	utils.DebugPrintln("Janusec Application Gateway", data.Version, "Starting ...")
 	if utils.Debug {
 		utils.DebugPrintln("Warning: Janusec is running in Debug mode.")
@@ -109,7 +111,8 @@ func main() {
 			gateMux.HandleFunc("/janusec-admin/oauth/get", frontend.OAuthGetHandleFunc)
 		}
 	}
-
+	// Add Signout to Gateway when using OAuth2
+	gateMux.HandleFunc("/janusec-logout", gateway.OAuthLogout)
 	// Add CAPTCHA
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)
@@ -137,6 +140,10 @@ func AddContextHandler(next http.Handler) http.Handler {
 }
 
 func SetOSEnv() {
+	// Enable TLS 1.3
+	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
+	// Enable gorilla/sessions support struct
+	gob.Register(models.AuthUser{})
 	/*
 		#!/bin/bash
 		ulimit -n 1024000

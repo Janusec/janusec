@@ -8,7 +8,6 @@
 package frontend
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -38,7 +37,7 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 	oauthInfo := OAuthInfo{}
 	switch data.CFG.MasterNode.Admin.OAuth {
 	case "wxwork":
-		entranceURL := fmt.Sprintf("https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s&state=janusec",
+		entranceURL := fmt.Sprintf("https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s&state=admin",
 			data.CFG.MasterNode.Wxwork.CorpID,
 			data.CFG.MasterNode.Wxwork.AgentID,
 			data.CFG.MasterNode.Wxwork.Callback)
@@ -48,5 +47,5 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 		return &oauthInfo, nil
 	}
 	oauthInfo.UseOAuth = false
-	return &oauthInfo, errors.New("no OAuth provider")
+	return &oauthInfo, nil // errors.New("No OAuth2 provider, you can enable it in config.json")
 }

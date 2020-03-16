@@ -69,14 +69,52 @@ func GetCertificateByDomain(domain string) (*tls.Certificate, error) {
 	}
 }
 
-func GetCertificates() ([]*models.CertItem, error) {
-	return Certs, nil
+func GetCertificates(authUser *models.AuthUser) ([]*models.CertItem, error) {
+	if authUser.IsCertAdmin == true {
+		return Certs, nil
+	} else {
+		// Remove private key
+		var simpleCerts []*models.CertItem
+		for _, cert := range Certs {
+			simpleCert := &models.CertItem{
+				ID:             cert.ID,
+				CommonName:     cert.CommonName,
+				CertContent:    "",
+				PrivKeyContent: "You have no privilege to view the private key.",
+				ExpireTime:     cert.ExpireTime,
+				Description:    cert.Description,
+			}
+			simpleCerts = append(simpleCerts, simpleCert)
+		}
+		return simpleCerts, nil
+	}
 }
 
-func GetCertificateByID(cert_id int64) (*models.CertItem, error) {
+// SysCallGetCertByID ... Use for internal call, not for UI
+func SysCallGetCertByID(certID int64) (*models.CertItem, error) {
 	for _, cert := range Certs {
-		if cert.ID == cert_id {
+		if cert.ID == certID {
 			return cert, nil
+		}
+	}
+	return nil, errors.New("Certificate not found")
+}
+
+func GetCertificateByID(certID int64, authUser *models.AuthUser) (*models.CertItem, error) {
+	for _, cert := range Certs {
+		if cert.ID == certID {
+			if authUser.IsCertAdmin {
+				return cert, nil
+			}
+			simpleCert := &models.CertItem{
+				ID:             cert.ID,
+				CommonName:     cert.CommonName,
+				CertContent:    cert.CertContent,
+				PrivKeyContent: "You have no privilege to view the private key.",
+				ExpireTime:     cert.ExpireTime,
+				Description:    cert.Description,
+			}
+			return simpleCert, nil
 		}
 	}
 	return nil, errors.New("Certificate id error.")
@@ -92,7 +130,7 @@ func GetCertificateByCommonName(commonName string) *models.CertItem {
 	return nil
 }
 
-func UpdateCertificate(param map[string]interface{}) (*models.CertItem, error) {
+func UpdateCertificate(param map[string]interface{}, authUser *models.AuthUser) (*models.CertItem, error) {
 	certificate := param["object"].(map[string]interface{})
 	id := int64(certificate["id"].(float64))
 	commonName := certificate["common_name"].(string)
@@ -118,7 +156,7 @@ func UpdateCertificate(param map[string]interface{}) (*models.CertItem, error) {
 		certItem.ID = newID
 		Certs = append(Certs, certItem)
 	} else {
-		certItem, err = GetCertificateByID(id)
+		certItem, err = GetCertificateByID(id, authUser)
 		if err != nil {
 			return nil, err
 		}
@@ -137,25 +175,25 @@ func UpdateCertificate(param map[string]interface{}) (*models.CertItem, error) {
 	return certItem, nil
 }
 
-func GetCertificateIndex(cert_id int64) int {
+func GetCertificateIndex(certID int64) int {
 	for i := 0; i < len(Certs); i++ {
-		if Certs[i].ID == cert_id {
+		if Certs[i].ID == certID {
 			return i
 		}
 	}
 	return -1
 }
 
-func DeleteCertificateByID(cert_id int64) error {
-	certDomainsCount := data.DAL.SelectDomainsCountByCertID(cert_id)
+func DeleteCertificateByID(certID int64) error {
+	certDomainsCount := data.DAL.SelectDomainsCountByCertID(certID)
 	if certDomainsCount > 0 {
 		return errors.New("This certificate is in use, please delete relevant applications at first.")
 	} else {
-		err := data.DAL.DeleteCertificate(cert_id)
+		err := data.DAL.DeleteCertificate(certID)
 		if err != nil {
 			return err
 		}
-		i := GetCertificateIndex(cert_id)
+		i := GetCertificateIndex(certID)
 		Certs = append(Certs[:i], Certs[i+1:]...)
 	}
 	data.UpdateBackendLastModified()

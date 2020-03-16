@@ -23,6 +23,9 @@ type Application struct {
 	WAFEnabled     bool           `json:"waf_enabled"`
 	ClientIPMethod IPMethod       `json:"ip_method"`
 	Description    string         `json:"description"`
+	OAuthRequired  bool           `json:"oauth_required"`
+	SessionSeconds int64          `json:"session_seconds"`
+	Owner          string         `json:"owner"`
 }
 
 type DBApplication struct {
@@ -34,6 +37,9 @@ type DBApplication struct {
 	WAFEnabled     bool     `json:"waf_enabled"`
 	ClientIPMethod IPMethod `json:"ip_method"`
 	Description    string   `json:"description"`
+	OAuthRequired  bool     `json:"oauth_required"`
+	SessionSeconds int64    `json:"session_seconds"`
+	Owner          string   `json:"owner"`
 }
 
 type DomainRelation struct {
@@ -89,22 +95,28 @@ type DBCertItem struct {
 	Description      sql.NullString
 }
 
+// For Authentication in Memory
 type AuthUser struct {
 	UserID        int64  `json:"user_id"`
 	Username      string `json:"username"`
 	Logged        bool   `json:"logged"`
+	IsSuperAdmin  bool   `json:"is_super_admin"`
+	IsCertAdmin   bool   `json:"is_cert_admin"`
+	IsAppAdmin    bool   `json:"is_app_admin"`
 	NeedModifyPWD bool   `json:"need_modify_pwd"`
 }
 
+// DB Storage
 type AppUser struct {
-	ID           int64  `json:"id"`
-	Username     string `json:"username"`
-	HashPwd      string `json:"-"`
-	Salt         string `json:"-"`
-	Email        string `json:"email"`
-	IsSuperAdmin bool   `json:"is_super_admin"`
-	IsCertAdmin  bool   `json:"is_cert_admin"`
-	IsAppAdmin   bool   `json:"is_app_admin"`
+	ID            int64  `json:"id"`
+	Username      string `json:"username"`
+	HashPwd       string `json:"-"`
+	Salt          string `json:"-"`
+	Email         string `json:"email"`
+	IsSuperAdmin  bool   `json:"is_super_admin"`
+	IsCertAdmin   bool   `json:"is_cert_admin"`
+	IsAppAdmin    bool   `json:"is_app_admin"`
+	NeedModifyPWD bool   `json:"need_modify_pwd"`
 }
 
 // not include password and salt

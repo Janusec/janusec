@@ -46,13 +46,7 @@ func (dal *MyDAL) GetAppUserIDByName(username string) (id int64, err error) {
 }
 
 func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, needModifyPwd bool) (id int64, err error) {
-	/*
-		if dal.IsExistsAppUser(username) == true {
-			return 0, errors.New("Error: Username exists.")
-		}
-	*/
 	id, err = dal.GetAppUserIDByName(username)
-	utils.DebugPrintln("InsertIfNotExistsAppUser id=", id, err)
 	if err == nil {
 		return id, err
 	}
@@ -64,6 +58,23 @@ func (dal *MyDAL) SelectHashPwdAndSalt(username string) (userID int64, hashpwd s
 	err := dal.db.QueryRow(sqlSelectHashPwdAndSalt, username).Scan(&userID, &hashpwd, &salt, &needModifyPwd)
 	utils.CheckError("SelectHashPwdAndSalt", err)
 	return userID, hashpwd, salt, needModifyPwd
+}
+
+func (dal *MyDAL) SelectAppUserByName(username string) *models.AppUser {
+	appUser := new(models.AppUser)
+	const sqlSelectAppUserByName = `SELECT id,username,hashpwd,salt,email,is_super_admin,is_cert_admin,is_app_admin,need_modify_pwd FROM appusers WHERE username=$1`
+	err := dal.db.QueryRow(sqlSelectAppUserByName, username).Scan(
+		&appUser.ID,
+		&appUser.Username,
+		&appUser.HashPwd,
+		&appUser.Salt,
+		&appUser.Email,
+		&appUser.IsSuperAdmin,
+		&appUser.IsCertAdmin,
+		&appUser.IsAppAdmin,
+		&appUser.NeedModifyPWD)
+	utils.CheckError("SelectAppUserByName", err)
+	return appUser
 }
 
 func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
