@@ -112,7 +112,7 @@ func main() {
 		}
 	}
 	// Add Signout to Gateway when using OAuth2
-	gateMux.HandleFunc("/janusec-logout", gateway.OAuthLogout)
+	gateMux.HandleFunc("/oauth/logout", gateway.OAuthLogout)
 	// Add CAPTCHA
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)

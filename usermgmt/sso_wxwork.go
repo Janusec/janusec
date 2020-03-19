@@ -85,8 +85,12 @@ func CallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.AuthUser,
 		oauthState := oauthStateI.(models.OAuthState)
 		oauthState.Username = wxworkUser.UserID
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
+		//fmt.Println("1008 set cache state=", oauthState, "307 to:", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
+		return nil, nil
 	}
+	//fmt.Println("1009 Time expired")
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	return nil, nil
 }
 

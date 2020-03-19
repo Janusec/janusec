@@ -141,12 +141,20 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// Check OAuth
 	if app.OAuthRequired && data.CFG.MasterNode.Admin.OAuth != "" {
 		session, _ := store.Get(r, "janusec-token")
-		username := session.Values["username"]
-		if username == nil {
+		usernameI := session.Values["username"]
+		var url string
+		if r.TLS != nil {
+			url = "https://" + r.Host + r.URL.Path
+		} else {
+			url = r.URL.String()
+		}
+		//fmt.Println("1000", usernameI, url)
+		if usernameI == nil {
 			// Exec OAuth2 Authentication
 			ua := r.UserAgent() //r.Header.Get("User-Agent")
-			state := data.SHA256Hash(domain.Name + srcIP + ua)
-			stateSession := session.Values["state"]
+			state := data.SHA256Hash(srcIP + url + ua)
+			stateSession := session.Values[state]
+			//fmt.Println("1001 state=", state, url)
 			if stateSession == nil {
 				var entranceURL string
 				switch data.CFG.MasterNode.Admin.OAuth {
@@ -158,27 +166,40 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				}
 				// Save Application URL for CallBack
 				oauthState := models.OAuthState{
-					CallbackURL: r.URL.String(),
+					CallbackURL: url,
 					Username:    ""}
 				usermgmt.OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-				session.Values["state"] = state
-				session.Options = &sessions.Options{Path: "/", MaxAge: int(app.SessionSeconds)}
+				session.Values[state] = state
+				session.Options = &sessions.Options{Path: "/", MaxAge: 300}
 				session.Save(r, w)
+				//fmt.Println("1002 cache state:", oauthState, url, "307 to:", entranceURL)
 				http.Redirect(w, r, entranceURL, http.StatusTemporaryRedirect)
 				return
 			}
-			// Has "state" in session, get UserID from cache
+			// Has state in session, get UserID from cache
 			state = stateSession.(string)
-			oauthStateI, _ := usermgmt.OAuthCache.Get(state)
+			oauthStateI, found := usermgmt.OAuthCache.Get(state)
+			if found == false {
+				// Time expired, clear session
+				session.Options = &sessions.Options{Path: "/", MaxAge: -1}
+				session.Save(r, w)
+				http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+				return
+			}
+			// found == true
 			oauthState := oauthStateI.(models.OAuthState)
-			session.Values["username"] = oauthState.Username
+			if oauthState.Username == "" {
+				session.Values["username"] = nil
+			} else {
+				session.Values["username"] = oauthState.Username
+			}
 			session.Options = &sessions.Options{Path: "/", MaxAge: int(app.SessionSeconds)}
 			session.Save(r, w)
 			http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 			return
 		}
 		// Exist username in session, Forward username to destination
-		r.Header.Set("Authorization", "user "+username.(string))
+		r.Header.Set("Authorization", "USER "+usernameI.(string))
 	}
 
 	dest := backend.SelectDestination(app)
@@ -265,8 +286,6 @@ func GetClientIP(r *http.Request, app *models.Application) (clientIP string) {
 
 func OAuthLogout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "janusec-token")
-	session.Values["username"] = nil
-	session.Values["state"] = nil
 	session.Options = &sessions.Options{Path: "/", MaxAge: -1}
 	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
