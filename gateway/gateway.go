@@ -141,7 +141,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// Check OAuth
 	if app.OAuthRequired && data.CFG.MasterNode.Admin.OAuth != "" {
 		session, _ := store.Get(r, "janusec-token")
-		usernameI := session.Values["username"]
+		usernameI := session.Values["userid"]
 		var url string
 		if r.TLS != nil {
 			url = "https://" + r.Host + r.URL.Path
@@ -167,7 +167,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				// Save Application URL for CallBack
 				oauthState := models.OAuthState{
 					CallbackURL: url,
-					Username:    ""}
+					UserID:      ""}
 				usermgmt.OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
 				session.Values[state] = state
 				session.Options = &sessions.Options{Path: "/", MaxAge: 300}
@@ -188,10 +188,11 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			}
 			// found == true
 			oauthState := oauthStateI.(models.OAuthState)
-			if oauthState.Username == "" {
-				session.Values["username"] = nil
+			if oauthState.UserID == "" {
+				session.Values["userid"] = nil
 			} else {
-				session.Values["username"] = oauthState.Username
+				session.Values["userid"] = oauthState.UserID
+				session.Values["access_token"] = oauthState.AccessToken
 			}
 			session.Options = &sessions.Options{Path: "/", MaxAge: int(app.SessionSeconds)}
 			session.Save(r, w)
@@ -199,7 +200,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Exist username in session, Forward username to destination
-		r.Header.Set("Authorization", "USER "+usernameI.(string))
+		accessToken := session.Values["access_token"].(string)
+		r.Header.Set("Authorization", "Bearer "+accessToken)
+		r.Header.Set("X-Auth-User", usernameI.(string))
 	}
 
 	dest := backend.SelectDestination(app)

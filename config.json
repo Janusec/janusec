@@ -2,7 +2,7 @@
 	"node_role": "master",
 	"master_node": {
         "admin": {
-            "listen": true,
+            "listen": false,
             "listen_http": ":9080",
             "listen_https": ":9443",
             "oauth": "wxwork"
@@ -16,7 +16,7 @@
         },
         "wxwork": {
             "display_name": "Login with WeChat Work",
-            "callback": "https://gate.janusec.com:9443/janusec-admin/oauth/callback",
+            "callback": "https://gate.janusec.com/janusec-admin/oauth/callback",
             "corpid": "wwd03ba1f6c692e1f8",
             "agentid": "1000002",
             "corpsecret": "BgZtz_hssdZXtoaiktbZV5em-AyGhOgLlm18rU_NdZI"

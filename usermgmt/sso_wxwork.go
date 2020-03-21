@@ -83,7 +83,8 @@ func CallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.AuthUser,
 	oauthStateI, found := OAuthCache.Get(state)
 	if found {
 		oauthState := oauthStateI.(models.OAuthState)
-		oauthState.Username = wxworkUser.UserID
+		oauthState.UserID = wxworkUser.UserID
+		oauthState.AccessToken = tokenResponse.AccessToken
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
 		//fmt.Println("1008 set cache state=", oauthState, "307 to:", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
