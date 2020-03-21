@@ -42,7 +42,7 @@ type WxworkUser struct {
 // https://work.weixin.qq.com/api/doc/90000/90135/91025
 // Step 1: To https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=CORPID&agentid=AGENTID&redirect_uri=REDIRECT_URI&state=admin
 // If state==admin, for janusec-admin; else for frontend applications
-func CallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
+func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
 	// Step 2.1: Callback with code, http://gate.janusec.com/?code=BM8k8U6RwtQtNY&state=admin&appid=wwd03ba1f8
 	code := r.FormValue("code")
 	state := r.FormValue("state")
@@ -107,10 +107,3 @@ func GetResponse(request *http.Request) (respBytes []byte, err error) {
 	respBytes, err = ioutil.ReadAll(resp.Body)
 	return respBytes, err
 }
-
-/*
-func OAuth2Demo(ctx *gin.Context) {
-	// This is a demo instead of Github
-	ctx.Redirect(http.StatusFound, "/oauth2/callback/github?code=a9fe4d0d42cfbd2ba1d8")
-}
-*/

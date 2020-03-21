@@ -16,7 +16,7 @@
         },
         "wxwork": {
             "display_name": "Login with WeChat Work",
-            "callback": "http://gateway.your_domain.com:9080/janusec-admin/oauth/callback",
+            "callback": "http://gateway.your_domain.com:9080/janusec-admin/oauth/wxwork",
             "corpid": "wwd99999992e1f8",
             "agentid": "1000002",
             "corpsecret": "ZXtoaiktbZV9em-AyGhOgLlm18rU_NdZIXFGTkjh"

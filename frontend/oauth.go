@@ -22,8 +22,8 @@ type OAuthInfo struct {
 	EntranceURL string `json:"entrance_url"`
 }
 
-func OAuthCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
-	usermgmt.CallbackWithCode(w, r)
+func WxworkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
+	usermgmt.WxworkCallbackWithCode(w, r)
 	//GenResponseByObject(w, obj, err)
 	http.Redirect(w, r, "/janusec-admin/", http.StatusFound)
 }
