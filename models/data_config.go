@@ -15,9 +15,10 @@ type Config struct {
 }
 
 type MasterNodeConfig struct {
-	Admin    AdminConfig  `json:"admin"`
-	Database DBConfig     `json:"database"`
-	Wxwork   WxworkConfig `json:"wxwork"`
+	Admin    AdminConfig    `json:"admin"`
+	Database DBConfig       `json:"database"`
+	Wxwork   WxworkConfig   `json:"wxwork"`
+	Dingtalk DingtalkConfig `json:"dingtalk"`
 }
 
 type SlaveNodeConfig struct {
@@ -53,4 +54,11 @@ type WxworkConfig struct {
 	CorpID      string `json:"corpid"`
 	AgentID     string `json:"agentid"`
 	CorpSecret  string `json:"corpsecret"`
+}
+
+type DingtalkConfig struct {
+	DisplayName string `json:"display_name"`
+	Callback    string `json:"callback"`
+	AppID       string `json:"appid"`
+	AppSecret   string `json:"appsecret"`
 }

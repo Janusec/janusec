@@ -162,7 +162,16 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 					entranceURL = fmt.Sprintf("https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s&state=%s",
 						data.CFG.MasterNode.Wxwork.CorpID,
 						data.CFG.MasterNode.Wxwork.AgentID,
-						data.CFG.MasterNode.Wxwork.Callback, state)
+						data.CFG.MasterNode.Wxwork.Callback,
+						state)
+				case "dingtalk":
+					entranceURL = fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=%s&redirect_uri=%s",
+						data.CFG.MasterNode.Dingtalk.AppID,
+						state,
+						data.CFG.MasterNode.Dingtalk.Callback)
+				default:
+					w.Write([]byte("Designated OAuth not supported, please check config.json ."))
+					return
 				}
 				// Save Application URL for CallBack
 				oauthState := models.OAuthState{

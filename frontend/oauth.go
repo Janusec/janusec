@@ -24,7 +24,11 @@ type OAuthInfo struct {
 
 func WxworkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.WxworkCallbackWithCode(w, r)
-	//GenResponseByObject(w, obj, err)
+	http.Redirect(w, r, "/janusec-admin/", http.StatusFound)
+}
+
+func DingtalkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
+	usermgmt.DingtalkCallbackWithCode(w, r)
 	http.Redirect(w, r, "/janusec-admin/", http.StatusFound)
 }
 
@@ -43,6 +47,14 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 			data.CFG.MasterNode.Wxwork.Callback)
 		oauthInfo.UseOAuth = true
 		oauthInfo.DisplayName = data.CFG.MasterNode.Wxwork.DisplayName
+		oauthInfo.EntranceURL = entranceURL
+		return &oauthInfo, nil
+	case "dingtalk":
+		entranceURL := fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=admin&redirect_uri=%s",
+			data.CFG.MasterNode.Dingtalk.AppID,
+			data.CFG.MasterNode.Dingtalk.Callback)
+		oauthInfo.UseOAuth = true
+		oauthInfo.DisplayName = data.CFG.MasterNode.Dingtalk.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	}

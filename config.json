@@ -5,7 +5,7 @@
             "listen": false,
             "listen_http": ":9080",
             "listen_https": ":9443",
-            "oauth": "wxwork"
+            "oauth": "dingtalk"
         },
 		"database": {
 			"host": "127.0.0.1",
@@ -20,6 +20,12 @@
             "corpid": "wwd03ba1f6c692e1f8",
             "agentid": "1000002",
             "corpsecret": "BgZtz_hssdZXtoaiktbZV5em-AyGhOgLlm18rU_NdZI"
+        },
+        "dingtalk": {
+            "display_name": "Login with DingTalk",
+            "callback": "https://gate.janusec.com/janusec-admin/oauth/dingtalk",
+            "appid": "dingoa8xzsdh7ovps1znvc",
+            "appsecret": "crrALdXUIj4T0zBekYShl6IMqWCUun7OQ09QdUbnweg1M5ZtgFB7h4u9sU_T1GZT"
         }
 	},
 	"slave_node": {
