@@ -20,6 +20,12 @@
             "corpid": "",
             "agentid": "",
             "corpsecret": ""
+        },
+        "dingtalk": {
+            "display_name": "",
+            "callback": "",
+            "appid": "",
+            "appsecret": ""
         }
 	},
 	"slave_node": {
