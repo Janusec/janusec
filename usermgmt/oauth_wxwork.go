@@ -10,13 +10,11 @@ package usermgmt
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
 	"github.com/gorilla/sessions"
 
 	"github.com/patrickmn/go-cache"
@@ -50,7 +48,7 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 	// https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wwd03ba1f8&corpsecret=NdZI
 	// Response format: https://work.weixin.qq.com/api/doc/90000/90135/91039
 	accessTokenURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
-		data.CFG.MasterNode.Wxwork.CorpID, data.CFG.MasterNode.Wxwork.CorpSecret)
+		data.CFG.MasterNode.OAuth.Wxwork.CorpID, data.CFG.MasterNode.OAuth.Wxwork.CorpSecret)
 	request, _ := http.NewRequest("GET", accessTokenURL, nil)
 	resp, _ := GetResponse(request)
 	tokenResponse := WxworkAccessToken{}
@@ -93,17 +91,4 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 	//fmt.Println("1009 Time expired")
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	return nil, nil
-}
-
-func GetResponse(request *http.Request) (respBytes []byte, err error) {
-	request.Header.Set("Accept", "application/json")
-	client := http.Client{}
-	resp, err := client.Do(request)
-	utils.CheckError("GetResponse Do", err)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	respBytes, err = ioutil.ReadAll(resp.Body)
-	return respBytes, err
 }

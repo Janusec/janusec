@@ -2,30 +2,34 @@
 	"node_role": "slave",
 	"master_node": {
         "admin": {
-            "listen": false,
-            "listen_http": "",
-            "listen_https": "",
-            "oauth": ""
+            "listen": true,
+            "listen_http": ":9080",
+            "listen_https": ":9443",
+            "webssh_enabled": false
         },
 		"database": {
-			"host": "",
-			"port": "",
+			"host": "127.0.0.1",
+			"port": "5432",
 			"user": "",
 			"password": "",
-			"dbname": ""
+			"dbname": "janusec"
         },
-        "wxwork": {
-            "display_name": "",
-            "callback": "",
-            "corpid": "",
-            "agentid": "",
-            "corpsecret": ""
-        },
-        "dingtalk": {
-            "display_name": "",
-            "callback": "",
-            "appid": "",
-            "appsecret": ""
+        "oauth": {
+            "enabled": false,
+            "provider": "wxwork",
+            "wxwork": {
+                "display_name": "",
+                "callback": "",
+                "corpid": "",
+                "agentid": "",
+                "corpsecret": ""
+            },
+            "dingtalk": {
+                "display_name": "",
+                "callback": "",
+                "appid": "",
+                "appsecret": ""
+            }
         }
 	},
 	"slave_node": {

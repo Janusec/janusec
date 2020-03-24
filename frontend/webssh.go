@@ -16,6 +16,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Janusec/janusec/data"
+
 	"github.com/Janusec/janusec/usermgmt"
 	"github.com/Janusec/janusec/utils"
 	"github.com/gorilla/websocket"
@@ -94,6 +96,10 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	_, msg, err := wsConn.ReadMessage()
 	if err != nil {
 		utils.CheckError("ReadMessage SSH Parameters Error:", err)
+		return
+	}
+	if data.CFG.MasterNode.Admin.WebSSHEnabled == false {
+		wsConn.WriteMessage(websocket.TextMessage, []byte("WebSSH disabled in config.json!\r\n"))
 		return
 	}
 	var host HostInfo

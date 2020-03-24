@@ -57,9 +57,9 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.A
 	// accessKey=appid
 	// https://ding-doc.dingtalk.com/doc#/serverapi2/kymkv6
 	timestamp := strconv.FormatInt(time.Now().UnixNano()/1e6, 10)
-	signature := GetSignature([]byte(timestamp), []byte(data.CFG.MasterNode.Dingtalk.AppSecret))
+	signature := GetSignature([]byte(timestamp), []byte(data.CFG.MasterNode.OAuth.Dingtalk.AppSecret))
 	accessTokenURL := fmt.Sprintf("https://oapi.dingtalk.com/sns/getuserinfo_bycode?accessKey=%s&timestamp=%s&signature=%s",
-		data.CFG.MasterNode.Dingtalk.AppID,
+		data.CFG.MasterNode.OAuth.Dingtalk.AppID,
 		timestamp,
 		signature)
 

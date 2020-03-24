@@ -139,7 +139,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check OAuth
-	if app.OAuthRequired && data.CFG.MasterNode.Admin.OAuth != "" {
+	if app.OAuthRequired && data.CFG.MasterNode.OAuth.Enabled {
 		session, _ := store.Get(r, "janusec-token")
 		usernameI := session.Values["userid"]
 		var url string
@@ -157,18 +157,25 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			//fmt.Println("1001 state=", state, url)
 			if stateSession == nil {
 				var entranceURL string
-				switch data.CFG.MasterNode.Admin.OAuth {
+				switch data.CFG.MasterNode.OAuth.Provider {
 				case "wxwork":
 					entranceURL = fmt.Sprintf("https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s&state=%s",
-						data.CFG.MasterNode.Wxwork.CorpID,
-						data.CFG.MasterNode.Wxwork.AgentID,
-						data.CFG.MasterNode.Wxwork.Callback,
+						data.CFG.MasterNode.OAuth.Wxwork.CorpID,
+						data.CFG.MasterNode.OAuth.Wxwork.AgentID,
+						data.CFG.MasterNode.OAuth.Wxwork.Callback,
 						state)
 				case "dingtalk":
 					entranceURL = fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=%s&redirect_uri=%s",
-						data.CFG.MasterNode.Dingtalk.AppID,
+						data.CFG.MasterNode.OAuth.Dingtalk.AppID,
 						state,
-						data.CFG.MasterNode.Dingtalk.Callback)
+						data.CFG.MasterNode.OAuth.Dingtalk.Callback)
+				/*
+					case "feishu":
+						entranceURL = fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=%s",
+							data.CFG.MasterNode.OAuth.Feishu.Callback,
+							data.CFG.MasterNode.OAuth.Feishu.AppID,
+							state)
+				*/
 				default:
 					w.Write([]byte("Designated OAuth not supported, please check config.json ."))
 					return

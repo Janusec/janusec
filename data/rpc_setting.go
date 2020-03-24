@@ -25,3 +25,16 @@ func RPCGetSettings() []*models.Setting {
 	}
 	return rpcSettings.Object
 }
+
+func RPCGetOAuthConfig() *models.OAuthConfig {
+	rpcRequest := &models.RPCRequest{
+		Action: "getoauthconf", Object: nil}
+	resp, err := GetResponse(rpcRequest)
+	utils.CheckError("RPCGetOAuthConfig", err)
+	rpcOAuthConf := new(models.RPCOAuthConfig)
+	if err = json.Unmarshal(resp, rpcOAuthConf); err != nil {
+		utils.CheckError("RPCGetOAuthConfig Unmarshal", err)
+	}
+	//fmt.Println("RPCGetOAuthConfig", rpcOAuthConf.Object)
+	return rpcOAuthConf.Object
+}

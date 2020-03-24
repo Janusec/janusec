@@ -41,6 +41,9 @@ func LoadSettings() {
 		data.Settings = append(data.Settings, &models.Setting{Name: "Firewall_Last_Modified", Value: data.Firewall_Last_Modified})
 		data.Settings = append(data.Settings, &models.Setting{Name: "Sync_Seconds", Value: data.Sync_Seconds})
 	} else {
+		// Load OAuth Config
+		data.CFG.MasterNode.OAuth = *(data.RPCGetOAuthConfig())
+		// Load Memory Settings
 		setting_items := data.RPCGetSettings()
 		for _, setting_item := range setting_items {
 			switch setting_item.Name {

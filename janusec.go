@@ -87,8 +87,6 @@ func main() {
 			adminMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
 			adminMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
 			adminMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
-			adminMux.HandleFunc("/janusec-admin/oauth/wxwork", frontend.WxworkCallBackHandleFunc)
-			adminMux.HandleFunc("/janusec-admin/oauth/dingtalk", frontend.DingtalkCallBackHandleFunc)
 			adminMux.HandleFunc("/janusec-admin/oauth/get", frontend.OAuthGetHandleFunc)
 			if len(admin.ListenHTTP) > 0 {
 				go func() {
@@ -108,13 +106,14 @@ func main() {
 			gateMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
 			gateMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
 			gateMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
-			gateMux.HandleFunc("/janusec-admin/oauth/wxwork", frontend.WxworkCallBackHandleFunc)
-			gateMux.HandleFunc("/janusec-admin/oauth/dingtalk", frontend.DingtalkCallBackHandleFunc)
 			gateMux.HandleFunc("/janusec-admin/oauth/get", frontend.OAuthGetHandleFunc)
 		}
 	}
-	// Add Signout to Gateway when using OAuth2
+	// Add OAuth2
 	gateMux.HandleFunc("/oauth/logout", gateway.OAuthLogout)
+	gateMux.HandleFunc("/oauth/wxwork", frontend.WxworkCallBackHandleFunc)
+	gateMux.HandleFunc("/oauth/dingtalk", frontend.DingtalkCallBackHandleFunc)
+	//gateMux.HandleFunc("/oauth/feishu", frontend.FeishuCallBackHandleFunc)
 	// Add CAPTCHA
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)

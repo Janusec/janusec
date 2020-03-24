@@ -1,11 +1,11 @@
 {
-	"node_role": "master",
+    "node_role": "master",    
 	"master_node": {
         "admin": {
             "listen": false,
             "listen_http": ":9080",
             "listen_https": ":9443",
-            "oauth": "dingtalk"
+            "webssh_enabled": false
         },
 		"database": {
 			"host": "127.0.0.1",
@@ -14,18 +14,22 @@
 			"password": "8c7d4114c208e8679376fe1aa49096e0361c8c2dbdde937bad07806028442343d20f9a5994",
 			"dbname": "janusec"
         },
-        "wxwork": {
-            "display_name": "Login with WeChat Work",
-            "callback": "https://gate.janusec.com/janusec-admin/oauth/wxwork",
-            "corpid": "wwd03ba1f6c692e1f8",
-            "agentid": "1000002",
-            "corpsecret": "BgZtz_hssdZXtoaiktbZV5em-AyGhOgLlm18rU_NdZI"
-        },
-        "dingtalk": {
-            "display_name": "Login with DingTalk",
-            "callback": "https://gate.janusec.com/janusec-admin/oauth/dingtalk",
-            "appid": "dingoa8xzsdh7ovps1znvc",
-            "appsecret": "crrALdXUIj4T0zBekYShl6IMqWCUun7OQ09QdUbnweg1M5ZtgFB7h4u9sU_T1GZT"
+        "oauth": {
+            "enabled": true,
+            "provider": "wxwork",
+            "wxwork": {
+                "display_name": "Login with WeChat Work",
+                "callback": "https://gate.janusec.com/oauth/wxwork",
+                "corpid": "wwd03ba1f6c692e1f8",
+                "agentid": "1000002",
+                "corpsecret": "BgZtz_hssdZXtoaiktbZV5em-AyGhOgLlm18rU_NdZI"
+            },
+            "dingtalk": {
+                "display_name": "Login with DingTalk",
+                "callback": "https://gate.janusec.com/oauth/dingtalk",
+                "appid": "dingoa8xzsdh7ovps1znvc",
+                "appsecret": "crrALdXUIj4T0zBekYShl6IMqWCUun7OQ09QdUbnweg1M5ZtgFB7h4u9sU_T1GZT"
+            }
         }
 	},
 	"slave_node": {

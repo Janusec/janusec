@@ -70,3 +70,8 @@ type RPCSettings struct {
 	Error  *string    `json:"err"`
 	Object []*Setting `json:"object"`
 }
+
+type RPCOAuthConfig struct {
+	Error  *string      `json:"err"`
+	Object *OAuthConfig `json:"object"`
+}

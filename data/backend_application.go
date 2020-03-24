@@ -13,7 +13,7 @@ import (
 )
 
 func (dal *MyDAL) CreateTableIfNotExistsApplications() error {
-	const sqlCreateTableIfNotExistsApplications = `CREATE TABLE IF NOT EXISTS applications(id bigserial PRIMARY KEY,name varchar(128) NOT NULL,internal_scheme varchar(8) NOT NULL,redirect_https boolean,hsts_enabled boolean,waf_enabled boolean,ip_method bigint,description varchar(256),oauth_required boolean,session_seconds bigserial,owner varchar(128))`
+	const sqlCreateTableIfNotExistsApplications = `CREATE TABLE IF NOT EXISTS applications(id bigserial PRIMARY KEY,name varchar(128) NOT NULL,internal_scheme varchar(8) NOT NULL,redirect_https boolean,hsts_enabled boolean,waf_enabled boolean,ip_method bigint,description varchar(256),oauth_required boolean,session_seconds bigint default 7200,owner varchar(128))`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsApplications)
 	return err
 }

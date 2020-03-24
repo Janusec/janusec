@@ -8,17 +8,23 @@
 package models
 
 type Config struct {
-	//NodeID     int64            `json:"node_id"`
 	NodeRole   string           `json:"node_role"`
 	MasterNode MasterNodeConfig `json:"master_node"`
 	SlaveNode  SlaveNodeConfig  `json:"slave_node"`
 }
 
-type MasterNodeConfig struct {
-	Admin    AdminConfig    `json:"admin"`
-	Database DBConfig       `json:"database"`
+type OAuthConfig struct {
+	Enabled  bool           `json:"enabled"`
+	Provider string         `json:"provider"`
 	Wxwork   WxworkConfig   `json:"wxwork"`
 	Dingtalk DingtalkConfig `json:"dingtalk"`
+	//Feishu   FeishuConfig   `json:"feishu"`  // Lack of Detailed Document, support later
+}
+
+type MasterNodeConfig struct {
+	Admin    AdminConfig `json:"admin"`
+	Database DBConfig    `json:"database"`
+	OAuth    OAuthConfig `json:"oauth"`
 }
 
 type SlaveNodeConfig struct {
@@ -27,10 +33,10 @@ type SlaveNodeConfig struct {
 }
 
 type AdminConfig struct {
-	Listen      bool   `json:"listen"`
-	ListenHTTP  string `json:"listen_http"`
-	ListenHTTPS string `json:"listen_https"`
-	OAuth       string `json:"oauth"`
+	Listen        bool   `json:"listen"`
+	ListenHTTP    string `json:"listen_http"`
+	ListenHTTPS   string `json:"listen_https"`
+	WebSSHEnabled bool   `json:"webssh_enabled"`
 }
 
 type DBConfig struct {
@@ -57,6 +63,13 @@ type WxworkConfig struct {
 }
 
 type DingtalkConfig struct {
+	DisplayName string `json:"display_name"`
+	Callback    string `json:"callback"`
+	AppID       string `json:"appid"`
+	AppSecret   string `json:"appsecret"`
+}
+
+type FeishuConfig struct {
 	DisplayName string `json:"display_name"`
 	Callback    string `json:"callback"`
 	AppID       string `json:"appid"`

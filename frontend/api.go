@@ -155,6 +155,8 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = settings.GetSettings()
 	case "login":
 		obj, err = usermgmt.Login(w, r, param)
+	case "getoauthconf":
+		obj, err = usermgmt.GetOAuthConfig()
 	case "logout":
 		obj = nil
 		err = usermgmt.Logout(w, r)
