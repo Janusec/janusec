@@ -2,7 +2,7 @@
     "node_role": "master",    
 	"master_node": {
         "admin": {
-            "listen": false,
+            "listen": true,
             "listen_http": ":9080",
             "listen_https": ":9443",
             "webssh_enabled": false
@@ -16,7 +16,7 @@
         },
         "oauth": {
             "enabled": true,
-            "provider": "wxwork",
+            "provider": "feishu",
             "wxwork": {
                 "display_name": "Login with WeChat Work",
                 "callback": "https://gate.janusec.com/oauth/wxwork",
@@ -29,6 +29,12 @@
                 "callback": "https://gate.janusec.com/oauth/dingtalk",
                 "appid": "dingoa8xzsdh7ovps1znvc",
                 "appsecret": "crrALdXUIj4T0zBekYShl6IMqWCUun7OQ09QdUbnweg1M5ZtgFB7h4u9sU_T1GZT"
+            },
+            "feishu": {
+                "display_name": "Login with Feishu",
+                "callback": "https://gate.janusec.com/oauth/feishu",
+                "appid": "cli_9ef2173f0a6dd00e",
+                "appsecret": "ihUBspRAG1FPtMI2D5lH70nIvBNdDLUZ"
             }
         }
 	},

@@ -29,11 +29,17 @@
                 "callback": "",
                 "appid": "",
                 "appsecret": ""
+            },
+            "feishu": {
+                "display_name": "",
+                "callback": "",
+                "appid": "",
+                "appsecret": ""
             }
         }
 	},
 	"slave_node": {
 		"node_key": "node_key_generated_in_node_management",
-		"sync_addr": "http://gateway.your_domain.com:9080/janusec-admin/api"
+		"sync_addr": "http://gateway.master_node.com:9080/janusec-admin/api"
 	}
 }

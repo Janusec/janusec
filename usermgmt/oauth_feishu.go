@@ -7,7 +7,6 @@
 
 package usermgmt
 
-/*
 import (
 	"bytes"
 	"encoding/json"
@@ -43,11 +42,9 @@ type FeishuUser struct {
 
 type FeishuAuthData struct {
 	AccessToken string `json:"access_token"`
-	Name        string `json:"name"`
+	EnName      string `json:"en_name"`
 }
-*/
 
-/*
 // Doc: https://open.feishu.cn/document/ukTMukTMukTM/ukzN4UjL5cDO14SO3gTN
 // Step 1: GET https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri={REDIRECT_URI}&app_id={APPID}&state={STATE}
 // If state==admin, for janusec-admin; else for frontend applications
@@ -58,7 +55,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 	// Step 2.2: Within Callback, get app_access_token
 	// Doc: https://open.feishu.cn/document/ukTMukTMukTM/uADN14CM0UjLwQTN
 	// POST https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/
-	// {"app_id":"cli_slkdjalasdkjasd", "app_secret":"dskLLdkasdjlasdKK"}
+	// {"app_id":"cli_slkdasd", "app_secret":"dskLLdkasdKK"}
 	accessTokenURL := "https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/"
 	body := fmt.Sprintf(`{"app_id":"%s", "app_secret":"%s"}`,
 		data.CFG.MasterNode.OAuth.Feishu.AppID,
@@ -67,7 +64,6 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 	resp, _ := GetResponse(request)
 	tokenResponse := FeishuAccessToken{}
 	json.Unmarshal(resp, &tokenResponse)
-	fmt.Println("3001 Feishu body", body, "tokenResponse", tokenResponse)
 	// Step 2.3: Get User name
 	// https://open.feishu.cn/document/ukTMukTMukTM/uEDO4UjLxgDO14SM4gTN
 	userURL := "https://open.feishu.cn/open-apis/authen/v1/access_token"
@@ -77,18 +73,19 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 		Code:           code,
 	}
 	bytesData, _ := json.Marshal(feishuUserReqBody)
-	request, _ = http.NewRequest("POST", userURL, bytes.NewReader([]byte(bytesData)))
+	request, _ = http.NewRequest("POST", userURL, bytes.NewReader(bytesData))
+	request.Header.Set("Content-Type", "application/json")
+
 	resp, _ = GetResponse(request)
 	feishuUser := FeishuUser{}
 	json.Unmarshal(resp, &feishuUser)
-	fmt.Println("3002 Feishu body", string(bytesData), "feishuUser", feishuUser)
 	if state == "admin" {
 		// Insert into db if not existed
-		id, _ := data.DAL.InsertIfNotExistsAppUser(feishuUser.Data.Name, "", "", "", false, false, false, false)
+		id, _ := data.DAL.InsertIfNotExistsAppUser(feishuUser.Data.EnName, "", "", "", false, false, false, false)
 		// create session
 		authUser := &models.AuthUser{
 			UserID:        id,
-			Username:      feishuUser.Data.Name,
+			Username:      feishuUser.Data.EnName,
 			Logged:        true,
 			IsSuperAdmin:  false,
 			IsCertAdmin:   false,
@@ -104,14 +101,12 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 	oauthStateI, found := OAuthCache.Get(state)
 	if found {
 		oauthState := oauthStateI.(models.OAuthState)
-		oauthState.UserID = feishuUser.Data.Name
+		oauthState.UserID = feishuUser.Data.EnName
 		oauthState.AccessToken = feishuUser.Data.AccessToken
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-		fmt.Println("1008 set cache state=", oauthState, "307 to:", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 		return nil, nil
 	}
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	return nil, nil
 }
-*/

@@ -32,12 +32,10 @@ func DingtalkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/janusec-admin/", http.StatusFound)
 }
 
-/*
 func FeishuCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.FeishuCallbackWithCode(w, r)
 	http.Redirect(w, r, "/janusec-admin/", http.StatusFound)
 }
-*/
 
 func OAuthGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 	obj, err := GetOAuthInfo()
@@ -64,16 +62,15 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 		oauthInfo.DisplayName = data.CFG.MasterNode.OAuth.Dingtalk.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
-		/*
-			case "feishu":
-				entranceURL := fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=admin",
-					data.CFG.MasterNode.OAuth.Feishu.Callback,
-					data.CFG.MasterNode.OAuth.Feishu.AppID)
-				oauthInfo.UseOAuth = true
-				oauthInfo.DisplayName = data.CFG.MasterNode.OAuth.Feishu.DisplayName
-				oauthInfo.EntranceURL = entranceURL
-				return &oauthInfo, nil
-		*/
+	case "feishu":
+		entranceURL := fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=admin",
+			data.CFG.MasterNode.OAuth.Feishu.Callback,
+			data.CFG.MasterNode.OAuth.Feishu.AppID)
+		oauthInfo.UseOAuth = true
+		oauthInfo.DisplayName = data.CFG.MasterNode.OAuth.Feishu.DisplayName
+		oauthInfo.EntranceURL = entranceURL
+		return &oauthInfo, nil
+
 	}
 	oauthInfo.UseOAuth = false
 	return &oauthInfo, nil // errors.New("No OAuth2 provider, you can enable it in config.json")

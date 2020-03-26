@@ -18,7 +18,7 @@ type OAuthConfig struct {
 	Provider string         `json:"provider"`
 	Wxwork   WxworkConfig   `json:"wxwork"`
 	Dingtalk DingtalkConfig `json:"dingtalk"`
-	//Feishu   FeishuConfig   `json:"feishu"`  // Lack of Detailed Document, support later
+	Feishu   FeishuConfig   `json:"feishu"` // Lack of Detailed Document, support later
 }
 
 type MasterNodeConfig struct {

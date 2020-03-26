@@ -169,13 +169,13 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 						data.CFG.MasterNode.OAuth.Dingtalk.AppID,
 						state,
 						data.CFG.MasterNode.OAuth.Dingtalk.Callback)
-				/*
-					case "feishu":
-						entranceURL = fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=%s",
-							data.CFG.MasterNode.OAuth.Feishu.Callback,
-							data.CFG.MasterNode.OAuth.Feishu.AppID,
-							state)
-				*/
+
+				case "feishu":
+					entranceURL = fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=%s",
+						data.CFG.MasterNode.OAuth.Feishu.Callback,
+						data.CFG.MasterNode.OAuth.Feishu.AppID,
+						state)
+
 				default:
 					w.Write([]byte("Designated OAuth not supported, please check config.json ."))
 					return

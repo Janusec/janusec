@@ -113,7 +113,7 @@ func main() {
 	gateMux.HandleFunc("/oauth/logout", gateway.OAuthLogout)
 	gateMux.HandleFunc("/oauth/wxwork", frontend.WxworkCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/dingtalk", frontend.DingtalkCallBackHandleFunc)
-	//gateMux.HandleFunc("/oauth/feishu", frontend.FeishuCallBackHandleFunc)
+	gateMux.HandleFunc("/oauth/feishu", frontend.FeishuCallBackHandleFunc)
 	// Add CAPTCHA
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)

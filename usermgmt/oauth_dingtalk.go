@@ -65,6 +65,7 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.A
 
 	body := fmt.Sprintf(`{"tmp_auth_code": "%s"}`, code)
 	request, _ := http.NewRequest("POST", accessTokenURL, bytes.NewReader([]byte(body)))
+	request.Header.Set("Content-Type", "application/json")
 	resp, _ := GetResponse(request)
 	dingtalkResponse := DingtalkResponse{}
 	json.Unmarshal(resp, &dingtalkResponse)
@@ -94,7 +95,6 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.A
 		oauthState.UserID = dingtalkUser.Nick
 		oauthState.AccessToken = "N/A"
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-		//fmt.Println("1008 set cache state=", oauthState, "307 to:", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 		return nil, nil
 	}
