@@ -18,7 +18,7 @@ type OAuthConfig struct {
 	Provider string         `json:"provider"`
 	Wxwork   WxworkConfig   `json:"wxwork"`
 	Dingtalk DingtalkConfig `json:"dingtalk"`
-	Feishu   FeishuConfig   `json:"feishu"` // Lack of Detailed Document, support later
+	Feishu   FeishuConfig   `json:"feishu"`
 }
 
 type MasterNodeConfig struct {
@@ -36,6 +36,8 @@ type AdminConfig struct {
 	Listen        bool   `json:"listen"`
 	ListenHTTP    string `json:"listen_http"`
 	ListenHTTPS   string `json:"listen_https"`
+	EnableHTTPS   bool   `json:"enable_https"`
+	Portal        string `json:"portal"`
 	WebSSHEnabled bool   `json:"webssh_enabled"`
 }
 

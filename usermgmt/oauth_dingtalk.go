@@ -21,6 +21,7 @@ import (
 
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 	"github.com/gorilla/sessions"
 	"github.com/patrickmn/go-cache"
 )
@@ -66,7 +67,10 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.A
 	body := fmt.Sprintf(`{"tmp_auth_code": "%s"}`, code)
 	request, _ := http.NewRequest("POST", accessTokenURL, bytes.NewReader([]byte(body)))
 	request.Header.Set("Content-Type", "application/json")
-	resp, _ := GetResponse(request)
+	resp, err := GetResponse(request)
+	if err != nil {
+		utils.DebugPrintln("DingtalkCallbackWithCode GetResponse", err)
+	}
 	dingtalkResponse := DingtalkResponse{}
 	json.Unmarshal(resp, &dingtalkResponse)
 	dingtalkUser := dingtalkResponse.UserInfo

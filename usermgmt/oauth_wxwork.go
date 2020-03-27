@@ -15,6 +15,7 @@ import (
 
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 	"github.com/gorilla/sessions"
 
 	"github.com/patrickmn/go-cache"
@@ -50,13 +51,19 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 	accessTokenURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
 		data.CFG.MasterNode.OAuth.Wxwork.CorpID, data.CFG.MasterNode.OAuth.Wxwork.CorpSecret)
 	request, _ := http.NewRequest("GET", accessTokenURL, nil)
-	resp, _ := GetResponse(request)
+	resp, err := GetResponse(request)
+	if err != nil {
+		utils.DebugPrintln("WxworkCallbackWithCode GetResponse", err)
+	}
 	tokenResponse := WxworkAccessToken{}
 	json.Unmarshal(resp, &tokenResponse)
 	// Step 2.3: Get UserID, https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=ACCESS_TOKEN&code=CODE
 	userURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=%s&code=%s", tokenResponse.AccessToken, code)
 	request, _ = http.NewRequest("GET", userURL, nil)
-	resp, _ = GetResponse(request)
+	resp, err = GetResponse(request)
+	if err != nil {
+		utils.DebugPrintln("WxworkCallbackWithCode GetResponse", err)
+	}
 	wxworkUser := WxworkUser{}
 	json.Unmarshal(resp, &wxworkUser)
 	if state == "admin" {

@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Janusec/janusec/utils"
+
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/models"
 	"github.com/gorilla/sessions"
@@ -61,7 +63,10 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 		data.CFG.MasterNode.OAuth.Feishu.AppID,
 		data.CFG.MasterNode.OAuth.Feishu.AppSecret)
 	request, _ := http.NewRequest("POST", accessTokenURL, bytes.NewReader([]byte(body)))
-	resp, _ := GetResponse(request)
+	resp, err := GetResponse(request)
+	if err != nil {
+		utils.DebugPrintln("FeishuCallbackWithCode GetResponse", err)
+	}
 	tokenResponse := FeishuAccessToken{}
 	json.Unmarshal(resp, &tokenResponse)
 	// Step 2.3: Get User name
@@ -76,7 +81,10 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 	request, _ = http.NewRequest("POST", userURL, bytes.NewReader(bytesData))
 	request.Header.Set("Content-Type", "application/json")
 
-	resp, _ = GetResponse(request)
+	resp, err = GetResponse(request)
+	if err != nil {
+		utils.DebugPrintln("FeishuCallbackWithCode GetResponse", err)
+	}
 	feishuUser := FeishuUser{}
 	json.Unmarshal(resp, &feishuUser)
 	if state == "admin" {
@@ -107,6 +115,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 		return nil, nil
 	}
+	//fmt.Println("4001 FeishuCallbackWithCode state not found")
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	return nil, nil
 }

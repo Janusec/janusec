@@ -5,6 +5,8 @@
             "listen": true,
             "listen_http": ":9080",
             "listen_https": ":9443",
+            "enable_https": true,
+            "portal": "https://gate.janusec.com:9443/janusec-admin/",
             "webssh_enabled": false
         },
 		"database": {
@@ -15,8 +17,8 @@
 			"dbname": "janusec"
         },
         "oauth": {
-            "enabled": true,
-            "provider": "feishu",
+            "enabled": false,
+            "provider": "wxwork",
             "wxwork": {
                 "display_name": "Login with WeChat Work",
                 "callback": "https://gate.janusec.com/oauth/wxwork",
