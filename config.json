@@ -17,7 +17,7 @@
 			"dbname": "janusec"
         },
         "oauth": {
-            "enabled": false,
+            "enabled": true,
             "provider": "wxwork",
             "wxwork": {
                 "display_name": "Login with WeChat Work",

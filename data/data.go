@@ -57,3 +57,19 @@ func InitDAL() {
 		NodeKey = NodeHexKeyToCryptKey(CFG.SlaveNode.NodeKey)
 	}
 }
+
+func (dal *MyDAL) ExecSQL(sql string) error {
+	_, err := dal.db.Exec(sql)
+	return err
+}
+
+func (dal *MyDAL) ExistColumnInTable(tableName string, columnName string) bool {
+	var count int64
+	const sql = `select count(1) from information_schema.columns where table_name=$1 and column_name=$2`
+	err := dal.db.QueryRow(sql, tableName, columnName).Scan(&count)
+	utils.CheckError("ExistColumnInTable QueryRow", err)
+	if count > 0 {
+		return true
+	}
+	return false
+}

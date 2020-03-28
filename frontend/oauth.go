@@ -44,6 +44,9 @@ func OAuthGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 func GetOAuthInfo() (*OAuthInfo, error) {
 	oauthInfo := OAuthInfo{}
+	if data.CFG.MasterNode.OAuth.Enabled == false {
+		return &oauthInfo, nil
+	}
 	switch data.CFG.MasterNode.OAuth.Provider {
 	case "wxwork":
 		entranceURL := fmt.Sprintf("https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s&state=admin",
