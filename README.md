@@ -74,6 +74,7 @@ When listen=false in config.json :
 
 > http://`your_master_node_ip_address`/janusec-admin/    (first use)  
 > https://`your_application_domain_name`/janusec-admin/  (after certificate configured)  
+
 When listen=true  in config.json :  
 
 > http://`your_master_node_ip_address:9080`/janusec-admin/    (first use)  
