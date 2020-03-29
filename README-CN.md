@@ -15,8 +15,9 @@ Janusec Application Gateway 的设计理念在[《数据安全架构设计与实
 * WAF (Web应用防火墙), 拦截SQL Injection, XSS, 敏感数据泄露, CC攻击等  
 * 组合策略 (多检查点联动，如请求和响应联动)
 * 验证码（CAPTCHA）支持  
-* 统一的Web化管理入口  
-* 支持HTTPS, 不需要Agent  
+* 统一的Web化管理入口，提供Web SSH安全运维  
+* OAuth2身份认证
+* 支持HTTPS, 不需要部署Agent  
 * 证书私钥加密存储  
 * 可扩展，负载均衡  
 

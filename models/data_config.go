@@ -36,7 +36,6 @@ type AdminConfig struct {
 	Listen        bool   `json:"listen"`
 	ListenHTTP    string `json:"listen_http"`
 	ListenHTTPS   string `json:"listen_https"`
-	EnableHTTPS   bool   `json:"enable_https"`
 	Portal        string `json:"portal"`
 	WebSSHEnabled bool   `json:"webssh_enabled"`
 }

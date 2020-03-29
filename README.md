@@ -15,7 +15,8 @@ Janusec Application Gateway, an application security solution which provides WAF
 * WAF (Web Application Firewall), block SQL Injection, Cross-site Scripting, Sensitive Data Leakage, CC Attacks etc.  
 * Group Policy (Cooperation with Multiple Check Points)
 * CAPTCHA support  
-* Unified Web Administration  
+* Unified Web Administration, include Web SSH operation  
+* OAuth2 support  
 * HTTPS support, No Agent Required.  
 * Certificate Protection with Private Key Encrypted Storage  
 * Scalable Architecture, Load Balance and Multiple Nodes Support  
