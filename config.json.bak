@@ -5,7 +5,6 @@
             "listen": true,
             "listen_http": ":9080",
             "listen_https": ":9443",
-            "enable_https": true,
             "portal": "https://your_domain.com:9443/janusec-admin/",
             "webssh_enabled": false
         },
