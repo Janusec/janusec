@@ -27,19 +27,30 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
-var staticSuffix = []string{".js", ".css", ".png", ".jpg", ".gif", ".bmp"}
+var dynamicSuffix = []string{".html", ".htm", ".shtml", ".php", ".jsp", ".aspx", ".asp", ".do", ".cgi", ".cfm"}
+
+//var staticSuffix = []string{".js", ".css", ".png", ".jpg", ".gif", ".ico", ".bmp", ".zip", ".rar", ".tar.gz", ".mp3", ".avi"}
 
 // IsStaticResource ...
-func IsStaticResource(url string) bool {
-	if strings.Contains(url, "?") {
+func IsStaticResource(r *http.Request) bool {
+	//fmt.Println("IsStaticResource", r.Method, r.RequestURI)
+	if r.Method != "GET" {
 		return false
 	}
-	for _, suffix := range staticSuffix {
-		if strings.HasSuffix(url, suffix) {
-			return true
+	if strings.Contains(r.RequestURI, "?") {
+		//  like /path/to/file?id=1
+		return false
+	}
+	if !strings.Contains(r.RequestURI, ".") {
+		// pseudo static like /articles/12345
+		return false
+	}
+	for _, suffix := range dynamicSuffix {
+		if strings.HasSuffix(r.RequestURI, suffix) {
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 // UnEscapeRawValue ...
@@ -58,9 +69,6 @@ func UnEscapeRawValue(rawQuery string) string {
 
 // IsRequestHitPolicy ...
 func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *models.GroupPolicy) {
-	if r.Method == "GET" && IsStaticResource(r.URL.Path) {
-		return false, nil
-	}
 	//fmt.Println("IsForbiddenRequest")
 	ctxMap := r.Context().Value("groupPolicyHitValue").(*sync.Map)
 
@@ -240,6 +248,9 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 
 // IsResponseHitPolicy ...
 func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupPolicy) {
+	if IsStaticResource(resp.Request) {
+		return false, nil
+	}
 	ctxMap := resp.Request.Context().Value("groupPolicyHitValue").(*sync.Map)
 	// ChkPoint_ResponseStatusCode
 	matched, policy := IsMatchGroupPolicy(ctxMap, appID, strconv.Itoa(resp.StatusCode), models.ChkPointResponseStatusCode, "", false)
