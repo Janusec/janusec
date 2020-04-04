@@ -33,7 +33,7 @@ var dynamicSuffix = []string{".html", ".htm", ".shtml", ".php", ".jsp", ".aspx",
 
 // IsStaticResource ...
 func IsStaticResource(r *http.Request) bool {
-	//fmt.Println("IsStaticResource", r.Method, r.RequestURI)
+	//fmt.Println("IsStaticResource", r.Method, r.RequestURI, "Ext=", filepath.Ext(r.RequestURI))
 	if r.Method != "GET" {
 		return false
 	}
@@ -43,6 +43,10 @@ func IsStaticResource(r *http.Request) bool {
 	}
 	if !strings.Contains(r.RequestURI, ".") {
 		// pseudo static like /articles/12345
+		return false
+	}
+	if filepath.Ext(r.RequestURI) == "" {
+		// /.svn/entries
 		return false
 	}
 	for _, suffix := range dynamicSuffix {
