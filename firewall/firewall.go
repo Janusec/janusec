@@ -302,6 +302,9 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 
 // IsJSONValueHitPolicy ...
 func IsJSONValueHitPolicy(ctxMap *sync.Map, appID int64, value interface{}) (bool, *models.GroupPolicy) {
+	if value == nil {
+		return false, nil
+	}
 	valueKind := reflect.TypeOf(value).Kind()
 	switch valueKind {
 	case reflect.String:

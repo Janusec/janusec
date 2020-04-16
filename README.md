@@ -42,7 +42,7 @@ Detailed documentation is available at [Janusec Application Gateway Documentatio
 * PostgreSQL 9.3~9.6 or 10 (Required by Development and Master Node of Deployment)  
 * CentOS/RHEL 7, Debian 9  
 * systemd  
-* Golang 1.12+ (Required by Development Only)  
+* Golang 1.14+ (Required by Development Only)  
 
 ## Quick Start for Deployment  
 
