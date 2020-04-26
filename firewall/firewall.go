@@ -252,6 +252,9 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 
 // IsResponseHitPolicy ...
 func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupPolicy) {
+	if resp.StatusCode == http.StatusSwitchingProtocols {
+		return false, nil
+	}
 	if IsStaticResource(resp.Request) {
 		return false, nil
 	}
