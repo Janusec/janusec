@@ -80,7 +80,16 @@ func ClearExpiredCapthchaHitInfo() {
 }
 
 const formTemplateSrc = `<!doctype html>
-<head><title>Captcha Example</title></head>
+<head>
+<title>Captcha Example</title>
+</head>
+<style>
+form {
+	display: block;
+	width: 30%;
+	margin: auto;
+}
+</style>
 <body>
 <script>
 function setSrcQuery(e, q) {
@@ -106,4 +115,6 @@ function reload() {
 <input name="captcha_solution">
 <input type="submit" value="Submit">
 </form>
+</body>
+</html>
 `

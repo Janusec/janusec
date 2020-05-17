@@ -9,7 +9,6 @@ package usermgmt
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -55,7 +54,6 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 	state := r.FormValue("state")
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	fmt.Println("LDAPAuthFunc", state, username, password)
 
 	var conn *ldap.Conn
 	var err error
@@ -112,11 +110,9 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 		oauthState.UserID = username
 		oauthState.AccessToken = "N/A"
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-		fmt.Println("1008 set cache state=", oauthState, "307 to:", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 		return nil, nil
 	}
-	fmt.Println("1009 Time expired")
 	http.Redirect(w, r, "/", http.StatusFound)
 	return nil, nil
 }

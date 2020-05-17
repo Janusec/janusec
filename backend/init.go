@@ -8,8 +8,6 @@
 package backend
 
 import (
-	"fmt"
-
 	"github.com/Janusec/janusec/data"
 	_ "github.com/lib/pq"
 )
@@ -36,7 +34,6 @@ func InitDatabase() {
 	}
 	if dal.ExistColumnInTable("destinations", "route_type") == false {
 		// v0.9.8 required
-		fmt.Println("0.9.8 db upgrade")
 		dal.ExecSQL(`alter table destinations add column route_type bigint default 1, add column request_route varchar(128) default '/', add column backend_route varchar(128) default '/'`)
 	}
 }
