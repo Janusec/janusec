@@ -19,6 +19,7 @@ type OAuthConfig struct {
 	Wxwork   WxworkConfig   `json:"wxwork"`
 	Dingtalk DingtalkConfig `json:"dingtalk"`
 	Feishu   FeishuConfig   `json:"feishu"`
+	LDAP     LDAPConfig     `json:"ldap"`
 }
 
 type MasterNodeConfig struct {
@@ -75,4 +76,12 @@ type FeishuConfig struct {
 	Callback    string `json:"callback"`
 	AppID       string `json:"appid"`
 	AppSecret   string `json:"appsecret"`
+}
+
+type LDAPConfig struct {
+	DisplayName string `json:"display_name"`
+	Entrance    string `json:"entrance"`
+	Address     string `json:"address"`
+	DN          string `json:"dn"`
+	UsingTLS    bool   `json:"using_tls"`
 }

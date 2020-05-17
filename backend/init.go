@@ -8,6 +8,8 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/Janusec/janusec/data"
 	_ "github.com/lib/pq"
 )
@@ -31,6 +33,11 @@ func InitDatabase() {
 	if dal.ExistColumnInTable("applications", "oauth_required") == false {
 		// v0.9.7 required
 		dal.ExecSQL(`alter table applications add column oauth_required boolean default false, add column session_seconds bigint default 7200, add column owner varchar(128)`)
+	}
+	if dal.ExistColumnInTable("destinations", "route_type") == false {
+		// v0.9.8 required
+		fmt.Println("0.9.8 db upgrade")
+		dal.ExecSQL(`alter table destinations add column route_type bigint default 1, add column request_route varchar(128) default '/', add column backend_route varchar(128) default '/'`)
 	}
 }
 

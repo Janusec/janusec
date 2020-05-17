@@ -23,10 +23,12 @@ type MyDAL struct {
 }
 
 var (
-	DAL      *MyDAL
+	// DAL is Data Access Layer
+	DAL *MyDAL
+	// CFG is config
 	CFG      *models.Config
 	IsMaster bool
-	Version  string = "0.9.7"
+	Version  = "0.9.8"
 	NodeKey  []byte
 )
 

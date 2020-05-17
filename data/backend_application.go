@@ -30,7 +30,7 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 			&dbApp.ID,
 			&dbApp.Name,
 			&dbApp.InternalScheme,
-			&dbApp.RedirectHttps,
+			&dbApp.RedirectHTTPS,
 			&dbApp.HSTSEnabled,
 			&dbApp.WAFEnabled,
 			&dbApp.ClientIPMethod,

@@ -26,6 +26,7 @@ import (
 	"github.com/Janusec/janusec/utils"
 	"github.com/gorilla/sessions"
 	"github.com/patrickmn/go-cache"
+	"github.com/yookoala/gofast"
 	"golang.org/x/net/http2"
 )
 
@@ -47,7 +48,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		GenerateBlockPage(w, hitInfo)
 		return
 	}
-	if (r.TLS == nil) && (app.RedirectHttps == true) {
+	if (r.TLS == nil) && (app.RedirectHTTPS == true) {
 		RedirectRequest(w, r, "https://"+r.Host+r.URL.Path)
 		return
 	}
@@ -210,18 +211,46 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("X-Auth-User", usernameI.(string))
 	}
 
-	dest := backend.SelectDestination(app)
+	dest := backend.SelectBackendRoute(app, r)
 
+	//fmt.Println("dest", dest, dest.RouteType)
+
+	if dest.RouteType == models.StaticRoute {
+		// Static Web site
+		staticHandler := http.FileServer(http.Dir(dest.BackendRoute))
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.ServeFile(w, r, dest.BackendRoute+r.URL.Path+dest.Destination)
+			return
+		}
+		staticHandler.ServeHTTP(w, r)
+		return
+	} else if dest.RouteType == models.FastCGIRoute {
+		// FastCGI
+		connFactory := gofast.SimpleConnFactory("tcp", dest.Destination)
+		urlPath := utils.GetRoutePath(r.URL.Path)
+		newPath := r.URL.Path
+		if urlPath != "/" {
+			newPath = strings.Replace(r.URL.Path, dest.RequestRoute, "/", 1)
+		}
+		fastCGIHandler := gofast.NewHandler(
+			gofast.NewFileEndpoint(dest.BackendRoute+newPath)(gofast.BasicSession),
+			gofast.SimpleClientFactory(connFactory, 0),
+		)
+		fastCGIHandler.ServeHTTP(w, r)
+		return
+	}
+
+	// Reverse Proxy
 	// var transport http.RoundTripper
 	transport := &http.Transport{
 		TLSHandshakeTimeout:   10 * time.Second,
 		IdleConnTimeout:       30 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			return net.Dial("tcp", dest)
+			return net.Dial("tcp", dest.Destination)
 		},
 		DialTLS: func(network, addr string) (net.Conn, error) {
-			conn, err := net.Dial("tcp", dest)
+			conn, err := net.Dial("tcp", dest.Destination)
 			if err != nil {
 				return nil, err
 			}
@@ -268,6 +297,8 @@ func getOAuthEntrance(state string) (entranceURL string, err error) {
 			data.CFG.MasterNode.OAuth.Feishu.Callback,
 			data.CFG.MasterNode.OAuth.Feishu.AppID,
 			state)
+	case "ldap":
+		entranceURL = "/ldap/login?state=" + state
 	default:
 		//w.Write([]byte("Designated OAuth not supported, please check config.json ."))
 		return "", errors.New("the OAuth provider is not supported, please check config.json")
@@ -275,7 +306,7 @@ func getOAuthEntrance(state string) (entranceURL string, err error) {
 	return entranceURL, nil
 }
 
-// RedirectRequest, for example: redirect 80 to 443
+// RedirectRequest for example: redirect 80 to 443
 func RedirectRequest(w http.ResponseWriter, r *http.Request, location string) {
 	if len(r.URL.RawQuery) > 0 {
 		location += "?" + r.URL.RawQuery

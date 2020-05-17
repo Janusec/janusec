@@ -10,6 +10,7 @@ package models
 import (
 	"crypto/tls"
 	"database/sql"
+	"sync"
 )
 
 type Application struct {
@@ -17,22 +18,27 @@ type Application struct {
 	Name           string         `json:"name"`
 	InternalScheme string         `json:"internal_scheme"` // http, https
 	Destinations   []*Destination `json:"destinations"`
-	Domains        []*Domain      `json:"domains"`
-	RedirectHttps  bool           `json:"redirect_https"`
-	HSTSEnabled    bool           `json:"hsts_enabled"`
-	WAFEnabled     bool           `json:"waf_enabled"`
-	ClientIPMethod IPMethod       `json:"ip_method"`
-	Description    string         `json:"description"`
-	OAuthRequired  bool           `json:"oauth_required"`
-	SessionSeconds int64          `json:"session_seconds"`
-	Owner          string         `json:"owner"`
+
+	// Route: map[string][]*Destination
+	// {"/abc/": ["192.168.1.1:8800", "192.168.1.2:8800"], ".php": [...], "/": [...]}
+	Route sync.Map `json:"-"`
+
+	Domains        []*Domain `json:"domains"`
+	RedirectHTTPS  bool      `json:"redirect_https"`
+	HSTSEnabled    bool      `json:"hsts_enabled"`
+	WAFEnabled     bool      `json:"waf_enabled"`
+	ClientIPMethod IPMethod  `json:"ip_method"`
+	Description    string    `json:"description"`
+	OAuthRequired  bool      `json:"oauth_required"`
+	SessionSeconds int64     `json:"session_seconds"`
+	Owner          string    `json:"owner"`
 }
 
 type DBApplication struct {
 	ID             int64    `json:"id"`
 	Name           string   `json:"name"`
 	InternalScheme string   `json:"internal_scheme"` // http, https
-	RedirectHttps  bool     `json:"redirect_https"`
+	RedirectHTTPS  bool     `json:"redirect_https"`
 	HSTSEnabled    bool     `json:"hsts_enabled"`
 	WAFEnabled     bool     `json:"waf_enabled"`
 	ClientIPMethod IPMethod `json:"ip_method"`
@@ -69,11 +75,38 @@ type DBDomain struct {
 	Location string `json:"location"`
 }
 
+// RouteType used for backend routing
+type RouteType int64
+
+const (
+	// ReverseProxyRoute used for secondary application /abc/ /xyz/
+	ReverseProxyRoute RouteType = 1
+
+	// FastCGIRoute used for PHP etc.
+	FastCGIRoute RouteType = 1 << 1
+
+	// StaticRoute used for static web server
+	StaticRoute RouteType = 1 << 2
+)
+
+// Destination is used for backend routing
 type Destination struct {
-	ID          int64  `json:"id"`
+	ID int64 `json:"id"`
+
+	// 0.9.8+
+	RouteType RouteType `json:"route_type"`
+
+	// 0.9.8+
+	RequestRoute string `json:"request_route"`
+
+	// 0.9.8+, not used for StaticRoute
+	BackendRoute string `json:"backend_route"`
+
+	// Destination is backend IP:Port , or static directory
 	Destination string `json:"destination"`
-	AppID       int64  `json:"app_id"`
-	NodeID      int64  `json:"node_id"`
+
+	AppID  int64 `json:"app_id"`
+	NodeID int64 `json:"node_id"`
 }
 
 type CertItem struct {

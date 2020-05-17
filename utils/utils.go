@@ -10,6 +10,7 @@ package utils
 import (
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -39,6 +40,13 @@ func GetDirAll(path string) string {
 	i := strings.LastIndex(path, "/")
 	dirAll := path[:i]
 	return dirAll
+}
+
+// GetRoutePath return `/abc/` if path = `/abc/xyz/1.php` , return `/` if path = `/abc?id=1`
+func GetRoutePath(path string) string {
+	regex, _ := regexp.Compile(`^/(\w+/)?`)
+	routePath := regex.FindString(path)
+	return routePath
 }
 
 func DebugPrintln(a ...interface{}) {

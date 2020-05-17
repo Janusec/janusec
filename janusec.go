@@ -118,10 +118,14 @@ func main() {
 	gateMux.HandleFunc("/oauth/wxwork", frontend.WxworkCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/dingtalk", frontend.DingtalkCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/feishu", frontend.FeishuCallBackHandleFunc)
+	// LDAP Auth UI
+	gateMux.HandleFunc("/ldap/login", gateway.ShowLDAPLoginUI)
+	gateMux.HandleFunc("/ldap/auth", frontend.LDAPCallBackHandleFunc)
 	// Add CAPTCHA
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)
 	gateMux.Handle("/captcha/png/", gateway.ShowCaptchaImage())
+
 	// Reverse Proxy
 	gateMux.HandleFunc("/", gateway.ReverseHandlerFunc)
 	ctxGateMux := AddContextHandler(gateMux)

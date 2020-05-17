@@ -9,19 +9,24 @@ package backend
 
 import (
 	"errors"
+	"net/http"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/firewall"
 	"github.com/Janusec/janusec/models"
-	//"github.com/Janusec/janusec/utils"
+	"github.com/Janusec/janusec/utils"
 )
 
 var (
 	Apps []*models.Application
 )
 
+// SelectDestination deprecated from v0.9.8
+/*
 func SelectDestination(app *models.Application) string {
 	destLen := len(app.Destinations)
 	var dest *models.Destination
@@ -34,6 +39,49 @@ func SelectDestination(app *models.Application) string {
 	}
 	//utils.DebugPrintln("SelectDestination", dest)
 	return dest.Destination
+}
+*/
+
+// SelectBackendRoute will replace SelectDestination
+func SelectBackendRoute(app *models.Application, r *http.Request) *models.Destination {
+	routePath := utils.GetRoutePath(r.URL.Path)
+	var value interface{}
+	var ok bool
+	hit := false
+	if routePath != "/" {
+		// First check /abc/
+		value, ok = app.Route.Load(routePath)
+		if ok {
+			hit = true
+		}
+	}
+
+	if !hit {
+		// Second check .php
+		ext := filepath.Ext(r.URL.Path)
+		value, ok = app.Route.Load(ext)
+		// Third check /
+		if !ok {
+			value, ok = app.Route.Load("/")
+		}
+	}
+	dests := value.([]*models.Destination)
+
+	destLen := len(dests)
+	var dest *models.Destination
+	if destLen == 1 {
+		dest = dests[0]
+	} else if destLen > 1 {
+		ns := time.Now().Nanosecond()
+		destIndex := ns % destLen
+		dest = dests[destIndex]
+	}
+	if dest.RouteType == models.ReverseProxyRoute {
+		if dest.RequestRoute != dest.BackendRoute {
+			r.URL.Path = strings.Replace(r.URL.Path, dest.RequestRoute, dest.BackendRoute, 1)
+		}
+	}
+	return dest
 }
 
 func GetApplicationByID(appID int64) (*models.Application, error) {
@@ -77,12 +125,13 @@ func LoadApps() {
 			app := &models.Application{ID: dbApp.ID,
 				Name:           dbApp.Name,
 				InternalScheme: dbApp.InternalScheme,
-				RedirectHttps:  dbApp.RedirectHttps,
+				RedirectHTTPS:  dbApp.RedirectHTTPS,
 				HSTSEnabled:    dbApp.HSTSEnabled,
 				WAFEnabled:     dbApp.WAFEnabled,
 				ClientIPMethod: dbApp.ClientIPMethod,
 				Description:    dbApp.Description,
-				Destinations:   []*models.Destination{},
+				//Destinations:   []*models.Destination{},
+				Route:          sync.Map{},
 				OAuthRequired:  dbApp.OAuthRequired,
 				SessionSeconds: dbApp.SessionSeconds,
 				Owner:          dbApp.Owner}
@@ -98,9 +147,17 @@ func LoadApps() {
 }
 
 func LoadDestinations() {
-	for i, _ := range Apps {
-		app := Apps[i]
+	for _, app := range Apps {
 		app.Destinations = data.DAL.SelectDestinationsByAppID(app.ID)
+		for _, dest := range app.Destinations {
+			routeI, ok := app.Route.Load(dest.RequestRoute)
+			var route []*models.Destination
+			if ok {
+				route = routeI.([]*models.Destination)
+			}
+			route = append(route, dest)
+			app.Route.Store(dest.RequestRoute, route)
+		}
 	}
 }
 
@@ -121,8 +178,7 @@ func LoadStaticDirs() {
 */
 
 func LoadAppDomainNames() {
-	for i, _ := range Apps {
-		app := Apps[i]
+	for _, app := range Apps {
 		for _, domain := range Domains {
 			if domain.AppID == app.ID {
 				app.Domains = append(app.Domains, domain)
@@ -145,10 +201,12 @@ func GetApplications(authUser *models.AuthUser) ([]*models.Application, error) {
 }
 
 func UpdateDestinations(app *models.Application, destinations []interface{}) {
-	for _, appDest := range app.Destinations {
+	//fmt.Println("ToDo UpdateDestinations")
+	for _, dest := range app.Destinations {
 		// delete outdated destinations from DB
-		if !InterfaceContainsDestinationID(destinations, appDest.ID) {
-			data.DAL.DeleteDestinationByID(appDest.ID)
+		if !InterfaceContainsDestinationID(destinations, dest.ID) {
+			app.Route.Delete(dest.RequestRoute)
+			data.DAL.DeleteDestinationByID(dest.ID)
 		}
 	}
 	var newDestinations []*models.Destination
@@ -156,19 +214,39 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 		// add new destinations to DB and app
 		destMap := destinationInterface.(map[string]interface{})
 		destID := int64(destMap["id"].(float64))
+		routeType := int64(destMap["route_type"].(float64))
+		requestRoute := strings.TrimSpace(destMap["request_route"].(string))
+		backendRoute := strings.TrimSpace(destMap["backend_route"].(string))
 		destDest := strings.TrimSpace(destMap["destination"].(string))
 		appID := app.ID //int64(destMap["appID"].(float64))
 		nodeID := int64(destMap["node_id"].(float64))
 		if destID == 0 {
-			destID, _ = data.DAL.InsertDestination(destDest, appID, nodeID)
+			destID, _ = data.DAL.InsertDestination(routeType, requestRoute, backendRoute, destDest, appID, nodeID)
 		} else {
-			data.DAL.UpdateDestinationNode(destDest, appID, nodeID, destID)
+			data.DAL.UpdateDestinationNode(routeType, requestRoute, backendRoute, destDest, appID, nodeID, destID)
 		}
-		dest := &models.Destination{ID: destID, Destination: destDest, AppID: appID, NodeID: nodeID}
+		dest := &models.Destination{
+			ID:           destID,
+			RouteType:    models.RouteType(routeType),
+			RequestRoute: requestRoute,
+			BackendRoute: backendRoute,
+			Destination:  destDest,
+			AppID:        appID,
+			NodeID:       nodeID}
 		newDestinations = append(newDestinations, dest)
 	}
 	app.Destinations = newDestinations
-	//fmt.Printf("Now Destinations: %v\n", app.Destinations)
+
+	// Update Route Map
+	for _, dest := range app.Destinations {
+		routeI, ok := app.Route.Load(dest.RequestRoute)
+		var route []*models.Destination
+		if ok {
+			route = routeI.([]*models.Destination)
+		}
+		route = append(route, dest)
+		app.Route.Store(dest.RequestRoute, route)
+	}
 }
 
 func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
@@ -212,9 +290,10 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 		app = &models.Application{
 			ID: newID, Name: appName,
 			InternalScheme: internalScheme,
-			Destinations:   []*models.Destination{},
+			//Destinations:   []*models.Destination{},
+			Route:          sync.Map{},
 			Domains:        []*models.Domain{},
-			RedirectHttps:  redirectHttps,
+			RedirectHTTPS:  redirectHttps,
 			HSTSEnabled:    hstsEnabled,
 			WAFEnabled:     wafEnabled,
 			ClientIPMethod: ipMethod,
@@ -229,7 +308,7 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 			data.DAL.UpdateApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, appID)
 			app.Name = appName
 			app.InternalScheme = internalScheme
-			app.RedirectHttps = redirectHttps
+			app.RedirectHTTPS = redirectHttps
 			app.HSTSEnabled = hstsEnabled
 			app.WAFEnabled = wafEnabled
 			app.ClientIPMethod = ipMethod

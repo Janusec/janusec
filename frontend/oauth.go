@@ -37,6 +37,11 @@ func FeishuCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
 }
 
+func LDAPCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
+	usermgmt.LDAPAuthFunc(w, r)
+	http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+}
+
 func OAuthGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 	obj, err := GetOAuthInfo()
 	GenResponseByObject(w, obj, err)
@@ -73,7 +78,12 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 		oauthInfo.DisplayName = data.CFG.MasterNode.OAuth.Feishu.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
-
+	case "ldap":
+		entranceURL := data.CFG.MasterNode.OAuth.LDAP.Entrance + "?state=admin"
+		oauthInfo.UseOAuth = true
+		oauthInfo.DisplayName = data.CFG.MasterNode.OAuth.LDAP.DisplayName
+		oauthInfo.EntranceURL = entranceURL
+		return &oauthInfo, nil
 	}
 	oauthInfo.UseOAuth = false
 	return &oauthInfo, nil // errors.New("No OAuth2 provider, you can enable it in config.json")
