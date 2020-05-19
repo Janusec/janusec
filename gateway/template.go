@@ -45,7 +45,7 @@ body {
 
 .text-logo {
     display: block;
-    width: 40%;
+	width: 260px;
     font-size: 48px;  
     background-color: #F9F9F9;    
     color: #f5f5f5;    

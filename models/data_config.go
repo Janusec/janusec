@@ -79,9 +79,10 @@ type FeishuConfig struct {
 }
 
 type LDAPConfig struct {
-	DisplayName string `json:"display_name"`
-	Entrance    string `json:"entrance"`
-	Address     string `json:"address"`
-	DN          string `json:"dn"`
-	UsingTLS    bool   `json:"using_tls"`
+	DisplayName          string `json:"display_name"`
+	Entrance             string `json:"entrance"`
+	Address              string `json:"address"`
+	DN                   string `json:"dn"`
+	UsingTLS             bool   `json:"using_tls"`
+	AuthenticatorEnabled bool   `json:"authenticator_enabled"`
 }

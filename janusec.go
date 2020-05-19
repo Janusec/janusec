@@ -118,6 +118,8 @@ func main() {
 	gateMux.HandleFunc("/oauth/wxwork", frontend.WxworkCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/dingtalk", frontend.DingtalkCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/feishu", frontend.FeishuCallBackHandleFunc)
+	gateMux.HandleFunc("/oauth/code/register", gateway.ShowAuthCodeRegisterUI)
+	gateMux.HandleFunc("/oauth/code/verify", gateway.AuthCodeVerifyFunc)
 	// LDAP Auth UI
 	gateMux.HandleFunc("/ldap/login", gateway.ShowLDAPLoginUI)
 	gateMux.HandleFunc("/ldap/auth", frontend.LDAPCallBackHandleFunc)

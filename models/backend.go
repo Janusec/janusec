@@ -128,7 +128,7 @@ type DBCertItem struct {
 	Description      sql.NullString
 }
 
-// For Authentication in Memory
+// AuthUser used for Authentication in Memory
 type AuthUser struct {
 	UserID        int64  `json:"user_id"`
 	Username      string `json:"username"`
@@ -139,7 +139,7 @@ type AuthUser struct {
 	NeedModifyPWD bool   `json:"need_modify_pwd"`
 }
 
-// DB Storage
+// AppUser used for DB Storage
 type AppUser struct {
 	ID            int64  `json:"id"`
 	Username      string `json:"username"`
@@ -152,7 +152,7 @@ type AppUser struct {
 	NeedModifyPWD bool   `json:"need_modify_pwd"`
 }
 
-// not include password and salt
+// QueryAppUser not include password and salt
 type QueryAppUser struct {
 	ID           int64
 	Username     string
@@ -160,6 +160,14 @@ type QueryAppUser struct {
 	IsSuperAdmin bool
 	IsCertAdmin  bool
 	IsAppAdmin   bool
+}
+
+// TOTP Authenticator
+type TOTP struct {
+	ID           int64  `json:"id"`
+	UID          string `json:"uid"`
+	TOTPKey      string `json:"totp_key"`
+	TOTPVerified bool   `json:"totp_verified"`
 }
 
 type Setting struct {

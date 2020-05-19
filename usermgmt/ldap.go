@@ -10,6 +10,7 @@ package usermgmt
 import (
 	"crypto/tls"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Janusec/janusec/models"
@@ -21,40 +22,13 @@ import (
 	"github.com/go-ldap/ldap"
 )
 
-// AuthWithLDAP 389, 636
-/*
-func AuthWithLDAP(uid string, passwd string) (userid string, err error) {
-	var conn *ldap.Conn
-	if data.CFG.MasterNode.OAuth.LDAP.UsingTLS {
-		conn, err = ldap.DialTLS("tcp", data.CFG.MasterNode.OAuth.LDAP.Address, &tls.Config{InsecureSkipVerify: true})
-	} else {
-		conn, err = ldap.Dial("tcp", data.CFG.MasterNode.OAuth.LDAP.Address)
-	}
-	if err != nil {
-		utils.DebugPrintln("AuthWithLDAP Dial", err)
-		return "", err
-	}
-	defer conn.Close()
-
-	// Auth
-	dn := strings.Replace(data.CFG.MasterNode.OAuth.LDAP.DN, "{uid}", uid, 1)
-
-	err = conn.Bind(dn, passwd)
-	if err != nil {
-		utils.DebugPrintln("AuthWithLDAP Auth Error", userid, err)
-		return "", err
-	}
-	// Auth OK
-	return userid, nil
-}
-*/
-
 // LDAPAuthFunc CallBack at /ldap/auth
 func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
 	state := r.FormValue("state")
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
+	// LDAP Auth
 	var conn *ldap.Conn
 	var err error
 	if data.CFG.MasterNode.OAuth.LDAP.UsingTLS {
@@ -67,10 +41,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 		return nil, err
 	}
 	defer conn.Close()
-
-	// Auth
 	dn := strings.Replace(data.CFG.MasterNode.OAuth.LDAP.DN, "{uid}", username, 1)
-
 	err = conn.Bind(dn, password)
 	if err != nil {
 		utils.DebugPrintln("AuthWithLDAP Auth Error", username, err)
@@ -83,6 +54,32 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 		// Go to LDAP login page
 		http.Redirect(w, r, entrance, http.StatusFound)
 		return nil, err
+	}
+
+	// TOTP Auth
+	if data.CFG.MasterNode.OAuth.LDAP.AuthenticatorEnabled {
+		totpItem, err := data.DAL.GetTOTPItemByUID(username)
+		if err != nil {
+			// Not exist totp item, means it is the First Login, Create totp key for current uid
+			totpKey := genKey()
+			data.DAL.InsertTOTPItem(username, totpKey, false)
+			// redirect to qrcode scaning page to register in Mobile APP
+			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
+			return nil, err
+		}
+		if totpItem.TOTPVerified == false {
+			// TOTP Not Verified, redirect to register
+			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
+			return nil, err
+		}
+		// Verify TOTP Auth Code
+		totpCode := r.FormValue("code")
+		totpCodeInt, _ := strconv.ParseUint(totpCode, 10, 32)
+		verifyOK := VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
+		if verifyOK == false {
+			http.Redirect(w, r, "/ldap/login", http.StatusFound)
+			return nil, nil
+		}
 	}
 
 	if state == "admin" {

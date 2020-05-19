@@ -42,7 +42,8 @@
                 "entrance": "http://your_domain.com/ldap/login",
                 "address": "ldap.your_domain.com:389",
                 "dn":"uid={uid},ou=People,dc=janusec,dc=com",
-                "using_tls":false
+                "using_tls":false,
+                "authenticator_enabled": false
             }
         }
 	},

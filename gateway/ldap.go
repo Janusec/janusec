@@ -19,15 +19,17 @@ var (
 )
 
 type LDAPContext struct {
-	DisplayName string
-	State       string
+	DisplayName     string
+	State           string
+	AuthCodeEnabled bool
 }
 
 func ShowLDAPLoginUI(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	ldapContext := LDAPContext{
-		DisplayName: data.CFG.MasterNode.OAuth.LDAP.DisplayName,
-		State:       state}
+		DisplayName:     data.CFG.MasterNode.OAuth.LDAP.DisplayName,
+		State:           state,
+		AuthCodeEnabled: data.CFG.MasterNode.OAuth.LDAP.AuthenticatorEnabled}
 	if err := ldapLoginTemplate.Execute(w, &ldapContext); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -40,7 +42,7 @@ const ldapTemplate = `<!DOCTYPE html>
 <title>LDAP Authenticaiton</title> 
 </head>
 <style>
-input[type=text],input[type=password],select {
+input[type=text],input[type=password] {
   width: 100%;
   padding: 12px 20px;
   margin: 8px 0;
@@ -70,12 +72,24 @@ h1 {
   margin: 20px auto;
 }
 
+a {
+  font-size: 12px;
+  margin-right: 20px;
+}
+
 div {
   border-radius: 5px;
   background-color: #f2f2f2;
   padding: 20px;
   width: 40%;
   margin: auto;
+}
+
+[data-lang-cn]:after, #ch:target~[data-lang-cn]:after{
+    content: attr(data-lang-cn);
+}
+#en:target~[data-lang-cn]:after{
+    content: attr(data-lang-en);
 }
 </style>
 <body>
@@ -84,15 +98,22 @@ div {
 
 <div>
   <form action="/ldap/auth" method="POST">
-    <input type="hidden" name="state" value="{{ .State }}">
-    <label for="username">Username</label>
-    <input type="text" id="username" name="username" placeholder="Your username..">
+	<input type="hidden" name="state" value="{{ .State }}">
+	<span id="ch"></span>
+    <span id="en"></span>
+    <label for="username" data-lang-cn="用户名" data-lang-en="Username"></label>
+    <input type="text" id="username" name="username" placeholder="Your username">
 
-    <label for="password">Password</label>
-    <input type="password" id="password" name="password" placeholder="Your password..">
-
-    <input type="submit" value="Submit">
+    <label for="password" data-lang-cn="口令" data-lang-en="Password"></label>
+	<input type="password" id="password" name="password" placeholder="Your password">
+	{{ if .AuthCodeEnabled }}
+	<label for="code" data-lang-cn="Authenticator认证码(首次使用输入000000)" data-lang-en="Authenticator Code (000000 for first use)"></label>
+    <input type="text" id="code" name="code" placeholder="Your Authenticator Code">
+    {{ end }}
+    <input type="submit" value="Login">
   </form>
+  <a href="#ch">中文</a>
+  <a href="#en">English</a>
 </div>
 
 </body>

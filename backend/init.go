@@ -23,6 +23,7 @@ func InitDatabase() {
 	dal.InsertIfNotExistsAppUser(`admin`, `1f7d7e9decee9561f457bbc64dd76173ea3e1c6f13f0f55dc1bc4e99e5b8b494`,
 		`afa8bae009c9dbf4135f62e165847227`, ``, true, true, true, true)
 	dal.CreateTableIfNotExistsNodes()
+	dal.CreateTableIfNotExistsTOTP()
 	// Upgrade to latest version
 	if dal.ExistColumnInTable("domains", "redirect") == false {
 		// v0.9.6+ required
@@ -36,6 +37,13 @@ func InitDatabase() {
 		// v0.9.8 required
 		dal.ExecSQL(`alter table destinations add column route_type bigint default 1, add column request_route varchar(128) default '/', add column backend_route varchar(128) default '/'`)
 	}
+	/*
+		// TOTP users except admin have no privileges to access the /janusec-admin/
+		if dal.ExistColumnInTable("appusers", "totp_key") == false {
+			// v0.9.8 required
+			dal.ExecSQL(`alter table appusers add column totp_key varchar(128), add column totp_verified boolean`)
+		}
+	*/
 }
 
 func LoadAppConfiguration() {
