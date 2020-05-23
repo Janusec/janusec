@@ -13,9 +13,14 @@ import (
 	"crypto/sha1"
 	"encoding/base32"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/Janusec/janusec/data"
+	"github.com/Janusec/janusec/models"
+	"github.com/Janusec/janusec/utils"
 )
 
 func toBytes(value int64) []byte {
@@ -81,4 +86,56 @@ func genKey() string {
 	binary.Write(&buf, binary.BigEndian, time.Now().UnixNano())
 	key := strings.ToUpper(base32.StdEncoding.EncodeToString(hmacSha1(buf.Bytes(), nil)))[0:16]
 	return key
+}
+
+// GetTOTPByUID return TOTP Key related to uid
+func GetTOTPByUID(uid string) (totpItem *models.TOTP, err error) {
+	if data.IsMaster {
+		totpItem, err = data.DAL.GetTOTPItemByUID(uid)
+		return totpItem, err
+	}
+	// RPC Get or insert TOTP Item
+	totpItem = &models.TOTP{
+		ID:           0,
+		UID:          uid,
+		TOTPKey:      genKey(),
+		TOTPVerified: false,
+	}
+	rpcRequest := &models.RPCRequest{
+		Action: "gettotpkey", Object: totpItem}
+	resp, err := data.GetRPCResponse(rpcRequest)
+	utils.CheckError("GetTOTPByUID", err)
+	rpcTOTP := new(models.RPCTOTP)
+	if err = json.Unmarshal(resp, rpcTOTP); err != nil {
+		utils.CheckError("RPC GetTOTPByUID Unmarshal", err)
+	}
+	return rpcTOTP.Object, err
+}
+
+// GetOrInsertTOTPItem for slave nodes
+func GetOrInsertTOTPItem(param map[string]interface{}) (totpItem *models.TOTP, err error) {
+	totpI := param["object"].(map[string]interface{})
+	uid := totpI["uid"].(string)
+	totpItem, err = data.DAL.GetTOTPItemByUID(uid)
+	if err != nil {
+		totpKey := totpI["totp_key"].(string)
+		id, err := data.DAL.InsertTOTPItem(uid, totpKey, false)
+		totpItem.ID = id
+		return totpItem, err
+	}
+	return totpItem, nil
+}
+
+// UpdateTOTPVerified set verified = true
+func UpdateTOTPVerified(id int64) (*models.TOTP, error) {
+	if data.IsMaster {
+		data.DAL.UpdateTOTPVerified(true, id)
+		return nil, nil
+	}
+	// RPC called
+	rpcRequest := &models.RPCRequest{
+		Action: "updatetotp", ObjectID: id, Object: nil}
+	_, err := data.GetRPCResponse(rpcRequest)
+	utils.CheckError("UpdateTOTPVerified", err)
+	return nil, nil
 }

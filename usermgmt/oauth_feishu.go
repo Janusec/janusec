@@ -50,7 +50,7 @@ type FeishuAuthData struct {
 // Doc: https://open.feishu.cn/document/ukTMukTMukTM/ukzN4UjL5cDO14SO3gTN
 // Step 1: GET https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri={REDIRECT_URI}&app_id={APPID}&state={STATE}
 // If state==admin, for janusec-admin; else for frontend applications
-func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
+func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// Step 2.1: Callback with code and state, http://gate.janusec.com/?code=BM8k8U6RwtQtNY&state=admin
 	code := r.FormValue("code")
 	state := r.FormValue("state")
@@ -103,7 +103,8 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.Expire}
 		session.Save(r, w)
-		return authUser, nil
+		http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+		return
 	}
 	// Gateway OAuth for employees and internal application
 	oauthStateI, found := OAuthCache.Get(state)
@@ -113,9 +114,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 		oauthState.AccessToken = feishuUser.Data.AccessToken
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
-		return nil, nil
+		return
 	}
-	//fmt.Println("4001 FeishuCallbackWithCode state not found")
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	return nil, nil
 }

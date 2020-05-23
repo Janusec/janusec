@@ -19,7 +19,7 @@ import (
 func RPCSelectCertificates() (certs []*models.CertItem) {
 	rpcRequest := &models.RPCRequest{
 		Action: "getcerts", Object: nil}
-	resp, err := data.GetResponse(rpcRequest)
+	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectCertificates GetResponse", err)
 		return nil

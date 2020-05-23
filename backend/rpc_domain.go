@@ -18,7 +18,7 @@ import (
 func RPCSelectDomains() (dbDomains []*models.DBDomain) {
 	rpcRequest := &models.RPCRequest{
 		Action: "getdomains", Object: nil}
-	resp, err := data.GetResponse(rpcRequest)
+	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectDomains GetResponse", err)
 		return nil

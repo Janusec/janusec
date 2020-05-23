@@ -75,3 +75,8 @@ type RPCOAuthConfig struct {
 	Error  *string      `json:"err"`
 	Object *OAuthConfig `json:"object"`
 }
+
+type RPCTOTP struct {
+	Error  *string `json:"err"`
+	Object *TOTP   `json:"object"`
+}

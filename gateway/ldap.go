@@ -85,10 +85,10 @@ div {
   margin: auto;
 }
 
-[data-lang-cn]:after, #ch:target~[data-lang-cn]:after{
+#ch:target~[data-lang-cn]:after{
     content: attr(data-lang-cn);
 }
-#en:target~[data-lang-cn]:after{
+[data-lang-en]:after, #en:target~[data-lang-cn]:after{
     content: attr(data-lang-en);
 }
 </style>

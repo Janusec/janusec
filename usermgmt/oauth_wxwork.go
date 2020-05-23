@@ -41,7 +41,7 @@ type WxworkUser struct {
 // https://work.weixin.qq.com/api/doc/90000/90135/91025
 // Step 1: To https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=CORPID&agentid=AGENTID&redirect_uri=REDIRECT_URI&state=admin
 // If state==admin, for janusec-admin; else for frontend applications
-func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
+func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// Step 2.1: Callback with code, http://gate.janusec.com/?code=BM8k8U6RwtQtNY&state=admin&appid=wwd03ba1f8
 	code := r.FormValue("code")
 	state := r.FormValue("state")
@@ -82,7 +82,8 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.ExpiresIn}
 		session.Save(r, w)
-		return authUser, nil
+		http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+		return
 	}
 	// Gateway OAuth for employees and internal application
 	oauthStateI, found := OAuthCache.Get(state)
@@ -93,9 +94,8 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.Aut
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
 		//fmt.Println("1008 set cache state=", oauthState, "307 to:", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
-		return nil, nil
+		return
 	}
 	//fmt.Println("1009 Time expired")
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	return nil, nil
 }

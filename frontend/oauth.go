@@ -24,22 +24,18 @@ type OAuthInfo struct {
 
 func WxworkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.WxworkCallbackWithCode(w, r)
-	http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
 }
 
 func DingtalkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.DingtalkCallbackWithCode(w, r)
-	http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
 }
 
 func FeishuCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.FeishuCallbackWithCode(w, r)
-	http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
 }
 
 func LDAPCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.LDAPAuthFunc(w, r)
-	http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
 }
 
 func OAuthGetHandleFunc(w http.ResponseWriter, r *http.Request) {

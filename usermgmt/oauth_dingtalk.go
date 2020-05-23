@@ -48,7 +48,7 @@ func GetSignature(msg []byte, key []byte) string {
 // https://ding-doc.dingtalk.com/doc#/serverapi3/mrugr3
 // Step 1: To https://oapi.dingtalk.com/connect/qrconnect?appid=APPID&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=REDIRECT_URI
 // If state==admin, for janusec-admin; else for frontend applications
-func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
+func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// Step 2.1: Callback with code, https://gate.janusec.com/janusec-admin/oauth/dingtalk?code=BM8k8U6RwtQtNY&state=admin
 	code := r.FormValue("code")
 	state := r.FormValue("state")
@@ -90,7 +90,8 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.A
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400}
 		session.Save(r, w)
-		return authUser, nil
+		http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+		return
 	}
 	// Gateway OAuth for employees and internal application
 	oauthStateI, found := OAuthCache.Get(state)
@@ -100,9 +101,8 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) (*models.A
 		oauthState.AccessToken = "N/A"
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
-		return nil, nil
+		return
 	}
 	//fmt.Println("1009 Time expired")
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	return nil, nil
 }

@@ -19,7 +19,7 @@ import (
 func RPCSelectGroupPolicies() (groupPolicies []*models.GroupPolicy) {
 	rpcRequest := &models.RPCRequest{
 		Action: "getgrouppolicies", Object: nil}
-	resp, err := data.GetResponse(rpcRequest)
+	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectGroupPolicies GetResponse", err)
 		return nil

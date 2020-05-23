@@ -27,18 +27,17 @@ func GenAuthKey() string {
 	return hex.EncodeToString(encryptedAuthBytes)
 }
 
-func GetResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
-	rpcReq.ObjectID = 0
+func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	rpcReq.NodeVersion = Version
 	rpcReq.AuthKey = GenAuthKey()
 	bytesData, err := json.Marshal(rpcReq)
-	utils.CheckError("GetResponse Marshal", err)
+	utils.CheckError("GetRPCResponse Marshal", err)
 	reader := bytes.NewReader(bytesData)
 	request, err := http.NewRequest("POST", CFG.SlaveNode.SyncAddr, reader)
 	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	client := http.Client{}
 	resp, err := client.Do(request)
-	utils.CheckError("GetResponse Do", err)
+	utils.CheckError("GetRPCResponse Do", err)
 	if err != nil {
 		return nil, err
 	}

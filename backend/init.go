@@ -30,20 +30,13 @@ func InitDatabase() {
 		dal.ExecSQL(`alter table domains add column redirect boolean default false, add column location varchar(256) default null`)
 	}
 	if dal.ExistColumnInTable("applications", "oauth_required") == false {
-		// v0.9.7 required
+		// v0.9.7+ required
 		dal.ExecSQL(`alter table applications add column oauth_required boolean default false, add column session_seconds bigint default 7200, add column owner varchar(128)`)
 	}
 	if dal.ExistColumnInTable("destinations", "route_type") == false {
-		// v0.9.8 required
+		// v0.9.8+ required
 		dal.ExecSQL(`alter table destinations add column route_type bigint default 1, add column request_route varchar(128) default '/', add column backend_route varchar(128) default '/'`)
 	}
-	/*
-		// TOTP users except admin have no privileges to access the /janusec-admin/
-		if dal.ExistColumnInTable("appusers", "totp_key") == false {
-			// v0.9.8 required
-			dal.ExecSQL(`alter table appusers add column totp_key varchar(128), add column totp_verified boolean`)
-		}
-	*/
 }
 
 func LoadAppConfiguration() {
@@ -55,6 +48,7 @@ func LoadAppConfiguration() {
 		LoadAppDomainNames()
 		LoadNodes()
 	} else {
+		LoadRoute()
 		LoadDomains()
 	}
 }

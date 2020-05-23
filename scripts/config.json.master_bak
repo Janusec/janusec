@@ -36,6 +36,14 @@
                 "callback": "http://your_domain.com/oauth/feishu",
                 "appid": "cli_9ef21d00e",
                 "appsecret": "ihUBspRAG1PtNdDLUZ"
+            },
+            "ldap": {
+                "display_name": "Login with LDAP",
+                "entrance": "http://your_domain.com/ldap/login",
+                "address": "your_ldap_domain.com:389",
+                "dn":"uid={uid},ou=People,dc=your_domain,dc=com",
+                "using_tls": false,
+                "authenticator_enabled": false
             }
         }
 	},

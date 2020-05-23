@@ -18,7 +18,6 @@ import (
 
 	"github.com/Janusec/janusec/utils"
 
-	"github.com/Janusec/janusec/data"
 	qrcode "github.com/skip2/go-qrcode"
 )
 
@@ -37,20 +36,20 @@ func AuthCodeVerifyFunc(w http.ResponseWriter, r *http.Request) {
 	uid := r.FormValue("uid")
 	totpCode := r.FormValue("code")
 	totpCodeInt, _ := strconv.ParseUint(totpCode, 10, 32)
-	totpItem, _ := data.DAL.GetTOTPItemByUID(uid)
+	totpItem, _ := usermgmt.GetTOTPByUID(uid) //data.DAL.GetTOTPItemByUID(uid)
 	verifyOK := usermgmt.VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
 	if verifyOK {
-		data.DAL.UpdateTOTPVerified(true, totpItem.ID)
+		usermgmt.UpdateTOTPVerified(totpItem.ID)
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, r.RequestURI, http.StatusFound)
+	http.Redirect(w, r, "/oauth/code/register?uid="+uid, http.StatusFound)
 }
 
 // ShowAuthCodeRegisterUI used for Authenticator Code register UI
 func ShowAuthCodeRegisterUI(w http.ResponseWriter, r *http.Request) {
 	uid := r.FormValue("uid")
-	totpItem, _ := data.DAL.GetTOTPItemByUID(uid)
+	totpItem, _ := usermgmt.GetTOTPByUID(uid)
 	// Format: otpauth://totp/uid?secret=XBSWY3DPEHPK3PXP&issuer=JANUSEC
 	totpLink := fmt.Sprintf("otpauth://totp/%s?secret=%s&issuer=JANUSEC", uid, totpItem.TOTPKey)
 	var png []byte
@@ -131,11 +130,11 @@ a {
   text-align: center;
 }
 
-[data-lang-ch]:after,
 #ch:target~[data-lang-ch]:after{
     content: attr(data-lang-ch);
 }
-#en:target~[data-lang-ch]:after{
+
+[data-lang-en]:after, #en:target~[data-lang-ch]:after{
     content: attr(data-lang-en);
 }
 

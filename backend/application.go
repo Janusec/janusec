@@ -45,27 +45,27 @@ func SelectDestination(app *models.Application) string {
 // SelectBackendRoute will replace SelectDestination
 func SelectBackendRoute(app *models.Application, r *http.Request) *models.Destination {
 	routePath := utils.GetRoutePath(r.URL.Path)
-	var value interface{}
-	var ok bool
+	var dests []*models.Destination
 	hit := false
 	if routePath != "/" {
 		// First check /abc/
-		value, ok = app.Route.Load(routePath)
+		valueI, ok := app.Route.Load(routePath)
 		if ok {
 			hit = true
+			dests = valueI.([]*models.Destination)
 		}
 	}
 
 	if !hit {
 		// Second check .php
 		ext := filepath.Ext(r.URL.Path)
-		value, ok = app.Route.Load(ext)
+		valueI, ok := app.Route.Load(ext)
 		// Third check /
 		if !ok {
-			value, ok = app.Route.Load("/")
+			valueI, ok = app.Route.Load("/")
 		}
+		dests = valueI.([]*models.Destination)
 	}
-	dests := value.([]*models.Destination)
 
 	destLen := len(dests)
 	var dest *models.Destination
@@ -130,7 +130,7 @@ func LoadApps() {
 				WAFEnabled:     dbApp.WAFEnabled,
 				ClientIPMethod: dbApp.ClientIPMethod,
 				Description:    dbApp.Description,
-				//Destinations:   []*models.Destination{},
+				Destinations:   []*models.Destination{},
 				Route:          sync.Map{},
 				OAuthRequired:  dbApp.OAuthRequired,
 				SessionSeconds: dbApp.SessionSeconds,
@@ -149,6 +149,20 @@ func LoadApps() {
 func LoadDestinations() {
 	for _, app := range Apps {
 		app.Destinations = data.DAL.SelectDestinationsByAppID(app.ID)
+		for _, dest := range app.Destinations {
+			routeI, ok := app.Route.Load(dest.RequestRoute)
+			var route []*models.Destination
+			if ok {
+				route = routeI.([]*models.Destination)
+			}
+			route = append(route, dest)
+			app.Route.Store(dest.RequestRoute, route)
+		}
+	}
+}
+
+func LoadRoute() {
+	for _, app := range Apps {
 		for _, dest := range app.Destinations {
 			routeI, ok := app.Route.Load(dest.RequestRoute)
 			var route []*models.Destination

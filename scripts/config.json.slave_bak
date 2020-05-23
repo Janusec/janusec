@@ -36,6 +36,14 @@
                 "callback": "",
                 "appid": "",
                 "appsecret": ""
+            },
+            "ldap": {
+                "display_name": "",
+                "entrance": "",
+                "address": "",
+                "dn":"",
+                "using_tls": false,
+                "authenticator_enabled": false
             }
         }
 	},

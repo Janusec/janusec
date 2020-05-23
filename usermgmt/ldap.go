@@ -23,7 +23,7 @@ import (
 )
 
 // LDAPAuthFunc CallBack at /ldap/auth
-func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, error) {
+func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	username := r.FormValue("username")
 	password := r.FormValue("password")
@@ -38,7 +38,8 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 	}
 	if err != nil {
 		utils.DebugPrintln("AuthWithLDAP Dial", err)
-		return nil, err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	defer conn.Close()
 	dn := strings.Replace(data.CFG.MasterNode.OAuth.LDAP.DN, "{uid}", username, 1)
@@ -53,24 +54,23 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 		}
 		// Go to LDAP login page
 		http.Redirect(w, r, entrance, http.StatusFound)
-		return nil, err
+		return
 	}
-
 	// TOTP Auth
 	if data.CFG.MasterNode.OAuth.LDAP.AuthenticatorEnabled {
-		totpItem, err := data.DAL.GetTOTPItemByUID(username)
+		totpItem, err := GetTOTPByUID(username)
 		if err != nil {
 			// Not exist totp item, means it is the First Login, Create totp key for current uid
 			totpKey := genKey()
 			data.DAL.InsertTOTPItem(username, totpKey, false)
 			// redirect to qrcode scaning page to register in Mobile APP
 			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
-			return nil, err
+			return
 		}
 		if totpItem.TOTPVerified == false {
 			// TOTP Not Verified, redirect to register
 			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
-			return nil, err
+			return
 		}
 		// Verify TOTP Auth Code
 		totpCode := r.FormValue("code")
@@ -78,10 +78,10 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 		verifyOK := VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
 		if verifyOK == false {
 			http.Redirect(w, r, "/ldap/login", http.StatusFound)
-			return nil, nil
+			return
 		}
 	}
-
+	// Janusec admin user
 	if state == "admin" {
 		// Insert into db if not existed
 		id, _ := data.DAL.InsertIfNotExistsAppUser(username, "", "", "", false, false, false, false)
@@ -97,8 +97,13 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 7200}
-		session.Save(r, w)
-		return authUser, nil
+		err = session.Save(r, w)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+		return
 	}
 	// Gateway OAuth for employees and internal application
 	oauthStateI, found := OAuthCache.Get(state)
@@ -107,9 +112,9 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) (*models.AuthUser, err
 		oauthState.UserID = username
 		oauthState.AccessToken = "N/A"
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
-		return nil, nil
+		http.Redirect(w, r, oauthState.CallbackURL, http.StatusFound)
+		return
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
-	return nil, nil
+	return
 }

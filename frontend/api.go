@@ -184,6 +184,13 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = firewall.GetVulnStat(param)
 	case "getweekstat":
 		obj, err = firewall.GetWeekStat(param)
+	case "gettotpkey":
+		// used for authenticator launched by slave nodes
+		obj, err = usermgmt.GetOrInsertTOTPItem(param)
+	case "updatetotp":
+		id := int64(param["id"].(float64))
+		fmt.Println("updatetotp", id, param)
+		obj, err = usermgmt.UpdateTOTPVerified(id)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil
