@@ -123,6 +123,8 @@ func main() {
 	// LDAP Auth UI
 	gateMux.HandleFunc("/ldap/login", gateway.ShowLDAPLoginUI)
 	gateMux.HandleFunc("/ldap/auth", frontend.LDAPCallBackHandleFunc)
+	// SAML Auth
+	gateMux.HandleFunc("/saml/login", gateway.SAMLLogin)
 	// Add CAPTCHA
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)

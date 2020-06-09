@@ -64,6 +64,10 @@ func SelectBackendRoute(app *models.Application, r *http.Request) *models.Destin
 		if !ok {
 			valueI, ok = app.Route.Load("/")
 		}
+		if !ok {
+			// lack of route /
+			return nil
+		}
 		dests = valueI.([]*models.Destination)
 	}
 
@@ -252,6 +256,10 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 	app.Destinations = newDestinations
 
 	// Update Route Map
+	app.Route.Range(func(key, value interface{}) bool {
+		app.Route.Delete(key)
+		return true
+	})
 	for _, dest := range app.Destinations {
 		routeI, ok := app.Route.Load(dest.RequestRoute)
 		var route []*models.Destination

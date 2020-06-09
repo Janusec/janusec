@@ -189,7 +189,6 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = usermgmt.GetOrInsertTOTPItem(param)
 	case "updatetotp":
 		id := int64(param["id"].(float64))
-		fmt.Println("updatetotp", id, param)
 		obj, err = usermgmt.UpdateTOTPVerified(id)
 	default:
 		//fmt.Println("undefined action")

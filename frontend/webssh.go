@@ -31,15 +31,16 @@ type HostInfo struct {
 	Password string `json:"password"`
 }
 
+// SSH build connection
 func SSH(sshInput *io.WriteCloser, sshOutput *io.Reader, host *HostInfo, errChan chan<- error) {
 	sshClient, err := ssh.Dial("tcp", host.IP+":"+host.Port, &ssh.ClientConfig{
 		User:            host.Username,
 		Auth:            []ssh.AuthMethod{ssh.Password(host.Password)},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	})
-	//utils.CheckError("dial", err)
-	errChan <- err
 	if err != nil {
+		errChan <- err
+		utils.CheckError("errChan", err)
 		return
 	}
 	sshSession, err := sshClient.NewSession()
@@ -49,6 +50,7 @@ func SSH(sshInput *io.WriteCloser, sshOutput *io.Reader, host *HostInfo, errChan
 	utils.CheckError("sshInput", err)
 	*sshOutput, err = sshSession.StdoutPipe()
 	utils.CheckError("sshOuput", err)
+	errChan <- err
 	modes := ssh.TerminalModes{
 		ssh.ECHO:          1,
 		ssh.TTY_OP_ISPEED: 14400,
@@ -65,8 +67,11 @@ func SSH(sshInput *io.WriteCloser, sshOutput *io.Reader, host *HostInfo, errChan
 func RoutineOutput(outputTicker *time.Ticker, wsConn *websocket.Conn, sshOutput *io.Reader) {
 	for range outputTicker.C {
 		cmdOutput := make([]byte, 1024*10)
-		n, _ := (*sshOutput).Read(cmdOutput)
-		//utils.CheckError("Read SSH Output Error", err)
+		n, err := (*sshOutput).Read(cmdOutput)
+		if err != nil {
+			// EOF
+			return
+		}
 		if n > 0 {
 			err := wsConn.WriteMessage(websocket.TextMessage, cmdOutput)
 			if err != nil {
@@ -115,7 +120,7 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var logBuf bytes.Buffer
-	outputTicker := time.NewTicker(120 * time.Millisecond)
+	outputTicker := time.NewTicker(100 * time.Millisecond)
 	go RoutineOutput(outputTicker, wsConn, &sshOutput)
 	for {
 		select {
