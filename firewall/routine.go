@@ -16,7 +16,7 @@ import (
 
 // RoutineTick Clear Expired Logs
 func RoutineTick() {
-	if data.IsMaster {
+	if data.IsPrimary {
 		logExpireSeconds, err := data.DAL.SelectIntSetting("Log_Expire_Seconds")
 		utils.CheckError("RoutineTick", err)
 		//fmt.Println("RoutineTick log_expire_seconds:", log_expire_seconds)

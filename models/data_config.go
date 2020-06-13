@@ -7,10 +7,11 @@
 
 package models
 
+// Config is the format of config.json
 type Config struct {
-	NodeRole   string           `json:"node_role"`
-	MasterNode MasterNodeConfig `json:"master_node"`
-	SlaveNode  SlaveNodeConfig  `json:"slave_node"`
+	NodeRole    string            `json:"node_role"`
+	PrimaryNode PrimaryNodeConfig `json:"primary_node"`
+	ReplicaNode ReplicaNodeConfig `json:"replica_node"`
 }
 
 type OAuthConfig struct {
@@ -22,13 +23,13 @@ type OAuthConfig struct {
 	LDAP     LDAPConfig     `json:"ldap"`
 }
 
-type MasterNodeConfig struct {
+type PrimaryNodeConfig struct {
 	Admin    AdminConfig `json:"admin"`
 	Database DBConfig    `json:"database"`
 	OAuth    OAuthConfig `json:"oauth"`
 }
 
-type SlaveNodeConfig struct {
+type ReplicaNodeConfig struct {
 	NodeKey  string `json:"node_key"`
 	SyncAddr string `json:"sync_addr"`
 }
@@ -51,9 +52,9 @@ type DBConfig struct {
 
 type EncryptedConfig struct {
 	//NodeID     int64            `json:"node_id"`
-	NodeRole   string           `json:"node_role"`
-	MasterNode MasterNodeConfig `json:"master_node"`
-	SlaveNode  SlaveNodeConfig  `json:"slave_node"`
+	NodeRole    string            `json:"node_role"`
+	PrimaryNode PrimaryNodeConfig `json:"primary_node"`
+	ReplicaNode ReplicaNodeConfig `json:"replica_node"`
 }
 
 type WxworkConfig struct {

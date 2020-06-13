@@ -123,7 +123,7 @@ func GetApplicationByDomain(domain string) *models.Application {
 
 func LoadApps() {
 	Apps = Apps[0:0]
-	if data.IsMaster {
+	if data.IsPrimary {
 		dbApps := data.DAL.SelectApplications()
 		for _, dbApp := range dbApps {
 			app := &models.Application{ID: dbApp.ID,
@@ -142,7 +142,7 @@ func LoadApps() {
 			Apps = append(Apps, app)
 		}
 	} else {
-		// Slave
+		// Replica
 		rpcApps := RPCSelectApplications()
 		if rpcApps != nil {
 			Apps = rpcApps

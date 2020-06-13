@@ -1,6 +1,6 @@
 {
-	"node_role": "slave",
-	"master_node": {
+	"node_role": "replica",
+	"replica_node": {
         "admin": {
             "listen": true,
             "listen_http": ":9080",
@@ -47,8 +47,8 @@
             }
         }
 	},
-	"slave_node": {
+	"replica_node": {
 		"node_key": "node_key_generated_in_node_management",
-		"sync_addr": "http://gateway.master_node.com:9080/janusec-admin/api"
+		"sync_addr": "http://gateway.primary_node.com:9080/janusec-admin/api"
 	}
 }

@@ -90,7 +90,7 @@ func genKey() string {
 
 // GetTOTPByUID return TOTP Key related to uid
 func GetTOTPByUID(uid string) (totpItem *models.TOTP, err error) {
-	if data.IsMaster {
+	if data.IsPrimary {
 		totpItem, err = data.DAL.GetTOTPItemByUID(uid)
 		return totpItem, err
 	}
@@ -112,7 +112,7 @@ func GetTOTPByUID(uid string) (totpItem *models.TOTP, err error) {
 	return rpcTOTP.Object, err
 }
 
-// GetOrInsertTOTPItem for slave nodes
+// GetOrInsertTOTPItem for replica nodes
 func GetOrInsertTOTPItem(param map[string]interface{}) (totpItem *models.TOTP, err error) {
 	totpI := param["object"].(map[string]interface{})
 	uid := totpI["uid"].(string)
@@ -128,7 +128,7 @@ func GetOrInsertTOTPItem(param map[string]interface{}) (totpItem *models.TOTP, e
 
 // UpdateTOTPVerified set verified = true
 func UpdateTOTPVerified(id int64) (*models.TOTP, error) {
-	if data.IsMaster {
+	if data.IsPrimary {
 		data.DAL.UpdateTOTPVerified(true, id)
 		return nil, nil
 	}

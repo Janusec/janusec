@@ -33,7 +33,7 @@ func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	bytesData, err := json.Marshal(rpcReq)
 	utils.CheckError("GetRPCResponse Marshal", err)
 	reader := bytes.NewReader(bytesData)
-	request, err := http.NewRequest("POST", CFG.SlaveNode.SyncAddr, reader)
+	request, err := http.NewRequest("POST", CFG.ReplicaNode.SyncAddr, reader)
 	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	client := http.Client{}
 	resp, err := client.Do(request)

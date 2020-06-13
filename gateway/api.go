@@ -5,7 +5,7 @@
  * @Last Modified: U2, 2018-07-14 16:36:34
  */
 
-package frontend
+package gateway
 
 import (
 	"bytes"
@@ -25,8 +25,8 @@ import (
 	"github.com/Janusec/janusec/utils"
 )
 
-func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	//utils.DebugPrintln("apiHandlerFunc", r.URL.Path)
+//APIHandlerFunc receive from browser and other nodes
+func APIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	bodyBuf, _ := ioutil.ReadAll(r.Body)
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	decoder := json.NewDecoder(r.Body)
@@ -39,12 +39,12 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	var userID int64
 	var authUser *models.AuthUser
 	if authKey != nil {
-		// For slave nodes
+		// For replica nodes
 		if backend.IsValidAuthKey(r, param) == false {
-			GenResponseByObject(w, nil, errors.New("AuthKey invalid!"))
+			GenResponseByObject(w, nil, errors.New("authkey invalid"))
 			return
 		}
-		// for privilege check and sync data from slave nodes
+		// for privilege check and sync data from replica nodes
 		authUser = &models.AuthUser{
 			UserID:        0,
 			Username:      "node",
@@ -67,7 +67,7 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if utils.Debug {
 		dump, err := httputil.DumpRequest(r, true)
-		utils.CheckError("ApiHandlerFunc DumpRequest", err)
+		utils.CheckError("APIHandlerFunc DumpRequest", err)
 		fmt.Println(string(dump))
 	}
 	var obj interface{}
@@ -185,7 +185,7 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "getweekstat":
 		obj, err = firewall.GetWeekStat(param)
 	case "gettotpkey":
-		// used for authenticator launched by slave nodes
+		// used for authenticator launched by replica nodes
 		obj, err = usermgmt.GetOrInsertTOTPItem(param)
 	case "updatetotp":
 		id := int64(param["id"].(float64))
@@ -196,4 +196,16 @@ func ApiHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		err = errors.New("undefined")
 	}
 	GenResponseByObject(w, obj, err)
+}
+
+func GenResponseByObject(w http.ResponseWriter, object interface{}, err error) {
+	resp := new(models.RPCResponse)
+	if err == nil {
+		resp.Error = nil
+	} else {
+		errStr := err.Error()
+		resp.Error = &errStr
+	}
+	resp.Object = object
+	json.NewEncoder(w).Encode(resp)
 }

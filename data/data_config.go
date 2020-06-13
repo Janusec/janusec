@@ -24,14 +24,14 @@ func NewConfig(filename string) (*models.Config, error) {
 		return nil, err
 	}
 	json.Unmarshal(configBytes, config)
-	if strings.ToLower(config.NodeRole) == "master" {
-		dbPassword := config.MasterNode.Database.Password
+	if strings.ToLower(config.NodeRole) == "primary" {
+		dbPassword := config.PrimaryNode.Database.Password
 		if len(dbPassword) <= 32 {
 			// Encrypt password
 			encryptedPasswordBytes := AES256Encrypt([]byte(dbPassword), true)
 			encryptedPassword := hex.EncodeToString(encryptedPasswordBytes)
 			encryptedConfig := models.EncryptedConfig(*config)
-			encryptedConfig.MasterNode.Database.Password = encryptedPassword
+			encryptedConfig.PrimaryNode.Database.Password = encryptedPassword
 			encryptedConfigBytes, _ := json.MarshalIndent(encryptedConfig, "", "\t")
 			err = ioutil.WriteFile(filename, encryptedConfigBytes, 0644)
 		} else {
@@ -41,7 +41,7 @@ func NewConfig(filename string) (*models.Config, error) {
 				return nil, err
 			}
 			passwordBytes, _ := AES256Decrypt(encryptedPassword, true)
-			config.MasterNode.Database.Password = string(passwordBytes)
+			config.PrimaryNode.Database.Password = string(passwordBytes)
 		}
 	}
 	//fmt.Println("NewConfig config.Database.Password=",config.Database.Password)

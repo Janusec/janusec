@@ -30,7 +30,7 @@ var (
 // InitGroupPolicy ...
 func InitGroupPolicy() {
 	var dbGroupPolicies []*models.GroupPolicy
-	if data.IsMaster {
+	if data.IsPrimary {
 		data.DAL.CreateTableIfNotExistsGroupPolicy()
 		data.DAL.CreateTableIfNotExistCheckItems()
 		existRegexPolicy := data.DAL.ExistsGroupPolicy()

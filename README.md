@@ -39,7 +39,7 @@ Detailed documentation is available at [Janusec Application Gateway Documentatio
 
 ## Requirements  
 
-* PostgreSQL 9.3~9.6 or 10 (Required by Development and Master Node of Deployment)  
+* PostgreSQL 9.3~9.6 or 10 (Required by Development and Primary Node of Deployment)  
 * CentOS/RHEL 7, Debian 9  
 * systemd  
 * Golang 1.14+ (Required by Development Only)  
@@ -72,16 +72,16 @@ Then:
 
 When listen=false in config.json :  
 
-> http://`your_master_node_ip_address`/janusec-admin/    (first use)  
+> http://`your_primary_node_ip_address`/janusec-admin/    (first use)  
 > https://`your_application_domain_name`/janusec-admin/  (after certificate configured)  
 
 When listen=true  in config.json :  
 
-> http://`your_master_node_ip_address:9080`/janusec-admin/    (first use)  
-> https://`your_master_node_domain_name:9443`/janusec-admin/  (after certificate configured)  
+> http://`your_primary_node_ip_address:9080`/janusec-admin/    (first use)  
+> https://`your_primary_node_domain_name:9443`/janusec-admin/  (after certificate configured)  
 
-When using master node only, any application domain name can be used for admin.  
-But if you have one or more slave nodes, you should apply for a seperate domain name for master node.  
+When using primary node only, any application domain name can be used for admin.  
+But if you have one or more replica nodes, you should apply for a seperate domain name for primary node.  
 
 [Janusec Application Gateway Configuration](https://janusec.github.io/documentation/quick-start/)  
 

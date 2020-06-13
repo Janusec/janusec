@@ -1,6 +1,6 @@
 {
-	"node_role": "master",
-	"master_node": {
+	"node_role": "primary",
+	"primary_node": {
         "admin": {
             "listen": true,
             "listen_http": ":9080",
@@ -11,7 +11,7 @@
 		"database": {
 			"host": "127.0.0.1",
 			"port": "5432",
-			"user": "postgres",
+			"user": "janusec",
 			"password": "123456",
 			"dbname": "janusec"
         },
@@ -47,8 +47,8 @@
             }
         }
 	},
-	"slave_node": {
+	"replica_node": {
 		"node_key": "",
-		"sync_addr": "http://gateway.master_node.com:9080/janusec-admin/api"
+		"sync_addr": "http://gateway.primary_node.com:9080/janusec-admin/api"
 	}
 }

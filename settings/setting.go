@@ -32,7 +32,7 @@ func InitDefaultSettings() {
 }
 
 func LoadSettings() {
-	if data.IsMaster {
+	if data.IsPrimary {
 		data.Backend_Last_Modified, _ = data.DAL.SelectIntSetting("Backend_Last_Modified")
 		data.Firewall_Last_Modified, _ = data.DAL.SelectIntSetting("Firewall_Last_Modified")
 		Sync_Seconds_int64, _ := data.DAL.SelectIntSetting("Sync_Seconds")
@@ -42,7 +42,7 @@ func LoadSettings() {
 		data.Settings = append(data.Settings, &models.Setting{Name: "Sync_Seconds", Value: data.Sync_Seconds})
 	} else {
 		// Load OAuth Config
-		data.CFG.MasterNode.OAuth = *(data.RPCGetOAuthConfig())
+		data.CFG.PrimaryNode.OAuth = *(data.RPCGetOAuthConfig())
 		// Load Memory Settings
 		setting_items := data.RPCGetSettings()
 		for _, setting_item := range setting_items {

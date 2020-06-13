@@ -107,11 +107,11 @@ func LoadCheckItems() {
 	for _, groupPolicy := range groupPolicies {
 		var checkItems []*models.CheckItem
 		var err error
-		if data.IsMaster {
+		if data.IsPrimary {
 			checkItems, err = data.DAL.SelectCheckItemsByGroupID(groupPolicy.ID)
 			utils.CheckError("LoadCheckItems", err)
 		} else {
-			//fmt.Println("LoadCheckItems Slave Node group_policy:", group_policy)
+			//fmt.Println("LoadCheckItems Replica Node group_policy:", group_policy)
 			checkItems = groupPolicy.CheckItems
 		}
 

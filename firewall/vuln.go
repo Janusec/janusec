@@ -23,7 +23,7 @@ var (
 
 // InitVulnType ...
 func InitVulnType() {
-	if data.IsMaster {
+	if data.IsPrimary {
 		data.DAL.CreateTableIfNotExistsVulnType()
 		existVuln := data.DAL.ExistsVulnType()
 		if existVuln == false {

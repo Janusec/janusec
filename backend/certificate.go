@@ -23,7 +23,7 @@ var (
 
 func LoadCerts() {
 	//fmt.Println("LoadCerts")
-	if data.IsMaster {
+	if data.IsPrimary {
 		Certs = Certs[0:0]
 		dbCerts := data.DAL.SelectCertificates()
 		for _, dbCert := range dbCerts {
@@ -47,12 +47,12 @@ func LoadCerts() {
 			Certs = append(Certs, cert)
 		}
 	} else {
-		// Slave
+		// Replica
 		rpcCerts := RPCSelectCertificates()
 		if rpcCerts != nil {
 			Certs = rpcCerts
 		}
-		//fmt.Println("LoadCerts Slave:", Certs)
+		//fmt.Println("LoadCerts Replica:", Certs)
 	}
 }
 

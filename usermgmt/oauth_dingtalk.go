@@ -58,9 +58,9 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// accessKey=appid
 	// https://ding-doc.dingtalk.com/doc#/serverapi2/kymkv6
 	timestamp := strconv.FormatInt(time.Now().UnixNano()/1e6, 10)
-	signature := GetSignature([]byte(timestamp), []byte(data.CFG.MasterNode.OAuth.Dingtalk.AppSecret))
+	signature := GetSignature([]byte(timestamp), []byte(data.CFG.PrimaryNode.OAuth.Dingtalk.AppSecret))
 	accessTokenURL := fmt.Sprintf("https://oapi.dingtalk.com/sns/getuserinfo_bycode?accessKey=%s&timestamp=%s&signature=%s",
-		data.CFG.MasterNode.OAuth.Dingtalk.AppID,
+		data.CFG.PrimaryNode.OAuth.Dingtalk.AppID,
 		timestamp,
 		signature)
 
@@ -90,7 +90,7 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400}
 		session.Save(r, w)
-		http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
 	// Gateway OAuth for employees and internal application

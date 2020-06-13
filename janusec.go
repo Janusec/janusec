@@ -26,7 +26,6 @@ import (
 	"github.com/Janusec/janusec/backend"
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/firewall"
-	"github.com/Janusec/janusec/frontend"
 	"github.com/Janusec/janusec/gateway"
 	"github.com/Janusec/janusec/models"
 	"github.com/Janusec/janusec/settings"
@@ -52,7 +51,7 @@ func main() {
 		utils.DebugPrintln("Warning: Janusec is running in Debug mode.")
 	}
 	data.InitDAL()
-	if data.IsMaster {
+	if data.IsPrimary {
 		backend.InitDatabase()
 		settings.InitDefaultSettings() // instanceKey & nodesKey
 	}
@@ -84,14 +83,14 @@ func main() {
 			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256},
 	}
 	gateMux := http.NewServeMux()
-	if data.IsMaster {
-		admin := data.CFG.MasterNode.Admin
+	if data.IsPrimary {
+		admin := data.CFG.PrimaryNode.Admin
 		if admin.Listen == true {
 			adminMux := http.NewServeMux()
-			adminMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
-			adminMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
-			adminMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
-			adminMux.HandleFunc("/janusec-admin/oauth/get", frontend.OAuthGetHandleFunc)
+			adminMux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
+			adminMux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
+			adminMux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
+			adminMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
 			if len(admin.ListenHTTP) > 0 {
 				go func() {
 					listen, _ := net.Listen("tcp", admin.ListenHTTP)
@@ -107,22 +106,22 @@ func main() {
 			}
 		} else {
 			// Add API and admin
-			gateMux.HandleFunc("/janusec-admin/api", frontend.ApiHandlerFunc)
-			gateMux.HandleFunc("/janusec-admin/", frontend.AdminHandlerFunc)
-			gateMux.HandleFunc("/janusec-admin/webssh", frontend.WebSSHHandlerFunc)
-			gateMux.HandleFunc("/janusec-admin/oauth/get", frontend.OAuthGetHandleFunc)
+			gateMux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
+			gateMux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
+			gateMux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
+			gateMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
 		}
 	}
 	// Add OAuth2
 	gateMux.HandleFunc("/oauth/logout", gateway.OAuthLogout)
-	gateMux.HandleFunc("/oauth/wxwork", frontend.WxworkCallBackHandleFunc)
-	gateMux.HandleFunc("/oauth/dingtalk", frontend.DingtalkCallBackHandleFunc)
-	gateMux.HandleFunc("/oauth/feishu", frontend.FeishuCallBackHandleFunc)
+	gateMux.HandleFunc("/oauth/wxwork", gateway.WxworkCallBackHandleFunc)
+	gateMux.HandleFunc("/oauth/dingtalk", gateway.DingtalkCallBackHandleFunc)
+	gateMux.HandleFunc("/oauth/feishu", gateway.FeishuCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/code/register", gateway.ShowAuthCodeRegisterUI)
 	gateMux.HandleFunc("/oauth/code/verify", gateway.AuthCodeVerifyFunc)
 	// LDAP Auth UI
 	gateMux.HandleFunc("/ldap/login", gateway.ShowLDAPLoginUI)
-	gateMux.HandleFunc("/ldap/auth", frontend.LDAPCallBackHandleFunc)
+	gateMux.HandleFunc("/ldap/auth", gateway.LDAPCallBackHandleFunc)
 	// SAML Auth
 	gateMux.HandleFunc("/saml/login", gateway.SAMLLogin)
 	// Add CAPTCHA

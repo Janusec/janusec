@@ -26,7 +26,7 @@ func LoadDomains() {
 		return true
 	})
 	var dbDomains []*models.DBDomain
-	if data.IsMaster {
+	if data.IsPrimary {
 		dbDomains = data.DAL.SelectDomains()
 	} else {
 		dbDomains = RPCSelectDomains()

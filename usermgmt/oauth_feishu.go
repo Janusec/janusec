@@ -60,8 +60,8 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// {"app_id":"cli_slkdasd", "app_secret":"dskLLdkasdKK"}
 	accessTokenURL := "https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/"
 	body := fmt.Sprintf(`{"app_id":"%s", "app_secret":"%s"}`,
-		data.CFG.MasterNode.OAuth.Feishu.AppID,
-		data.CFG.MasterNode.OAuth.Feishu.AppSecret)
+		data.CFG.PrimaryNode.OAuth.Feishu.AppID,
+		data.CFG.PrimaryNode.OAuth.Feishu.AppSecret)
 	request, _ := http.NewRequest("POST", accessTokenURL, bytes.NewReader([]byte(body)))
 	resp, err := GetResponse(request)
 	if err != nil {
@@ -103,7 +103,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.Expire}
 		session.Save(r, w)
-		http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
 	// Gateway OAuth for employees and internal application

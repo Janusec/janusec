@@ -18,6 +18,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// MyDAL used for data access layer
 type MyDAL struct {
 	db *sql.DB
 }
@@ -26,12 +27,16 @@ var (
 	// DAL is Data Access Layer
 	DAL *MyDAL
 	// CFG is config
-	CFG      *models.Config
-	IsMaster bool
-	Version  = "0.9.8"
-	NodeKey  []byte
+	CFG *models.Config
+	// IsPrimary i.e. Is Primary Node
+	IsPrimary bool
+	// Version of JANUSEC
+	Version = "0.9.8"
+	// NodeKey share with all nodes
+	NodeKey []byte
 )
 
+// InitDAL init Data Access Layer
 func InitDAL() {
 	DAL = new(MyDAL)
 	var err error
@@ -40,23 +45,38 @@ func InitDAL() {
 	if err != nil {
 		os.Exit(1)
 	}
-	IsMaster = (strings.ToLower(CFG.NodeRole) == "master")
-	if IsMaster {
+	nodeRole := strings.ToLower(CFG.NodeRole)
+	if nodeRole != "primary" && nodeRole != "replica" {
+		fmt.Printf("Error: node_role %s is not supported, it should be primary or replica, please check config.json \n", nodeRole)
+		utils.DebugPrintln("Error: node_role ", nodeRole, " is not supported, it should be primary or replica, please check config.json")
+		os.Exit(1)
+	}
+	IsPrimary = (nodeRole == "primary")
+	if IsPrimary {
 		conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-			CFG.MasterNode.Database.Host,
-			CFG.MasterNode.Database.Port,
-			CFG.MasterNode.Database.User,
-			CFG.MasterNode.Database.Password,
-			CFG.MasterNode.Database.DBName)
+			CFG.PrimaryNode.Database.Host,
+			CFG.PrimaryNode.Database.Port,
+			CFG.PrimaryNode.Database.User,
+			CFG.PrimaryNode.Database.Password,
+			CFG.PrimaryNode.Database.DBName)
 		DAL.db, err = sql.Open("postgres", conn)
 		utils.CheckError("InitDAL sql.Open:", err)
 		if err != nil {
 			os.Exit(1)
 		}
+		// Check if the User and Password are Correct
+		_, err = DAL.db.Query("select 1")
+		utils.CheckError("InitDAL Failed, Error:", err)
+		if err != nil {
+			utils.DebugPrintln("InitDAL Failed, Please check the database user and password. Error:", err)
+			os.Exit(1)
+		}
+
+		// Database user and password OK
 		DAL.db.SetMaxOpenConns(99)
 	} else {
 		// Init Node Key (Share with master)
-		NodeKey = NodeHexKeyToCryptKey(CFG.SlaveNode.NodeKey)
+		NodeKey = NodeHexKeyToCryptKey(CFG.ReplicaNode.NodeKey)
 	}
 }
 

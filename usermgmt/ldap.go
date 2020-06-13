@@ -31,10 +31,10 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 	// LDAP Auth
 	var conn *ldap.Conn
 	var err error
-	if data.CFG.MasterNode.OAuth.LDAP.UsingTLS {
-		conn, err = ldap.DialTLS("tcp", data.CFG.MasterNode.OAuth.LDAP.Address, &tls.Config{InsecureSkipVerify: true})
+	if data.CFG.PrimaryNode.OAuth.LDAP.UsingTLS {
+		conn, err = ldap.DialTLS("tcp", data.CFG.PrimaryNode.OAuth.LDAP.Address, &tls.Config{InsecureSkipVerify: true})
 	} else {
-		conn, err = ldap.Dial("tcp", data.CFG.MasterNode.OAuth.LDAP.Address)
+		conn, err = ldap.Dial("tcp", data.CFG.PrimaryNode.OAuth.LDAP.Address)
 	}
 	if err != nil {
 		utils.DebugPrintln("AuthWithLDAP Dial", err)
@@ -42,13 +42,13 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
-	dn := strings.Replace(data.CFG.MasterNode.OAuth.LDAP.DN, "{uid}", username, 1)
+	dn := strings.Replace(data.CFG.PrimaryNode.OAuth.LDAP.DN, "{uid}", username, 1)
 	err = conn.Bind(dn, password)
 	if err != nil {
 		utils.DebugPrintln("AuthWithLDAP Auth Error", username, err)
 		var entrance string
 		if state == "admin" {
-			entrance = data.CFG.MasterNode.OAuth.LDAP.Entrance + "?state=" + state
+			entrance = data.CFG.PrimaryNode.OAuth.LDAP.Entrance + "?state=" + state
 		} else {
 			entrance = "/ldap/login?state=" + state
 		}
@@ -57,7 +57,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TOTP Auth
-	if data.CFG.MasterNode.OAuth.LDAP.AuthenticatorEnabled {
+	if data.CFG.PrimaryNode.OAuth.LDAP.AuthenticatorEnabled {
 		totpItem, err := GetTOTPByUID(username)
 		if err != nil {
 			// Not exist totp item, means it is the First Login, Create totp key for current uid
@@ -102,7 +102,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
 	// Gateway OAuth for employees and internal application

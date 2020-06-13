@@ -51,14 +51,14 @@ func CCAttackTick(appID int64) {
 			clientID := key.(string)
 			stat := value.(*models.ClientStat)
 			//fmt.Println("CCAttackTick:", appID, clientID, stat)
-			if stat.IsBlackIP == true {
+			if stat.IsBadIP == true {
 				stat.RemainSeconds -= ccPolicy.IntervalSeconds
 				if stat.RemainSeconds <= 0 {
 					appCCCount.Delete(clientID)
 				}
 			} else if stat.Count >= ccPolicy.MaxCount {
 				stat.Count = 0
-				stat.IsBlackIP = true
+				stat.IsBadIP = true
 				stat.RemainSeconds = ccPolicy.BlockSeconds
 			} else {
 				appCCCount.Delete(clientID)
@@ -112,9 +112,9 @@ func IsCCAttack(r *http.Request, appID int64, srcIP string) (bool, *models.CCPol
 		preHashContent += cookie
 	}
 	clientID := data.SHA256Hash(preHashContent)
-	clientIDStat, _ := appCCCount.LoadOrStore(clientID, &models.ClientStat{Count: 0, IsBlackIP: false, RemainSeconds: 0})
+	clientIDStat, _ := appCCCount.LoadOrStore(clientID, &models.ClientStat{Count: 0, IsBadIP: false, RemainSeconds: 0})
 	clientStat := clientIDStat.(*models.ClientStat)
-	if clientStat.IsBlackIP == true {
+	if clientStat.IsBadIP == true {
 		needLog := false
 		if clientStat.Count == 0 {
 			clientStat.Count++
@@ -123,14 +123,14 @@ func IsCCAttack(r *http.Request, appID int64, srcIP string) (bool, *models.CCPol
 		return true, ccPolicy, clientID, needLog
 	}
 	clientStat.Count++
-	//fmt.Println("IsCCAttack:", r.URL.Path, clientID, clientStat.Count, clientStat.IsBlackIP, clientStat.RemainSeconds)
+	//fmt.Println("IsCCAttack:", r.URL.Path, clientID, clientStat.Count, clientStat.IsBadIP, clientStat.RemainSeconds)
 	return false, nil, "", false
 }
 
 // InitCCPolicy init CC policy
 func InitCCPolicy() {
 	//var cc_policies_list []*models.CCPolicy
-	if data.IsMaster {
+	if data.IsPrimary {
 		data.DAL.CreateTableIfNotExistsCCPolicy()
 		existCCPolicy := data.DAL.ExistsCCPolicy()
 		if existCCPolicy == false {

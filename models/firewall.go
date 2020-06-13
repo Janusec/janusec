@@ -117,7 +117,7 @@ type DBCheckItem struct {
 
 type ClientStat struct {
 	Count         int64
-	IsBlackIP     bool
+	IsBadIP       bool
 	RemainSeconds time.Duration
 }
 

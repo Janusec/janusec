@@ -42,7 +42,7 @@ func InitDatabase() {
 func LoadAppConfiguration() {
 	LoadCerts()
 	LoadApps()
-	if data.IsMaster {
+	if data.IsPrimary {
 		LoadDestinations()
 		LoadDomains()
 		LoadAppDomainNames()

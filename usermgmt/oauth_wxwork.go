@@ -49,7 +49,7 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wwd03ba1f8&corpsecret=NdZI
 	// Response format: https://work.weixin.qq.com/api/doc/90000/90135/91039
 	accessTokenURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
-		data.CFG.MasterNode.OAuth.Wxwork.CorpID, data.CFG.MasterNode.OAuth.Wxwork.CorpSecret)
+		data.CFG.PrimaryNode.OAuth.Wxwork.CorpID, data.CFG.PrimaryNode.OAuth.Wxwork.CorpSecret)
 	request, _ := http.NewRequest("GET", accessTokenURL, nil)
 	resp, err := GetResponse(request)
 	if err != nil {
@@ -82,7 +82,7 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.ExpiresIn}
 		session.Save(r, w)
-		http.Redirect(w, r, data.CFG.MasterNode.Admin.Portal, http.StatusFound)
+		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
 	// Gateway OAuth for employees and internal application

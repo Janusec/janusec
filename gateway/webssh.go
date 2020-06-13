@@ -5,7 +5,7 @@
  * @Last Modified: U2, 2020-02-10 22:07:47
  */
 
-package frontend
+package gateway
 
 import (
 	"bytes"
@@ -103,7 +103,7 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		utils.CheckError("ReadMessage SSH Parameters Error:", err)
 		return
 	}
-	if data.CFG.MasterNode.Admin.WebSSHEnabled == false {
+	if data.CFG.PrimaryNode.Admin.WebSSHEnabled == false {
 		wsConn.WriteMessage(websocket.TextMessage, []byte("WebSSH disabled in config.json!\r\n"))
 		return
 	}

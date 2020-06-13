@@ -21,7 +21,7 @@ import (
 
 // InitHitLog ...
 func InitHitLog() {
-	if data.IsMaster {
+	if data.IsPrimary {
 		data.DAL.CreateTableIfNotExistsGroupHitLog()
 		data.DAL.CreateTableIfNotExistsCCLog()
 	}
@@ -39,7 +39,7 @@ func LogCCRequest(r *http.Request, appID int64, clientIP string, policy *models.
 		maxRawSize = 16384
 	}
 	rawRequest := string(rawRequestBytes[:maxRawSize])
-	if data.IsMaster {
+	if data.IsPrimary {
 		data.DAL.InsertCCLog(requestTime, clientIP, r.Host, r.Method, r.URL.Path, r.URL.RawQuery, contentType, r.UserAgent(), cookies, rawRequest, int64(policy.Action), appID)
 	} else {
 		ccLog := &models.CCLog{
@@ -71,7 +71,7 @@ func LogGroupHitRequest(r *http.Request, appID int64, clientIP string, policy *m
 		maxRawSize = 16384
 	}
 	rawRequest := string(rawRequestBytes[:maxRawSize])
-	if data.IsMaster {
+	if data.IsPrimary {
 		data.DAL.InsertGroupHitLog(requestTime, clientIP, r.Host, r.Method, r.URL.Path, r.URL.RawQuery, contentType, r.UserAgent(), cookies, rawRequest, int64(policy.Action), policy.ID, policy.VulnID, appID)
 	} else {
 		regexHitLog := &models.GroupHitLog{

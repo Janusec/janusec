@@ -27,9 +27,9 @@ type LDAPContext struct {
 func ShowLDAPLoginUI(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	ldapContext := LDAPContext{
-		DisplayName:     data.CFG.MasterNode.OAuth.LDAP.DisplayName,
+		DisplayName:     data.CFG.PrimaryNode.OAuth.LDAP.DisplayName,
 		State:           state,
-		AuthCodeEnabled: data.CFG.MasterNode.OAuth.LDAP.AuthenticatorEnabled}
+		AuthCodeEnabled: data.CFG.PrimaryNode.OAuth.LDAP.AuthenticatorEnabled}
 	if err := ldapLoginTemplate.Execute(w, &ldapContext); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
