@@ -9,6 +9,7 @@ package gateway
 
 import (
 	"bytes"
+	"compress/gzip"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -103,16 +104,34 @@ func rewriteResponse(resp *http.Response) (err error) {
 		cacheFilePath := filepath.Dir(targetFile)
 		bodyBuf, _ := ioutil.ReadAll(resp.Body)
 		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+
 		err := os.MkdirAll(cacheFilePath, 0666)
 		if err != nil {
 			utils.DebugPrintln("Cache Path Error", err)
 		}
-		err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+		contentEncoding := resp.Header.Get("Content-Encoding")
+		switch contentEncoding {
+		case "gzip":
+			reader, err := gzip.NewReader(bytes.NewBuffer(bodyBuf))
+			defer reader.Close()
+			decompressedBodyBuf, err := ioutil.ReadAll(reader)
+			utils.DebugPrintln("Gzip decompress Error", err)
+			err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0666)
+		/*
+			case "deflate":
+				reader := flate.NewReader(bytes.NewBuffer(bodyBuf))
+				defer reader.Close()
+				decompressedBodyBuf, err := ioutil.ReadAll(reader)
+				utils.DebugPrintln("flate decompress Error", err)
+				err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0666)
+		*/
+		default:
+			err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+		}
 		if err != nil {
 			utils.DebugPrintln("Cache File Error", err)
 		}
 	}
-
 	//body, err := httputil.DumpResponse(resp, true)
 	//fmt.Println("Dump Response:")
 	//fmt.Println(string(body))

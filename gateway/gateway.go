@@ -12,6 +12,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -37,6 +38,11 @@ var (
 
 // ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
+	// r.Host may has the format: domain:port, first remove port
+	index := strings.IndexByte(r.Host, ':')
+	if index > 0 {
+		r.Host = r.Host[0:index]
+	}
 	domain := backend.GetDomainByName(r.Host)
 	if domain != nil && domain.Redirect == true {
 		RedirectRequest(w, r, domain.Location)
@@ -234,8 +240,37 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
 		targetFile := staticRoot + r.URL.Path
 		// Check Static Cache
-		if _, err := os.Stat(targetFile); err == nil {
+		if fi, err := os.Stat(targetFile); err == nil {
 			// Found targetFile
+			now := time.Now()
+			pastSeconds := now.Unix() - fi.ModTime().Unix()
+			if pastSeconds > 60 {
+				// check update
+				go func() {
+					backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, dest.Destination, r.RequestURI)
+					req, err := http.NewRequest("GET", backendAddr, nil)
+					if err == nil {
+						req.Host = r.Host
+						modTimeGMT := fi.ModTime().Format(http.TimeFormat)
+						fmt.Println("modTimeGMT", modTimeGMT)
+						//If-Modified-Since: Sun, 14 Jun 2020 13:54:20 GMT
+						req.Header.Set("If-Modified-Since", modTimeGMT)
+						client := http.Client{}
+						resp, err := client.Do(req)
+						utils.CheckError("Cache update Do", err)
+						defer resp.Body.Close()
+						if resp.StatusCode == http.StatusOK {
+							bodyBuf, _ := ioutil.ReadAll(resp.Body)
+							err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+						} else if resp.StatusCode == http.StatusNotModified {
+							err := os.Chtimes(targetFile, now, now)
+							utils.CheckError("Cache update mod time", err)
+						}
+					}
+
+				}()
+			}
+
 			http.ServeFile(w, r, targetFile)
 			return
 		}
