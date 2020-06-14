@@ -28,7 +28,7 @@ func CheckError(msg string, err error) {
 
 func InitLogger() {
 	logFilename := "./log/janusec" + time.Now().Format("20060102") + ".log"
-	logFile, err := os.OpenFile(logFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
+	logFile, err := os.OpenFile(logFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		CheckError("InitLogger", err)
 		os.Exit(1)
@@ -49,10 +49,23 @@ func GetRoutePath(path string) string {
 	return routePath
 }
 
+// DebugPrintln used for log of error
 func DebugPrintln(a ...interface{}) {
 	if Debug {
 		log.Println(a)
 	} else {
 		logger.Println(a)
 	}
+}
+
+// AccessLog record log for each application
+func AccessLog(domain string, method string, ip string, url string, ua string) {
+	now := time.Now()
+	f, err := os.OpenFile("./log/"+domain+now.Format("20060102")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Println("error opening file: %v", err)
+	}
+	defer f.Close()
+	log.SetOutput(f)
+	log.Printf("[%s] %s [%s] UA:[%s]\n", ip, method, url, ua)
 }

@@ -6,3 +6,4 @@
 /log/*
 *.zip
 *.tar.gz
+/static/cdncache

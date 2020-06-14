@@ -9,21 +9,23 @@ package gateway
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	//"net/http/httputil"
 	"strings"
-	//"io/ioutil"
+
 	"github.com/Janusec/janusec/backend"
 	"github.com/Janusec/janusec/firewall"
 	"github.com/Janusec/janusec/models"
-	//"github.com/Janusec/janusec/utils"
+	"github.com/Janusec/janusec/utils"
 )
 
 func rewriteResponse(resp *http.Response) (err error) {
-	//utils.DebugPrintln("rewriteResponse")
 	r := resp.Request
 	app := backend.GetApplicationByDomain(r.Host)
 	locationURL, err := resp.Location()
@@ -39,7 +41,6 @@ func rewriteResponse(resp *http.Response) (err error) {
 					userScheme = "https"
 				}
 				newLocation = strings.Replace(newLocation, locationURL.Scheme, userScheme, 1)
-				//fmt.Println("newLocation", newLocation)
 				resp.Header.Set("Location", newLocation)
 			}
 		}
@@ -51,8 +52,8 @@ func rewriteResponse(resp *http.Response) (err error) {
 		resp.Header.Set("X-Powered-By", "Janusec")
 	}
 
+	srcIP := GetClientIP(r, app)
 	if app.WAFEnabled {
-		srcIP := GetClientIP(r, app)
 		if isHit, policy := firewall.IsResponseHitPolicy(resp, app.ID); isHit {
 			switch policy.Action {
 			case models.Action_Block_100:
@@ -91,8 +92,25 @@ func rewriteResponse(resp *http.Response) (err error) {
 	}
 
 	// HSTS
-	if (app.HSTSEnabled == true) && (resp.Request.TLS != nil) {
+	if (app.HSTSEnabled == true) && (r.TLS != nil) {
 		resp.Header.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+	}
+
+	// Static Cache
+	if resp.StatusCode == http.StatusOK && firewall.IsStaticResource(r) {
+		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
+		targetFile := staticRoot + r.URL.Path
+		cacheFilePath := filepath.Dir(targetFile)
+		bodyBuf, _ := ioutil.ReadAll(resp.Body)
+		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+		err := os.MkdirAll(cacheFilePath, 0666)
+		if err != nil {
+			utils.DebugPrintln("Cache Path Error", err)
+		}
+		err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+		if err != nil {
+			utils.DebugPrintln("Cache File Error", err)
+		}
 	}
 
 	//body, err := httputil.DumpResponse(resp, true)

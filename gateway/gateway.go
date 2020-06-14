@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"strings"
 	"time"
 
@@ -36,7 +37,6 @@ var (
 
 // ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	//fmt.Println("Gateway ReverseHandlerFunc", r.Host)
 	domain := backend.GetDomainByName(r.Host)
 	if domain != nil && domain.Redirect == true {
 		RedirectRequest(w, r, domain.Location)
@@ -55,26 +55,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	r.URL.Scheme = app.InternalScheme
 	r.URL.Host = r.Host
 
-	//appID_str := strconv.Itoa(app.AppID)
-	//fmt.Println("ReverseHandlerFunc, r.URL.Path:", r.URL.Path)
-	/*
-	   is_static := backend.IsStaticDir(domain, r.URL.Path)
-	   fmt.Println("is_static:", is_static)
-	   if r.Method=="GET" && is_static {
-	       static_root := "./cdn_static_files/" + appID_str + "/"
-	       fmt.Println(static_root)
-	       staticHandler := http.FileServer(http.Dir(static_root))
-	       if strings.HasSuffix(r.URL.Path, "/") {
-	           http.ServeFile(w, r, "./static_files/warning.html")
-	           return
-	       }
-	       staticHandler.ServeHTTP(w, r)
-	       return
-	   }
-	*/
 	// dynamic
 	srcIP := GetClientIP(r, app)
-	if app.WAFEnabled && !firewall.IsStaticResource(r) {
+	isStatic := firewall.IsStaticResource(r)
+	if app.WAFEnabled && !isStatic {
 		if isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app.ID, srcIP); isCC == true {
 			targetURL := r.URL.Path
 			if len(r.URL.RawQuery) > 0 {
@@ -216,7 +200,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//fmt.Println("dest", dest, dest.RouteType)
+	// Add access log
+	utils.AccessLog(r.Host, r.Method, srcIP, r.RequestURI, r.UserAgent())
 
 	if dest.RouteType == models.StaticRoute {
 		// Static Web site
@@ -242,6 +227,19 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		)
 		fastCGIHandler.ServeHTTP(w, r)
 		return
+	}
+
+	// Check static cache
+	if isStatic {
+		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
+		targetFile := staticRoot + r.URL.Path
+		// Check Static Cache
+		if _, err := os.Stat(targetFile); err == nil {
+			// Found targetFile
+			http.ServeFile(w, r, targetFile)
+			return
+		}
+		// Not Found, Continue
 	}
 
 	// Reverse Proxy

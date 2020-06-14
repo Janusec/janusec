@@ -136,10 +136,8 @@ func main() {
 		listen, _ := net.Listen("tcp", ":80")
 		utils.CheckError("Listen 80 Failed", http.Serve(listen, ctxGateMux))
 	}()
-	//go func() {
 	listen, _ := tls.Listen("tcp", ":443", tlsconfig)
 	utils.CheckError("Listen 443 Failed", http.Serve(listen, ctxGateMux))
-	//}()
 }
 
 // AddContextHandler to add context handler
