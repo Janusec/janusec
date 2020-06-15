@@ -131,6 +131,13 @@ func rewriteResponse(resp *http.Response) (err error) {
 		if err != nil {
 			utils.DebugPrintln("Cache File Error", err)
 		}
+		lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
+		if err != nil {
+			utils.DebugPrintln("Cache File Check Last-Modified", err)
+			return nil
+		}
+		err = os.Chtimes(targetFile, time.Now(), lastModified)
+		utils.DebugPrintln("Cache File Check Last-Modified", err)
 	}
 	//body, err := httputil.DumpResponse(resp, true)
 	//fmt.Println("Dump Response:")

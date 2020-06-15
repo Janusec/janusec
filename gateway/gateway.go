@@ -18,6 +18,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/Janusec/janusec/backend"
@@ -243,16 +244,17 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		if fi, err := os.Stat(targetFile); err == nil {
 			// Found targetFile
 			now := time.Now()
-			pastSeconds := now.Unix() - fi.ModTime().Unix()
+			fiStat := fi.Sys().(*syscall.Stat_t)
+			// Use atime fiStat.Atim.Sec to mark the last check time
+			pastSeconds := now.Unix() - fiStat.Atim.Sec
 			if pastSeconds > 60 {
 				// check update
 				go func() {
 					backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, dest.Destination, r.RequestURI)
 					req, err := http.NewRequest("GET", backendAddr, nil)
 					if err == nil {
-						req.Host = r.Host
-						modTimeGMT := fi.ModTime().Format(http.TimeFormat)
-						fmt.Println("modTimeGMT", modTimeGMT)
+						req.Header.Set("Host", r.Host)
+						modTimeGMT := fi.ModTime().UTC().Format(http.TimeFormat)
 						//If-Modified-Since: Sun, 14 Jun 2020 13:54:20 GMT
 						req.Header.Set("If-Modified-Since", modTimeGMT)
 						client := http.Client{}
@@ -260,14 +262,21 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 						utils.CheckError("Cache update Do", err)
 						defer resp.Body.Close()
 						if resp.StatusCode == http.StatusOK {
+							//fmt.Println("200", backendAddr)
 							bodyBuf, _ := ioutil.ReadAll(resp.Body)
 							err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+							lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
+							if err != nil {
+								utils.DebugPrintln("CDN Parse Last-Modified", err)
+							}
+							err = os.Chtimes(targetFile, now, lastModified)
+							utils.DebugPrintln("CDN Save Last-Modified", err)
 						} else if resp.StatusCode == http.StatusNotModified {
-							err := os.Chtimes(targetFile, now, now)
-							utils.CheckError("Cache update mod time", err)
+							//fmt.Println("304", backendAddr)
+							err := os.Chtimes(targetFile, now, fi.ModTime())
+							utils.CheckError("Cache update access time", err)
 						}
 					}
-
 				}()
 			}
 
