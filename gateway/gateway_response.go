@@ -115,7 +115,9 @@ func rewriteResponse(resp *http.Response) (err error) {
 			reader, err := gzip.NewReader(bytes.NewBuffer(bodyBuf))
 			defer reader.Close()
 			decompressedBodyBuf, err := ioutil.ReadAll(reader)
-			utils.DebugPrintln("Gzip decompress Error", err)
+			if err != nil {
+				utils.DebugPrintln("Gzip decompress Error", err)
+			}
 			err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0666)
 		/*
 			case "deflate":
@@ -129,15 +131,17 @@ func rewriteResponse(resp *http.Response) (err error) {
 			err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
 		}
 		if err != nil {
-			utils.DebugPrintln("Cache File Error", err)
+			utils.DebugPrintln("Cache File Error", targetFile, err)
 		}
 		lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
 		if err != nil {
-			utils.DebugPrintln("Cache File Check Last-Modified", err)
+			utils.DebugPrintln("Cache File Parse Last-Modified", targetFile, err)
 			return nil
 		}
 		err = os.Chtimes(targetFile, time.Now(), lastModified)
-		utils.DebugPrintln("Cache File Check Last-Modified", err)
+		if err != nil {
+			utils.DebugPrintln("Cache File Chtimes", targetFile, err)
+		}
 	}
 	//body, err := httputil.DumpResponse(resp, true)
 	//fmt.Println("Dump Response:")

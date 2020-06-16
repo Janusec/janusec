@@ -236,57 +236,6 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check static cache
-	if isStatic {
-		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
-		targetFile := staticRoot + r.URL.Path
-		// Check Static Cache
-		if fi, err := os.Stat(targetFile); err == nil {
-			// Found targetFile
-			now := time.Now()
-			fiStat := fi.Sys().(*syscall.Stat_t)
-			// Use atime fiStat.Atim.Sec to mark the last check time
-			pastSeconds := now.Unix() - fiStat.Atim.Sec
-			if pastSeconds > 60 {
-				// check update
-				go func() {
-					backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, dest.Destination, r.RequestURI)
-					req, err := http.NewRequest("GET", backendAddr, nil)
-					if err == nil {
-						req.Header.Set("Host", r.Host)
-						modTimeGMT := fi.ModTime().UTC().Format(http.TimeFormat)
-						//If-Modified-Since: Sun, 14 Jun 2020 13:54:20 GMT
-						req.Header.Set("If-Modified-Since", modTimeGMT)
-						client := http.Client{}
-						resp, err := client.Do(req)
-						utils.CheckError("Cache update Do", err)
-						defer resp.Body.Close()
-						if resp.StatusCode == http.StatusOK {
-							//fmt.Println("200", backendAddr)
-							bodyBuf, _ := ioutil.ReadAll(resp.Body)
-							err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
-							lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
-							if err != nil {
-								utils.DebugPrintln("CDN Parse Last-Modified", err)
-							}
-							err = os.Chtimes(targetFile, now, lastModified)
-							utils.DebugPrintln("CDN Save Last-Modified", err)
-						} else if resp.StatusCode == http.StatusNotModified {
-							//fmt.Println("304", backendAddr)
-							err := os.Chtimes(targetFile, now, fi.ModTime())
-							utils.CheckError("Cache update access time", err)
-						}
-					}
-				}()
-			}
-
-			http.ServeFile(w, r, targetFile)
-			return
-		}
-		// Not Found, Continue
-	}
-
-	// Reverse Proxy
 	// var transport http.RoundTripper
 	transport := &http.Transport{
 		TLSHandshakeTimeout:   10 * time.Second,
@@ -310,6 +259,69 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	http2.ConfigureTransport(transport)
+
+	// Check static cache
+	if isStatic {
+		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
+		targetFile := staticRoot + r.URL.Path
+		// Check Static Cache
+		if fi, err := os.Stat(targetFile); err == nil {
+			// Found targetFile
+			now := time.Now()
+			fiStat := fi.Sys().(*syscall.Stat_t)
+			// Use atime fiStat.Atim.Sec to mark the last check time
+			pastSeconds := now.Unix() - fiStat.Atim.Sec
+			if pastSeconds > 60 {
+				// check update
+				go func() {
+					backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, dest.Destination, r.RequestURI)
+					req, err := http.NewRequest("GET", backendAddr, nil)
+					if err != nil {
+						utils.DebugPrintln("Check Update NewRequest", err)
+					}
+					if err == nil {
+						req.Header.Set("Host", r.Host)
+						modTimeGMT := fi.ModTime().UTC().Format(http.TimeFormat)
+						//If-Modified-Since: Sun, 14 Jun 2020 13:54:20 GMT
+						req.Header.Set("If-Modified-Since", modTimeGMT)
+						client := http.Client{
+							Transport: transport,
+						}
+						resp, err := client.Do(req)
+						if err != nil {
+							utils.DebugPrintln("Cache update Do", err)
+							return
+						}
+						defer resp.Body.Close()
+						if resp.StatusCode == http.StatusOK {
+							//fmt.Println("200", backendAddr)
+							bodyBuf, _ := ioutil.ReadAll(resp.Body)
+							err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+							lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
+							if err != nil {
+								utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
+							}
+							err = os.Chtimes(targetFile, now, lastModified)
+							if err != nil {
+								utils.DebugPrintln("CDN Chtimes", targetFile, err)
+							}
+						} else if resp.StatusCode == http.StatusNotModified {
+							//fmt.Println("304", backendAddr)
+							err := os.Chtimes(targetFile, now, fi.ModTime())
+							if err != nil {
+								utils.DebugPrintln("Cache update access time", err)
+							}
+						}
+					}
+				}()
+			}
+			http.ServeFile(w, r, targetFile)
+			return
+		}
+		// Not Found, Continue
+	}
+
+	// Reverse Proxy
 	proxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
 			//req.URL.Scheme = app.InternalScheme
@@ -318,9 +330,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		Transport:      transport,
 		ModifyResponse: rewriteResponse}
 	if utils.Debug {
-		dump, err := httputil.DumpRequest(r, true)
-		utils.CheckError("ReverseHandlerFunc DumpRequest", err)
-		fmt.Println(string(dump))
+		//dump, err := httputil.DumpRequest(r, true)
+		//utils.CheckError("ReverseHandlerFunc DumpRequest", err)
+		//fmt.Println(string(dump))
 	}
 	proxy.ServeHTTP(w, r)
 }
