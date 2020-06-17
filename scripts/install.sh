@@ -35,6 +35,11 @@ if [ ! -d ${install_dir}/log ]; then
 fi
 if [ ! -f ${install_dir}/config.json ]; then
     \cp ./config.json.primary_bak ${install_dir}/config.json
+else
+    # update config.json, change master/slave to primary/replica
+    \cp -f ${install_dir}/config.json ${install_dir}/config.json.bak
+    sed -i "s/master/primary/g" ${install_dir}/config.json
+    sed -i "s/slave/replica/g" ${install_dir}/config.json
 fi
 ;;
 2) printf "Installing as Replica Node \n"
@@ -43,6 +48,11 @@ if [ ! -d ${install_dir}/log ]; then
 fi
 if [ ! -f ${install_dir}/config.json ]; then
     \cp ./config.json.replica_bak ${install_dir}/config.json
+else
+    # update config.json, change master/slave to primary/replica
+    \cp -f ${install_dir}/config.json ${install_dir}/config.json.bak
+    sed -i "s/master/primary/g" ${install_dir}/config.json
+    sed -i "s/slave/replica/g" ${install_dir}/config.json
 fi
 ;;
 3) printf "Bye! \n"

@@ -99,7 +99,7 @@ type Destination struct {
 	// 0.9.8+
 	RequestRoute string `json:"request_route"`
 
-	// 0.9.8+, not used for StaticRoute
+	// 0.9.8+
 	BackendRoute string `json:"backend_route"`
 
 	// Destination is backend IP:Port , or static directory

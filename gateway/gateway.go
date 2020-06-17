@@ -262,63 +262,67 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	// Check static cache
 	if isStatic {
-		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
-		targetFile := staticRoot + r.URL.Path
-		// Check Static Cache
-		if fi, err := os.Stat(targetFile); err == nil {
-			// Found targetFile
-			now := time.Now()
-			fiStat := fi.Sys().(*syscall.Stat_t)
-			// Use atime fiStat.Atim.Sec to mark the last check time
-			pastSeconds := now.Unix() - fiStat.Atim.Sec
-			if pastSeconds > 60 {
-				// check update
-				go func() {
-					backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, dest.Destination, r.RequestURI)
-					req, err := http.NewRequest("GET", backendAddr, nil)
-					if err != nil {
-						utils.DebugPrintln("Check Update NewRequest", err)
-					}
-					if err == nil {
-						req.Header.Set("Host", r.Host)
-						modTimeGMT := fi.ModTime().UTC().Format(http.TimeFormat)
-						//If-Modified-Since: Sun, 14 Jun 2020 13:54:20 GMT
-						req.Header.Set("If-Modified-Since", modTimeGMT)
-						client := http.Client{
-							Transport: transport,
-						}
-						resp, err := client.Do(req)
+		// First check Header Range, not cache for range
+		rangeValue := r.Header.Get("Range")
+		if rangeValue == "" {
+			staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
+			targetFile := staticRoot + r.URL.Path
+			// Check Static Cache
+			if fi, err := os.Stat(targetFile); err == nil {
+				// Found targetFile
+				now := time.Now()
+				fiStat := fi.Sys().(*syscall.Stat_t)
+				// Use ctime fiStat.Ctim.Sec to mark the last check time
+				pastSeconds := now.Unix() - fiStat.Ctim.Sec
+				if pastSeconds > 1800 {
+					// check update
+					go func() {
+						backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, dest.Destination, r.RequestURI)
+						req, err := http.NewRequest("GET", backendAddr, nil)
 						if err != nil {
-							utils.DebugPrintln("Cache update Do", err)
-							return
+							utils.DebugPrintln("Check Update NewRequest", err)
 						}
-						defer resp.Body.Close()
-						if resp.StatusCode == http.StatusOK {
-							//fmt.Println("200", backendAddr)
-							bodyBuf, _ := ioutil.ReadAll(resp.Body)
-							err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
-							lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
-							if err != nil {
-								utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
+						if err == nil {
+							req.Header.Set("Host", r.Host)
+							modTimeGMT := fi.ModTime().UTC().Format(http.TimeFormat)
+							//If-Modified-Since: Sun, 14 Jun 2020 13:54:20 GMT
+							req.Header.Set("If-Modified-Since", modTimeGMT)
+							client := http.Client{
+								Transport: transport,
 							}
-							err = os.Chtimes(targetFile, now, lastModified)
+							resp, err := client.Do(req)
 							if err != nil {
-								utils.DebugPrintln("CDN Chtimes", targetFile, err)
+								utils.DebugPrintln("Cache update Do", err)
+								return
 							}
-						} else if resp.StatusCode == http.StatusNotModified {
-							//fmt.Println("304", backendAddr)
-							err := os.Chtimes(targetFile, now, fi.ModTime())
-							if err != nil {
-								utils.DebugPrintln("Cache update access time", err)
+							defer resp.Body.Close()
+							if resp.StatusCode == http.StatusOK {
+								//fmt.Println("200", backendAddr)
+								bodyBuf, _ := ioutil.ReadAll(resp.Body)
+								err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+								lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
+								if err != nil {
+									utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
+								}
+								err = os.Chtimes(targetFile, now, lastModified)
+								if err != nil {
+									utils.DebugPrintln("CDN Chtimes", targetFile, err)
+								}
+							} else if resp.StatusCode == http.StatusNotModified {
+								//fmt.Println("304", backendAddr)
+								err := os.Chtimes(targetFile, now, fi.ModTime())
+								if err != nil {
+									utils.DebugPrintln("Cache update access time", err)
+								}
 							}
 						}
-					}
-				}()
+					}()
+				}
+				http.ServeFile(w, r, targetFile)
+				return
 			}
-			http.ServeFile(w, r, targetFile)
-			return
 		}
-		// Not Found, Continue
+		// Has Range Header, or resource Not Found, Continue
 	}
 
 	// Reverse Proxy

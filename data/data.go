@@ -31,7 +31,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "0.9.8"
+	Version = "0.9.9"
 	// NodeKey share with all nodes
 	NodeKey []byte
 )
@@ -75,7 +75,7 @@ func InitDAL() {
 		// Database user and password OK
 		DAL.db.SetMaxOpenConns(99)
 	} else {
-		// Init Node Key (Share with master)
+		// Init Node Key (Share with primary node)
 		NodeKey = NodeHexKeyToCryptKey(CFG.ReplicaNode.NodeKey)
 	}
 }

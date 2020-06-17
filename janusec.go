@@ -151,7 +151,7 @@ func AddContextHandler(next http.Handler) http.Handler {
 
 func SetOSEnv() {
 	// Enable TLS 1.3 for golang 1.12, not required in golang 1.14
-	//os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
+	// os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
 	// Enable gorilla/sessions support struct
 	gob.Register(models.AuthUser{})
 	/*

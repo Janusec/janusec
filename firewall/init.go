@@ -26,5 +26,6 @@ func InitFirewall() {
 	InitGroupPolicy()
 	LoadCheckItems()
 	InitHitLog()
-	go RoutineTick()
+	go RoutineCleanLogTick()
+	go RoutineCleanCacheTick()
 }
