@@ -10,6 +10,7 @@ mkdir -p ${dist_dir}
 rm -rf ${dist_dir}static
 \cp -f ./robots.txt ./static/
 \cp -r ./static ${dist_dir}
+rm -rf ${dist_dir}static/cdncache
 \cp -f ./scripts/* ${dist_dir}
 cd ./dist/
 tar zcf ./janusec-${version}.tar.gz ./janusec-${version}
