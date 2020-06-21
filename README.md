@@ -1,59 +1,82 @@
-# [Janusec Application Gateway](https://www.janusec.com/) &nbsp; [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Protect%20web%20applications%20from%20network%20attacks%20with%20open%20source%20Janusec%20Application%20Gateway&url=https://github.com/Janusec/janusec&via=janusec&hashtags=waf,web,application,firewall,gateway)
+# [Janusec Application Gateway / Janusec应用网关](https://www.janusec.com/) &nbsp; [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Protect%20web%20applications%20from%20network%20attacks%20with%20open%20source%20Janusec%20Application%20Gateway&url=https://github.com/Janusec/janusec&via=janusec&hashtags=waf,web,application,firewall,gateway)
 
 [![Build Status](https://travis-ci.org/Janusec/janusec.svg?branch=master)](https://travis-ci.org/Janusec/janusec)
 
-[README](https://github.com/Janusec/janusec) | [README中文版](https://github.com/Janusec/janusec/blob/master/README-CN.md)  
 
-## Build Scalable Application Security Infrastructures  
-
+## Provide Simple, Fast and Secure Application Delivery   
+## 提供简单、快速、安全的应用交付   
 ![Janusec Application Gateway](gateway1.png)  
 
-Janusec Application Gateway, an application security solution which provides WAF (Web Application Firewall), CC attack defense, unified web administration portal, private key protection, web routing and scalable load balancing. With Janusec, you can build secure and scalable applications.  
+### Key Features / 主要特性  
 
-### Key Features  
+* Simple and Quick / 简单快速  
+  + Web-based Configuration, simple operation / Web化配置，操作简单  
+  + Fast Delivery / 快速交付  
 
-* WAF (Web Application Firewall), block SQL Injection, Cross-site Scripting, Sensitive Data Leakage, CC Attacks etc.  
-* Group Policy (Cooperation with Multiple Check Points)
-* CAPTCHA support  
-* Unified Web Administration, include Web SSH operation  
-* OAuth2 support  
-* HTTPS support, No Agent Required.  
-* Certificate Protection with Private Key Encrypted Storage  
-* Scalable Architecture, Load Balance and Multiple Nodes Support  
+* Security / 安全  
 
-## Screenshots  
+  + Secure Access / 安全接入  
+      - Enable HTTPS by One Click / 一键启用HTTPS   
 
-### SQL Injection Screenshot
+  + Secure Authentication / 安全认证 
+      - OAuth2: WxWork/企业微信, DingTalk/钉钉, Feishu/飞书  
+      - LDAP + Authenticator 2FA / LDAP+认证码双因子  
+
+  + Secure Defense / 安全防御  
+      - WAF (Web Application Firewall):  
+          * Block SQL Injection / 拦截SQL注入  
+          * Block XSS (Cross-site Scripting) / 拦截XSS  
+          * Block Sensitive Data Leakage / 拦截敏感数据泄露  
+          * ...
+          * Group Policy of Multiple Check Points /多检查点组合策略   
+      - Block CC Attacks / 拦截CC攻击  
+      - CAPTCHA / 验证码  
+
+  + Secure Operation / 安全运维  
+      -  SSH Operation through Web UI / Web界面执行SSH运维   
+ 
+  + Secure Storage, Encryption of Private Key / 安全存储，加密证书私钥  
+
+* Scalable / 可扩展    
+  + Multiple Nodes Load Balance / 多节点负载均衡  
+  + Static Content Cache and Acceleration / 静态文件缓存加速  
+
+
+
+## Screenshots / 截图   
+
+### SQL Injection Screenshot / SQL注入截图  
 
 ![Janusec Application Gateway Screenshot](waf-demo1.png)  
 
-### Sensitive Data Leakage Screenshot
+### Sensitive Data Leakage Screenshot / 敏感信息泄露截图  
 
 ![Janusec Application Gateway Screenshot](waf-demo2.png)  
 
-## Product Web Site  
+## Product Web Site / 产品网站   
 
 https://janusec.github.io/  
+https://janusec.github.io/cn/  
 
-Detailed documentation is available at [Janusec Application Gateway Documentation](https://janusec.github.io/documentation/quick-start/).
+## Requirements / 需求   
 
-## Requirements  
-
-* PostgreSQL 9.3~9.6 or 10 (Required by Development and Primary Node of Deployment)  
-* CentOS/RHEL 7, Debian 9  
+* PostgreSQL 9.3~9.6 or 10+ (Required by Development and Primary Node of Deployment) / PostgreSQL 9.3~9.6/10+ (开发环境，及生产环境主节点需要)  
+* CentOS/RHEL 7/8, Debian 9+  
 * systemd  
-* Golang 1.14+ (Required by Development Only)  
+* Golang 1.14+ (Required by Development Only) / 仅开发环境需要  
 
-## Quick Start for Deployment  
+## Quick Start for Deployment / 部署快速指引    
 
-https://janusec.github.io/documentation/quick-start/
+Detailed documentation is available at： [Janusec Application Gateway Quick Start](https://janusec.github.io/documentation/quick-start/).  
 
-## Quick Start for Developer  
+详细文档可在这里获取： [Janusec应用网关快速入门](https://janusec.github.io/cn/quick-start/).
+
+## Quick Start for Developer / 开发快速指引   
 
 > go get -u github.com/Janusec/janusec  
 > cd $GOPATH/src/github.com/Janusec/janusec  
 
-Edit config.json with PostgreSQL  
+Edit `config.json` / 编辑`config.json`  
 
 > "host": "127.0.0.1",  
 > "port": "5432",  
@@ -61,49 +84,55 @@ Edit config.json with PostgreSQL
 > "password": "123456",  
 > "dbname": "janusec"  
 
-Janusec will encrypt the password automatically.  
-Then:  
+Janusec will encrypt the password automatically / Janusec将自动加密数据库口令  
+Then / 然后:  
 
 > go build  
 > su (switch to root)  
 > ./janusec  
 
-## Web Administration  
+## Web Administration / Web管理入口 
 
-When listen=false in config.json :  
+When listen=false in config.json / 当(config.json中listen=false时) ，使用如下地址:  
 
 > http://`your_primary_node_ip_address`/janusec-admin/    (first use)  
 > https://`your_application_domain_name`/janusec-admin/  (after certificate configured)  
 
-When listen=true  in config.json :  
+When listen=true in config.json / 当(config.json中listen=true时)，使用如下地址:  
 
 > http://`your_primary_node_ip_address:9080`/janusec-admin/    (first use)  
-> https://`your_primary_node_domain_name:9443`/janusec-admin/  (after certificate configured)  
+> https://`your_primary_node_domain_name:9443`/janusec-admin/  (after certificate configured / 配置证书和应用后)  
 
-When using primary node only, any application domain name can be used for admin.  
-But if you have one or more replica nodes, you should apply for a seperate domain name for primary node.  
+When using primary node only, any application domain name can be used for admin. / 只使用主节点时，任意应用域名均可用于访问管理入口 
+But if you have one or more replica nodes, you should apply for a seperate domain name for primary node. / 如果使用了副本节点，应为主节点申请一个单独的域名。   
 
-[Janusec Application Gateway Configuration](https://janusec.github.io/documentation/quick-start/)  
+[Janusec Application Gateway Configuration](https://janusec.github.io/documentation/quick-start/) / [Janusec应用网关配置](https://janusec.github.io/cn/quick-start/)   
 
-## Release  
+## Release / 编译发布 
 
 > go build  
 > su  
-> `./release.sh`  (Only support Linux Now)  
+> `./release.sh`  (Only support Linux Now / 目前仅支持Linux)  
 
-The release package is under ./dist .
+The release package is under `./dist` / 生成的发布包位于`./dist`目录。  
 
-## Web Administration Portal
+## Web Administration Release / Web管理发布
 
-Release directory is `./static/janusec-admin/` , and source code is available at [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) with Angular 9.  
+Release directory is `./static/janusec-admin/` , and source code is available at [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) with Angular 9.   
+Web化管理所需的文件在 `./static/janusec-admin/` 目录, 源码在 [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) ，前端源码使用Angular 9.  
 
 ## LICENSE
 
-Janusec Application Gateway source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)).  
+Janusec Application Gateway source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)). / Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)授权.    
 
-## Support
+## Support / 支持  
 
 * Product: [https://janusec.github.io/](https://janusec.github.io/)  
-* Official site: [https://www.janusec.com/](https://www.janusec.com/)  
+* 产品网站 [https://janusec.github.io/cn/](https://janusec.github.io/cn/)   
+* Official site / 官方网站: [https://www.janusec.com/](https://www.janusec.com/)  
 * Email: `support#janusec.com`  
-* QQ Group: 776900157  , @[U2](https://github.com/zhyale) (The Author)  
+* QQ Group / QQ群: 776900157  , @[U2](https://github.com/zhyale) (The Author)  
+
+* 作者微信公众号： 数据安全架构与治理（Data-Security）  
+
+![数据安全架构与治理（Data-Security）](Data-Security.png)  
