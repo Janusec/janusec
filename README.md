@@ -60,7 +60,7 @@ https://janusec.github.io/cn/
 
 ## Requirements / 需求   
 
-* PostgreSQL 9.3~9.6 or 10+ (Required by Development and Primary Node of Deployment) / PostgreSQL 9.3~9.6/10+ (开发环境，及生产环境主节点需要)  
+* PostgreSQL 9.3, 9.4, 9.5, 9.6 or 10+ (Required by Development and Primary Node of Deployment) / PostgreSQL 9.3, 9.4, 9.5, 9.6 或10+ (开发环境，及生产环境主节点需要)  
 * CentOS/RHEL 7/8, Debian 9+  
 * systemd  
 * Golang 1.14+ (Required by Development Only) / 仅开发环境需要  
