@@ -134,7 +134,7 @@ func InitCCPolicy() {
 		data.DAL.CreateTableIfNotExistsCCPolicy()
 		existCCPolicy := data.DAL.ExistsCCPolicy()
 		if existCCPolicy == false {
-			data.DAL.InsertCCPolicy(0, 10, 60, 300, models.Action_Block_100, true, true, false, true)
+			data.DAL.InsertCCPolicy(0, 1, 6, 300, models.Action_Block_100, true, true, false, true)
 		}
 		ccPoliciesList = data.DAL.SelectCCPolicies()
 	} else {

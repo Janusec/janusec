@@ -201,7 +201,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("X-Auth-User", usernameI.(string))
 	}
 
-	dest := backend.SelectBackendRoute(app, r)
+	dest := backend.SelectBackendRoute(app, r, srcIP)
 	if dest == nil {
 		w.Write([]byte("Error: No route found, please check the configuration."))
 		return

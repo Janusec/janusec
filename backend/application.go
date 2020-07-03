@@ -9,11 +9,11 @@ package backend
 
 import (
 	"errors"
+	"hash/fnv"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/Janusec/janusec/data"
 	"github.com/Janusec/janusec/firewall"
@@ -43,7 +43,7 @@ func SelectDestination(app *models.Application) string {
 */
 
 // SelectBackendRoute will replace SelectDestination
-func SelectBackendRoute(app *models.Application, r *http.Request) *models.Destination {
+func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) *models.Destination {
 	routePath := utils.GetRoutePath(r.URL.Path)
 	var dests []*models.Destination
 	hit := false
@@ -71,13 +71,16 @@ func SelectBackendRoute(app *models.Application, r *http.Request) *models.Destin
 		dests = valueI.([]*models.Destination)
 	}
 
-	destLen := len(dests)
+	destLen := uint32(len(dests))
 	var dest *models.Destination
 	if destLen == 1 {
 		dest = dests[0]
 	} else if destLen > 1 {
-		ns := time.Now().Nanosecond()
-		destIndex := ns % destLen
+		// ns := time.Now().Nanosecond() deprecated, change to Hash(IP+UA)
+		h := fnv.New32a()
+		h.Write([]byte(srcIP + r.UserAgent()))
+		hashUInt32 := h.Sum32()
+		destIndex := hashUInt32 % destLen
 		dest = dests[destIndex]
 	}
 	if dest.RouteType == models.ReverseProxyRoute {
