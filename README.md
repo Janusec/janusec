@@ -4,7 +4,7 @@
 
 
 ## Provide Fast and Secure Application Delivery   
-## 提供简单、快速、安全的应用交付   
+## 提供快速、安全的应用交付   
 ![Janusec Application Gateway](gateway1.png)  
 
 ### Key Features (主要特性)  
