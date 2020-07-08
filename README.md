@@ -3,26 +3,23 @@
 [![Build Status](https://travis-ci.org/Janusec/janusec.svg?branch=master)](https://travis-ci.org/Janusec/janusec)
 
 
-## Provide Simple, Fast and Secure Application Delivery   
+## Provide Fast and Secure Application Delivery   
 ## 提供简单、快速、安全的应用交付   
 ![Janusec Application Gateway](gateway1.png)  
 
-### Key Features / 主要特性  
+### Key Features (主要特性)  
 
-* Simple and Quick / 简单快速  
-  + Web-based Configuration, simple operation / Web化配置，操作简单  
-  + Fast Delivery / 快速交付  
+* Fast Delivery (快速交付): Web-based Configuration (Web化配置)  
 
-* Security / 安全  
+* Security (安全)  
 
-  + Secure Access / 安全接入  
-      - Enable HTTPS by One Click / 一键启用HTTPS   
+  + Secure Access (安全接入): Enable HTTPS by One Click (一键启用HTTPS)   
 
-  + Secure Authentication / 安全认证 
+  + Secure Authentication (安全认证):  
       - OAuth2: WxWork/企业微信, DingTalk/钉钉, Feishu/飞书  
       - LDAP + Authenticator 2FA / LDAP+认证码双因子  
 
-  + Secure Defense / 安全防御  
+  + Secure Defense (安全防御)  
       - WAF (Web Application Firewall):  
           * Block SQL Injection / 拦截SQL注入  
           * Block XSS (Cross-site Scripting) / 拦截XSS  
@@ -32,12 +29,11 @@
       - Block CC Attacks / 拦截CC攻击  
       - CAPTCHA / 验证码  
 
-  + Secure Operation / 安全运维  
-      -  SSH Operation through Web UI / Web界面执行SSH运维   
+  + Secure Operation (安全运维): Web SSH Operation (Web界面执行SSH运维)   
  
-  + Secure Storage, Encryption of Private Key / 安全存储，加密证书私钥  
+  + Secure Storage (安全存储): Encryption of Private Key (加密证书私钥)  
 
-* Scalable / 可扩展    
+* Scalable (可扩展)    
   + Multiple Nodes Load Balance / 多节点负载均衡  
   + Static Content Cache and Acceleration / 静态文件缓存加速  
 
