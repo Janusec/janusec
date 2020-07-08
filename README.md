@@ -20,22 +20,17 @@
       - LDAP + Authenticator 2FA / LDAP+认证码双因子  
 
   + Secure Defense (安全防御)  
-      - WAF (Web Application Firewall):  
-          * Block SQL Injection / 拦截SQL注入  
-          * Block XSS (Cross-site Scripting) / 拦截XSS  
-          * Block Sensitive Data Leakage / 拦截敏感数据泄露  
-          * ...
-          * Group Policy of Multiple Check Points /多检查点组合策略   
-      - Block CC Attacks / 拦截CC攻击  
-      - CAPTCHA / 验证码  
+      - WAF (Web Application Firewall), Block SQL Injection, XSS, Sensitive Data leakage etc. (拦截SQL注入/XSS/敏感数据泄露等)    
+      - Block CC Attacks (拦截CC攻击)  
+      - CAPTCHA (验证码)  
 
   + Secure Operation (安全运维): Web SSH Operation (Web界面执行SSH运维)   
  
   + Secure Storage (安全存储): Encryption of Private Key (加密证书私钥)  
 
 * Scalable (可扩展)    
-  + Multiple Nodes Load Balance / 多节点负载均衡  
-  + Static Content Cache and Acceleration / 静态文件缓存加速  
+  + Multiple Nodes Load Balance (多节点负载均衡)  
+  + Static Content Cache and Acceleration (静态文件缓存加速)  
 
 
 
