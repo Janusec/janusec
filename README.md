@@ -46,8 +46,13 @@
 
 ## Product Web Site (产品网站)   
 
-English: https://janusec.github.io/  
-中文: https://janusec.github.io/cn/  
+English:   
+https://janusec.github.io/  
+https://doc.janusec.com/  
+
+中文:   
+https://doc.janusec.com/cn/  
+https://janusec.github.io/cn/  
 
 ## Requirements (需求)   
 

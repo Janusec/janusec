@@ -133,11 +133,21 @@ func main() {
 	gateMux.HandleFunc("/", gateway.ReverseHandlerFunc)
 	ctxGateMux := AddContextHandler(gateMux)
 	go func() {
-		listen, _ := net.Listen("tcp", ":80")
-		utils.CheckError("Listen 80 Failed", http.Serve(listen, ctxGateMux))
+		listen, err := net.Listen("tcp", ":80")
+		if err != nil {
+			utils.CheckError("Port 80 is occupied.", err)
+			utils.DebugPrintln("Port 80 is occupied.", err)
+			os.Exit(1)
+		}
+		http.Serve(listen, ctxGateMux)
 	}()
-	listen, _ := tls.Listen("tcp", ":443", tlsconfig)
-	utils.CheckError("Listen 443 Failed", http.Serve(listen, ctxGateMux))
+	listen, err := tls.Listen("tcp", ":443", tlsconfig)
+	if err != nil {
+		utils.CheckError("Port 443 is occupied.", err)
+		utils.DebugPrintln("Port 443 is occupied.", err)
+		os.Exit(1)
+	}
+	http.Serve(listen, ctxGateMux)
 }
 
 // AddContextHandler to add context handler
