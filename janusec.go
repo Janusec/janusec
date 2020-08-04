@@ -93,15 +93,24 @@ func main() {
 			adminMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
 			if len(admin.ListenHTTP) > 0 {
 				go func() {
-					listen, _ := net.Listen("tcp", admin.ListenHTTP)
-					err := http.Serve(listen, adminMux)
-					utils.CheckError("Main Admin Listen", err)
+					listen, err := net.Listen("tcp", admin.ListenHTTP)
+					if err != nil {
+						utils.CheckError("Admin Port occupied.", err)
+						utils.DebugPrintln("Admin Port occupied.", err)
+						os.Exit(1)
+					}
+					http.Serve(listen, adminMux)
 				}()
 			}
 			if len(admin.ListenHTTPS) > 0 {
 				go func() {
-					listen, _ := tls.Listen("tcp", admin.ListenHTTPS, tlsconfig)
-					utils.CheckError("Main Admin tls.Listen", http.Serve(listen, adminMux))
+					listen, err := tls.Listen("tcp", admin.ListenHTTPS, tlsconfig)
+					if err != nil {
+						utils.CheckError("Admin Port occupied.", err)
+						utils.DebugPrintln("Admin Port occupied.", err)
+						os.Exit(1)
+					}
+					http.Serve(listen, adminMux)
 				}()
 			}
 		} else {
