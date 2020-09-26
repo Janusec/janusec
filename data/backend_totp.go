@@ -7,7 +7,7 @@
 
 package data
 
-import "github.com/Janusec/janusec/models"
+import "janusec/models"
 
 // CreateTableIfNotExistsTOTP init table
 func (dal *MyDAL) CreateTableIfNotExistsTOTP() error {

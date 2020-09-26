@@ -11,9 +11,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/data"
+	"janusec/models"
+	"janusec/utils"
 )
 
 func GetOAuthConfig() (*models.OAuthConfig, error) {

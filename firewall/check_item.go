@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/data"
+	"janusec/models"
+	"janusec/utils"
 )
 
 var (

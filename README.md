@@ -57,8 +57,9 @@ https://janusec.github.io/cn/
 ## Requirements (需求)   
 
 * PostgreSQL 9.3, 9.4, 9.5, 9.6 or 10+ (Required by Development and Primary Node of Deployment, 开发环境，及生产环境主节点需要)  
-* CentOS/RHEL 7/8, Debian 9+  
+* CentOS/RHEL 7/8+, Debian 9/10+, CentOS 8 is preferred    
 * systemd  
+* nftables  
 * Golang 1.14+ (Required by Development Only, 仅开发环境需要)  
 
 ## Quick Start for Deployment (部署快速指引)    
@@ -69,8 +70,8 @@ Detailed documentation is available at： [Janusec Application Gateway Quick Sta
 
 ## Quick Start for Developer (开发快速指引)   
 
-> go get -u github.com/Janusec/janusec  
-> cd $GOPATH/src/github.com/Janusec/janusec  
+> git clone https://github.com/Janusec/janusec.git   
+
 
 Edit `config.json` (编辑`config.json`)  
 
@@ -106,9 +107,11 @@ But if you have one or more replica nodes, you should apply for a seperate domai
 
 ## Release (发布) 
 
+Only support Linux Now / 目前仅支持Linux  
+
 > go build  
 > su  
-> `./release.sh`  (Only support Linux Now / 目前仅支持Linux)  
+> `./release.sh`    
 
 The release package is under `./dist` (生成的发布包位于`./dist`目录).  
 

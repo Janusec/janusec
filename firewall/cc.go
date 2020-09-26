@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/models"
+	"janusec/data"
+	"janusec/models"
 )
 
 var (
@@ -40,7 +40,7 @@ func CCAttackTick(appID int64) {
 	}
 	ccPolicyMap, _ := ccPolicies.Load(appID)
 	ccPolicy := ccPolicyMap.(*models.CCPolicy)
-	ccTicker := time.NewTicker(ccPolicy.IntervalSeconds * time.Second)
+	ccTicker := time.NewTicker(ccPolicy.IntervalMilliSeconds * time.Millisecond)
 
 	ccTickers.Store(appID, ccTicker)
 	for range ccTicker.C {
@@ -52,7 +52,7 @@ func CCAttackTick(appID int64) {
 			stat := value.(*models.ClientStat)
 			//fmt.Println("CCAttackTick:", appID, clientID, stat)
 			if stat.IsBadIP == true {
-				stat.RemainSeconds -= ccPolicy.IntervalSeconds
+				stat.RemainSeconds -= ccPolicy.IntervalMilliSeconds
 				if stat.RemainSeconds <= 0 {
 					appCCCount.Delete(clientID)
 				}
@@ -134,7 +134,7 @@ func InitCCPolicy() {
 		data.DAL.CreateTableIfNotExistsCCPolicy()
 		existCCPolicy := data.DAL.ExistsCCPolicy()
 		if existCCPolicy == false {
-			data.DAL.InsertCCPolicy(0, 1, 6, 300, models.Action_Block_100, true, true, false, true)
+			data.DAL.InsertCCPolicy(0, 100, 6, 300, models.Action_Block_100, true, true, false, true)
 		}
 		ccPoliciesList = data.DAL.SelectCCPolicies()
 	} else {
@@ -150,7 +150,7 @@ func InitCCPolicy() {
 func UpdateCCPolicy(param map[string]interface{}) error {
 	ccPolicyMap := param["object"].(map[string]interface{})
 	appID := int64(param["id"].(float64))
-	intervalSeconds := time.Duration(ccPolicyMap["interval_seconds"].(float64))
+	intervalMilliSeconds := time.Duration(ccPolicyMap["interval_milliseconds"].(float64))
 	maxCount := int64(ccPolicyMap["max_count"].(float64))
 	blockSeconds := time.Duration(ccPolicyMap["block_seconds"].(float64))
 	action := models.PolicyAction(ccPolicyMap["action"].(float64))
@@ -161,13 +161,13 @@ func UpdateCCPolicy(param map[string]interface{}) error {
 	existAppID := data.DAL.ExistsCCPolicyByAppID(appID)
 	if existAppID == false {
 		// new policy
-		err := data.DAL.InsertCCPolicy(appID, intervalSeconds, maxCount, blockSeconds, action, statByURL, statByUA, statByCookie, isEnabled)
+		err := data.DAL.InsertCCPolicy(appID, intervalMilliSeconds, maxCount, blockSeconds, action, statByURL, statByUA, statByCookie, isEnabled)
 		if err != nil {
 			return err
 		}
 		ccPolicy := &models.CCPolicy{
-			AppID:           appID,
-			IntervalSeconds: intervalSeconds, MaxCount: maxCount, BlockSeconds: blockSeconds,
+			AppID:                appID,
+			IntervalMilliSeconds: intervalMilliSeconds, MaxCount: maxCount, BlockSeconds: blockSeconds,
 			Action: action, StatByURL: statByURL, StatByUserAgent: statByUA, StatByCookie: statByCookie,
 			IsEnabled: isEnabled}
 		ccPolicies.Store(appID, ccPolicy)
@@ -176,13 +176,13 @@ func UpdateCCPolicy(param map[string]interface{}) error {
 		}
 	} else {
 		// update policy
-		err := data.DAL.UpdateCCPolicy(intervalSeconds, maxCount, blockSeconds, action, statByURL, statByUA, statByCookie, isEnabled, appID)
+		err := data.DAL.UpdateCCPolicy(intervalMilliSeconds, maxCount, blockSeconds, action, statByURL, statByUA, statByCookie, isEnabled, appID)
 		if err != nil {
 			return err
 		}
 		ccPolicy := GetCCPolicyByAppID(appID)
-		if ccPolicy.IntervalSeconds != intervalSeconds {
-			ccPolicy.IntervalSeconds = intervalSeconds
+		if ccPolicy.IntervalMilliSeconds != intervalMilliSeconds {
+			ccPolicy.IntervalMilliSeconds = intervalMilliSeconds
 			appCCTicker, _ := ccTickers.Load(appID)
 			ccTicker := appCCTicker.(*time.Ticker)
 			ccTicker.Stop()

@@ -12,7 +12,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/Janusec/janusec/models"
+	"janusec/models"
 )
 
 // GenerateBlockPage ...

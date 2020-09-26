@@ -13,9 +13,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/data"
+	"janusec/models"
+	"janusec/utils"
+
 	"github.com/gorilla/sessions"
 
 	"github.com/patrickmn/go-cache"

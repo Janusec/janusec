@@ -8,7 +8,8 @@
 package backend
 
 import (
-	"github.com/Janusec/janusec/data"
+	"janusec/data"
+
 	_ "github.com/lib/pq"
 )
 
@@ -36,6 +37,11 @@ func InitDatabase() {
 	if dal.ExistColumnInTable("destinations", "route_type") == false {
 		// v0.9.8+ required
 		dal.ExecSQL(`alter table destinations add column route_type bigint default 1, add column request_route varchar(128) default '/', add column backend_route varchar(128) default '/'`)
+	}
+	if dal.ExistColumnInTable("ccpolicies", "interval_seconds") == true {
+		// v0.9.9 interval_seconds, v0.9.10 interval_milliseconds
+		dal.ExecSQL(`ALTER TABLE ccpolicies RENAME COLUMN interval_seconds TO interval_milliseconds`)
+		dal.ExecSQL(`UPDATE ccpolicies SET interval_milliseconds=interval_milliseconds*1000`)
 	}
 }
 

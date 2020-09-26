@@ -23,13 +23,13 @@ import (
 	"syscall"
 
 	// _ "net/http/pprof"
-	"github.com/Janusec/janusec/backend"
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/firewall"
-	"github.com/Janusec/janusec/gateway"
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/settings"
-	"github.com/Janusec/janusec/utils"
+	"janusec/backend"
+	"janusec/data"
+	"janusec/firewall"
+	"janusec/gateway"
+	"janusec/models"
+	"janusec/settings"
+	"janusec/utils"
 )
 
 func main() {

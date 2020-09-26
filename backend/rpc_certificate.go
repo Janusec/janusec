@@ -11,9 +11,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/data"
+	"janusec/models"
+	"janusec/utils"
 )
 
 func RPCSelectCertificates() (certs []*models.CertItem) {

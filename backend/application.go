@@ -15,10 +15,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/firewall"
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/data"
+	"janusec/firewall"
+	"janusec/models"
+	"janusec/utils"
 )
 
 var (

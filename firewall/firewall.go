@@ -23,8 +23,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/models"
+	"janusec/utils"
 )
 
 var dynamicSuffix = []string{".html", ".htm", ".shtml", ".php", ".jsp", ".aspx", ".asp", ".do", ".cgi", ".cfm"}

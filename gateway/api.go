@@ -16,13 +16,13 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/Janusec/janusec/backend"
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/firewall"
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/settings"
-	"github.com/Janusec/janusec/usermgmt"
-	"github.com/Janusec/janusec/utils"
+	"janusec/backend"
+	"janusec/data"
+	"janusec/firewall"
+	"janusec/models"
+	"janusec/settings"
+	"janusec/usermgmt"
+	"janusec/utils"
 )
 
 //APIHandlerFunc receive from browser and other nodes

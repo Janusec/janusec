@@ -21,15 +21,15 @@ const (
 )
 
 type CCPolicy struct {
-	AppID           int64         `json:"app_id"` // Global Policy set app_id=0
-	IntervalSeconds time.Duration `json:"interval_seconds"`
-	MaxCount        int64         `json:"max_count"`
-	BlockSeconds    time.Duration `json:"block_seconds"`
-	Action          PolicyAction  `json:"action"`
-	StatByURL       bool          `json:"stat_by_url"`
-	StatByUserAgent bool          `json:"stat_by_ua"`
-	StatByCookie    bool          `json:"stat_by_cookie"`
-	IsEnabled       bool          `json:"is_enabled"`
+	AppID                int64         `json:"app_id"` // Global Policy set app_id=0
+	IntervalMilliSeconds time.Duration `json:"interval_milliseconds"`
+	MaxCount             int64         `json:"max_count"`
+	BlockSeconds         time.Duration `json:"block_seconds"`
+	Action               PolicyAction  `json:"action"`
+	StatByURL            bool          `json:"stat_by_url"`
+	StatByUserAgent      bool          `json:"stat_by_ua"`
+	StatByCookie         bool          `json:"stat_by_cookie"`
+	IsEnabled            bool          `json:"is_enabled"`
 }
 
 type ChkPoint int64

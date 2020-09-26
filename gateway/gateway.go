@@ -21,12 +21,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Janusec/janusec/backend"
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/firewall"
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/usermgmt"
-	"github.com/Janusec/janusec/utils"
+	"janusec/backend"
+	"janusec/data"
+	"janusec/firewall"
+	"janusec/models"
+	"janusec/usermgmt"
+	"janusec/utils"
+
 	"github.com/gorilla/sessions"
 	"github.com/patrickmn/go-cache"
 	"github.com/yookoala/gofast"
@@ -82,6 +83,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			case models.Action_Block_100:
 				if needLog {
 					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+				}
+				if app.ClientIPMethod == models.IPMethod_REMOTE_ADDR {
+					go firewall.AddIP2NFTables(srcIP, ccPolicy.BlockSeconds)
 				}
 				GenerateBlockPage(w, hitInfo)
 				return

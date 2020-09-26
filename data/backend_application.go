@@ -8,8 +8,8 @@
 package data
 
 import (
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/models"
+	"janusec/utils"
 )
 
 func (dal *MyDAL) CreateTableIfNotExistsApplications() error {

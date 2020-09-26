@@ -13,8 +13,9 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/Janusec/janusec/firewall"
-	"github.com/Janusec/janusec/models"
+	"janusec/firewall"
+	"janusec/models"
+
 	"github.com/dchest/captcha"
 )
 

@@ -11,8 +11,8 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/models"
+	"janusec/utils"
 )
 
 const (

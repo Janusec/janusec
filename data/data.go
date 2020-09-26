@@ -13,8 +13,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/models"
+	"janusec/utils"
+
 	_ "github.com/lib/pq"
 )
 
@@ -31,7 +32,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "0.9.9"
+	Version = "0.9.10"
 	// NodeKey share with all nodes
 	NodeKey []byte
 )

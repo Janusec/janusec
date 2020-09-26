@@ -13,12 +13,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/models"
+	"janusec/utils"
+
 	"github.com/gorilla/sessions"
 	"github.com/patrickmn/go-cache"
 
-	"github.com/Janusec/janusec/data"
+	"janusec/data"
+
 	"github.com/go-ldap/ldap"
 )
 

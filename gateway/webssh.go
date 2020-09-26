@@ -16,10 +16,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Janusec/janusec/data"
+	"janusec/data"
 
-	"github.com/Janusec/janusec/usermgmt"
-	"github.com/Janusec/janusec/utils"
+	"janusec/usermgmt"
+	"janusec/utils"
+
 	"github.com/gorilla/websocket"
 	"golang.org/x/crypto/ssh"
 )

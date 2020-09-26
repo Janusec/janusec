@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Janusec/janusec/data"
+	"janusec/data"
 
-	"github.com/Janusec/janusec/usermgmt"
+	"janusec/usermgmt"
 )
 
 type OAuthInfo struct {

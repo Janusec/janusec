@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"text/template"
 
-	"github.com/Janusec/janusec/data"
+	"janusec/data"
 )
 
 var (

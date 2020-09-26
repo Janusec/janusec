@@ -8,8 +8,8 @@
 package data
 
 import (
-	"github.com/Janusec/janusec/models"
-	"github.com/Janusec/janusec/utils"
+	"janusec/models"
+	"janusec/utils"
 )
 
 func (dal *MyDAL) UpdateDestinationNode(routeType int64, requestRoute string, backendRoute string, destination string, appID int64, nodeID int64, id int64) error {

@@ -13,8 +13,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/utils"
+	"janusec/data"
+	"janusec/utils"
 )
 
 // RoutineCleanLogTick Clear Expired Logs

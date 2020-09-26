@@ -10,8 +10,8 @@ package backend
 import (
 	"sync"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/models"
+	"janusec/data"
+	"janusec/models"
 )
 
 var (

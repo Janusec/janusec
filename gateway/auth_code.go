@@ -14,8 +14,9 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/Janusec/janusec/usermgmt"
-	"github.com/Janusec/janusec/utils"
+	"janusec/usermgmt"
+	"janusec/utils"
+
 	qrcode "github.com/skip2/go-qrcode"
 )
 

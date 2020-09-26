@@ -13,10 +13,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Janusec/janusec/utils"
+	"janusec/utils"
 
-	"github.com/Janusec/janusec/data"
-	"github.com/Janusec/janusec/models"
+	"janusec/data"
+	"janusec/models"
+
 	"github.com/gorilla/sessions"
 	"github.com/patrickmn/go-cache"
 )
