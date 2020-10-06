@@ -14,7 +14,6 @@ import (
 	"encoding/base32"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -43,11 +42,14 @@ func getCode(secretKey string, timestamp int64) (code uint32) {
 	secretKeyUpper := strings.ToUpper(secretKey)
 	key, err := base32.StdEncoding.DecodeString(secretKeyUpper)
 	if err != nil {
-		fmt.Println(err)
+		utils.DebugPrintln("getCode base32.StdEncoding.DecodeString error", err)
 		return
 	}
 	hmacSha1 := hmac.New(sha1.New, key)
-	hmacSha1.Write(toBytes(timestamp / 30))
+	_, err = hmacSha1.Write(toBytes(timestamp / 30))
+	if err != nil {
+		utils.DebugPrintln("getCode hmacSha1.Write error", err)
+	}
 	hash := hmacSha1.Sum(nil)
 	offset := hash[len(hash)-1] & 0x0F
 	hashParts := hash[offset : offset+4]
@@ -76,14 +78,20 @@ func VerifyCode(secretKey string, code uint32) bool {
 func hmacSha1(key, data []byte) []byte {
 	h := hmac.New(sha1.New, key)
 	if total := len(data); total > 0 {
-		h.Write(data)
+		_, err := h.Write(data)
+		if err != nil {
+			utils.DebugPrintln("hmacSha1 h.Write error", err)
+		}
 	}
 	return h.Sum(nil)
 }
 
 func genKey() string {
 	var buf bytes.Buffer
-	binary.Write(&buf, binary.BigEndian, time.Now().UnixNano())
+	err := binary.Write(&buf, binary.BigEndian, time.Now().UnixNano())
+	if err != nil {
+		utils.DebugPrintln("genKey error", err)
+	}
 	key := strings.ToUpper(base32.StdEncoding.EncodeToString(hmacSha1(buf.Bytes(), nil)))[0:16]
 	return key
 }
@@ -129,7 +137,10 @@ func GetOrInsertTOTPItem(param map[string]interface{}) (totpItem *models.TOTP, e
 // UpdateTOTPVerified set verified = true
 func UpdateTOTPVerified(id int64) (*models.TOTP, error) {
 	if data.IsPrimary {
-		data.DAL.UpdateTOTPVerified(true, id)
+		err := data.DAL.UpdateTOTPVerified(true, id)
+		if err != nil {
+			utils.DebugPrintln("UpdateTOTPVerified error", err)
+		}
 		return nil, nil
 	}
 	// RPC called

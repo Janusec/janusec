@@ -41,7 +41,11 @@ func main() {
 	}
 	dir, _ := os.Executable()
 	exePath := filepath.Dir(dir)
-	os.Chdir(exePath)
+	err := os.Chdir(exePath)
+	if err != nil {
+		utils.CheckError("os.Chdir error", err)
+		os.Exit(1)
+	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	utils.InitLogger()
 	SetOSEnv()
@@ -66,21 +70,22 @@ func main() {
 		},
 		NextProtos: []string{"h2", "http/1.1"},
 		MaxVersion: tls.VersionTLS13,
-		MinVersion: tls.VersionTLS11,
+		MinVersion: tls.VersionTLS12,
 		CipherSuites: []uint16{
 			tls.TLS_AES_128_GCM_SHA256,
 			tls.TLS_CHACHA20_POLY1305_SHA256,
 			tls.TLS_AES_256_GCM_SHA384,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+			//tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+			//tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+			//tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
 			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256},
+			//tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+			//tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+			//tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+		},
 	}
 	gateMux := http.NewServeMux()
 	if data.IsPrimary {
@@ -99,7 +104,12 @@ func main() {
 						utils.DebugPrintln("Admin Port occupied.", err)
 						os.Exit(1)
 					}
-					http.Serve(listen, adminMux)
+					err = http.Serve(listen, adminMux)
+					if err != nil {
+						utils.CheckError("http.Serve adminMux error", err)
+						utils.DebugPrintln("http.Serve adminMux error", err)
+						os.Exit(1)
+					}
 				}()
 			}
 			if len(admin.ListenHTTPS) > 0 {
@@ -110,7 +120,12 @@ func main() {
 						utils.DebugPrintln("Admin Port occupied.", err)
 						os.Exit(1)
 					}
-					http.Serve(listen, adminMux)
+					err = http.Serve(listen, adminMux)
+					if err != nil {
+						utils.CheckError("http.Serve adminMux error", err)
+						utils.DebugPrintln("http.Serve adminMux error", err)
+						os.Exit(1)
+					}
 				}()
 			}
 		} else {
@@ -148,7 +163,12 @@ func main() {
 			utils.DebugPrintln("Port 80 is occupied.", err)
 			os.Exit(1)
 		}
-		http.Serve(listen, ctxGateMux)
+		err = http.Serve(listen, ctxGateMux)
+		if err != nil {
+			utils.CheckError("http.Serve error", err)
+			utils.DebugPrintln("http.Serve error", err)
+			os.Exit(1)
+		}
 	}()
 	listen, err := tls.Listen("tcp", ":443", tlsconfig)
 	if err != nil {
@@ -156,7 +176,12 @@ func main() {
 		utils.DebugPrintln("Port 443 is occupied.", err)
 		os.Exit(1)
 	}
-	http.Serve(listen, ctxGateMux)
+	err = http.Serve(listen, ctxGateMux)
+	if err != nil {
+		utils.CheckError("http.Serve error", err)
+		utils.DebugPrintln("http.Serve error", err)
+		os.Exit(1)
+	}
 }
 
 // AddContextHandler to add context handler

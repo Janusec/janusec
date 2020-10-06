@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"janusec/models"
+	"janusec/utils"
 )
 
 var (
@@ -22,14 +23,20 @@ var (
 
 func UpdateBackendLastModified() {
 	Backend_Last_Modified = time.Now().Unix()
-	DAL.SaveIntSetting("Backend_Last_Modified", Backend_Last_Modified)
+	err := DAL.SaveIntSetting("Backend_Last_Modified", Backend_Last_Modified)
+	if err != nil {
+		utils.DebugPrintln("UpdateBackendLastModified SaveIntSetting", err)
+	}
 	setting := GetSettingByName("Backend_Last_Modified")
 	setting.Value = Backend_Last_Modified
 }
 
 func UpdateFirewallLastModified() {
 	Firewall_Last_Modified = time.Now().Unix()
-	DAL.SaveIntSetting("Firewall_Last_Modified", Firewall_Last_Modified)
+	err := DAL.SaveIntSetting("Firewall_Last_Modified", Firewall_Last_Modified)
+	if err != nil {
+		utils.DebugPrintln("UpdateFirewallLastModified SaveIntSetting", err)
+	}
 	setting := GetSettingByName("Firewall_Last_Modified")
 	setting.Value = Backend_Last_Modified
 }

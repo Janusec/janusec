@@ -15,6 +15,7 @@ import (
 
 	"janusec/data"
 	"janusec/models"
+	"janusec/utils"
 )
 
 var (
@@ -131,10 +132,16 @@ func IsCCAttack(r *http.Request, appID int64, srcIP string) (bool, *models.CCPol
 func InitCCPolicy() {
 	//var cc_policies_list []*models.CCPolicy
 	if data.IsPrimary {
-		data.DAL.CreateTableIfNotExistsCCPolicy()
+		err := data.DAL.CreateTableIfNotExistsCCPolicy()
+		if err != nil {
+			utils.DebugPrintln("InitCCPolicy CreateTableIfNotExistsCCPolicy", err)
+		}
 		existCCPolicy := data.DAL.ExistsCCPolicy()
 		if existCCPolicy == false {
-			data.DAL.InsertCCPolicy(0, 100, 5, 7200, models.Action_Block_100, true, false, false, true)
+			err = data.DAL.InsertCCPolicy(0, 100, 5, 7200, models.Action_Block_100, true, false, false, true)
+			if err != nil {
+				utils.DebugPrintln("InitCCPolicy InsertCCPolicy", err)
+			}
 		}
 		ccPoliciesList = data.DAL.SelectCCPolicies()
 	} else {
@@ -207,7 +214,10 @@ func DeleteCCPolicyByAppID(appID int64) error {
 	if appID == 0 {
 		return errors.New("Global CC policy cannot be deleted")
 	}
-	data.DAL.DeleteCCPolicy(appID)
+	err := data.DAL.DeleteCCPolicy(appID)
+	if err != nil {
+		utils.DebugPrintln("DeleteCCPolicyByAppID DeleteCCPolicy", err)
+	}
 	ccPolicies.Delete(appID)
 	if appCCTicker, ok := ccTickers.Load(appID); ok {
 		ccTicker := appCCTicker.(*time.Ticker)

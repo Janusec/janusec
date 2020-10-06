@@ -27,8 +27,14 @@ func RoutineCleanLogTick() {
 		for range routineTicker.C {
 			//fmt.Println("RoutineTick", time.Now())
 			expiredTime := time.Now().Unix() - logExpireSeconds
-			data.DAL.DeleteHitLogsBeforeTime(expiredTime)
-			data.DAL.DeleteCCLogsBeforeTime(expiredTime)
+			err = data.DAL.DeleteHitLogsBeforeTime(expiredTime)
+			if err != nil {
+				utils.DebugPrintln("DeleteHitLogsBeforeTime error", err)
+			}
+			err = data.DAL.DeleteCCLogsBeforeTime(expiredTime)
+			if err != nil {
+				utils.DebugPrintln("DeleteCCLogsBeforeTime error", err)
+			}
 		}
 	}
 }

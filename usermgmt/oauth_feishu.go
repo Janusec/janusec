@@ -59,17 +59,22 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// Doc: https://open.feishu.cn/document/ukTMukTMukTM/uADN14CM0UjLwQTN
 	// POST https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/
 	// {"app_id":"cli_slkdasd", "app_secret":"dskLLdkasdKK"}
-	accessTokenURL := "https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/"
+	// accessTokenURL := "https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/"
 	body := fmt.Sprintf(`{"app_id":"%s", "app_secret":"%s"}`,
 		data.CFG.PrimaryNode.OAuth.Feishu.AppID,
 		data.CFG.PrimaryNode.OAuth.Feishu.AppSecret)
-	request, _ := http.NewRequest("POST", accessTokenURL, bytes.NewReader([]byte(body)))
+	request, _ := http.NewRequest("POST",
+		"https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/",
+		bytes.NewReader([]byte(body)))
 	resp, err := GetResponse(request)
 	if err != nil {
 		utils.DebugPrintln("FeishuCallbackWithCode GetResponse", err)
 	}
 	tokenResponse := FeishuAccessToken{}
-	json.Unmarshal(resp, &tokenResponse)
+	err = json.Unmarshal(resp, &tokenResponse)
+	if err != nil {
+		utils.DebugPrintln("FeishuCallbackWithCode json.Unmarshal error", err)
+	}
 	// Step 2.3: Get User name
 	// https://open.feishu.cn/document/ukTMukTMukTM/uEDO4UjLxgDO14SM4gTN
 	userURL := "https://open.feishu.cn/open-apis/authen/v1/access_token"
@@ -87,7 +92,10 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		utils.DebugPrintln("FeishuCallbackWithCode GetResponse", err)
 	}
 	feishuUser := FeishuUser{}
-	json.Unmarshal(resp, &feishuUser)
+	err = json.Unmarshal(resp, &feishuUser)
+	if err != nil {
+		utils.DebugPrintln("FeishuCallbackWithCode json.Unmarshal error", err)
+	}
 	if state == "admin" {
 		// Insert into db if not existed
 		id, _ := data.DAL.InsertIfNotExistsAppUser(feishuUser.Data.EnName, "", "", "", false, false, false, false)
@@ -103,7 +111,10 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.Expire}
-		session.Save(r, w)
+		err := session.Save(r, w)
+		if err != nil {
+			utils.DebugPrintln("FeishuCallbackWithCode session save error", err)
+		}
 		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}

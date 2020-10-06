@@ -144,7 +144,10 @@ func UpdateCheckItems(groupPolicy *models.GroupPolicy, checkItems []*models.Chec
 		// delete outdated check_items from DB
 		if !ContainsCheckItemID(checkItems, checkItem.ID) {
 			//fmt.Println("UpdateCheckItems Delete CheckItem ID:", check_item.ID)
-			data.DAL.DeleteCheckItemByID(checkItem.ID)
+			err := data.DAL.DeleteCheckItemByID(checkItem.ID)
+			if err != nil {
+				utils.DebugPrintln("UpdateCheckItems DeleteCheckItemByID", err)
+			}
 			hitCheckPoint, checkPointCheckItems, index := GetCheckPointMapByCheckItemID(checkItem, true)
 			checkPointCheckItems = DeleteCheckItemByIndex(checkPointCheckItems, index)
 			checkPointCheckItemsMap.Store(hitCheckPoint, checkPointCheckItems)
@@ -160,7 +163,10 @@ func UpdateCheckItems(groupPolicy *models.GroupPolicy, checkItems []*models.Chec
 			checkItem.GroupPolicy = groupPolicy
 			AddCheckItemToMap(checkItem)
 		} else {
-			data.DAL.UpdateCheckItemByID(checkItem.CheckPoint, checkItem.Operation, checkItem.KeyName, checkItem.RegexPolicy, groupPolicy.ID, checkItem.ID)
+			err := data.DAL.UpdateCheckItemByID(checkItem.CheckPoint, checkItem.Operation, checkItem.KeyName, checkItem.RegexPolicy, groupPolicy.ID, checkItem.ID)
+			if err != nil {
+				utils.DebugPrintln("UpdateCheckItems UpdateCheckItemByID", err)
+			}
 			UpdateCheckItemToMap(checkItem)
 		}
 		newCheckItems = append(newCheckItems, checkItem)
@@ -187,7 +193,10 @@ func DeleteCheckItemsByGroupPolicy(groupPolicy *models.GroupPolicy) error {
 			//checkpoint_check_items = append(checkpoint_check_items[:i], checkpoint_check_items[i+1:]...)
 			checkPointCheckItemsMap.Store(checkItem.CheckPoint, checkpointCheckItems)
 		}
-		data.DAL.DeleteCheckItemByID(checkItem.ID)
+		err := data.DAL.DeleteCheckItemByID(checkItem.ID)
+		if err != nil {
+			utils.DebugPrintln("DeleteCheckItemsByGroupPolicy DeleteCheckItemByID", err)
+		}
 	}
 	return nil
 }

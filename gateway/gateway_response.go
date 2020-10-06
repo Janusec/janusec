@@ -118,7 +118,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 			if err != nil {
 				utils.DebugPrintln("Gzip decompress Error", err)
 			}
-			err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0666)
+			err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
 		/*
 			case "deflate":
 				reader := flate.NewReader(bytes.NewBuffer(bodyBuf))
@@ -128,7 +128,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 				err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0666)
 		*/
 		default:
-			err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+			err = ioutil.WriteFile(targetFile, bodyBuf, 0600)
 		}
 		if err != nil {
 			utils.DebugPrintln("Cache File Error", targetFile, err)

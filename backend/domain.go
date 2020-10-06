@@ -12,6 +12,7 @@ import (
 
 	"janusec/data"
 	"janusec/models"
+	"janusec/utils"
 )
 
 var (
@@ -48,46 +49,6 @@ func LoadDomains() {
 	}
 }
 
-/*
-func IsStaticDir(domain string, path string) (bool) {
-    if strings.Contains(path, "?") {
-        return false
-    }
-    app := DomainsMap[domain].App
-    static_dirs := app.StaticDirs
-    for _, static_dir := range static_dirs {
-        if strings.HasPrefix(path, static_dir) {
-            local_static_file := "./user_static_files/" + strconv.Itoa(app.ID) + path
-            fmt.Println("local_static_file:", local_static_file)
-            if _, err := os.Stat(local_static_file); os.IsNotExist(err) {
-                fmt.Println("FileNotExist:", local_static_file)
-                dest := app.SelectDestination()
-                target_url := app.InternalScheme + "://" + dest + path
-                req, err := http.NewRequest("GET", target_url, nil)
-                utils.CheckError(err)
-                req.Host = domain
-                client := &http.Client{}
-                resp, err := client.Do(req)
-                utils.CheckError(err)
-                defer resp.Body.Close()
-                utils.CheckError(err)
-                path_all := utils.GetDirAll(local_static_file)
-                fmt.Println("path_all:", path_all)
-                err = os.MkdirAll(path_all, 0777)
-                utils.CheckError(err)
-                f, err := os.Create(local_static_file)
-                utils.CheckError(err)
-                size, err := io.Copy(f, resp.Body)
-                utils.CheckError(err)
-                fmt.Println("CDN Copy:", target_url, size)
-            }
-            return true
-        }
-    }
-    return false
-}
-*/
-
 func GetDomainByID(id int64) *models.Domain {
 	for _, domain := range Domains {
 		if domain.ID == id {
@@ -122,7 +83,10 @@ func UpdateDomain(app *models.Application, domainMapInterface interface{}) *mode
 		domain.ID = newDomainID
 		Domains = append(Domains, domain)
 	} else {
-		data.DAL.UpdateDomain(domainName, app.ID, certID, redirect, location, domain.ID)
+		err := data.DAL.UpdateDomain(domainName, app.ID, certID, redirect, location, domain.ID)
+		if err != nil {
+			utils.DebugPrintln("UpdateDomain", err)
+		}
 	}
 	domain.Name = domainName
 	domain.AppID = app.ID
@@ -146,22 +110,18 @@ func GetDomainIndex(domain *models.Domain) int {
 
 func DeleteDomain(domain *models.Domain) {
 	i := GetDomainIndex(domain)
-	//fmt.Println("DeleteDomain Domains", Domains)
-	//fmt.Println("DeleteDomain i=", i)
 	Domains = append(Domains[:i], Domains[i+1:]...)
 }
 
 func DeleteDomainsByApp(app *models.Application) {
 	for _, domain := range app.Domains {
 		DeleteDomain(domain)
-		//delete(DomainsMap, domain.Name)
 		DomainsMap.Delete(domain.Name)
 	}
-	data.DAL.DeleteDomainByAppID(app.ID)
-	/*
-	   _,err := DB.Exec("DELETE FROM domains where app_id=$1",app.ID)
-	   utils.CheckError(err)
-	*/
+	err := data.DAL.DeleteDomainByAppID(app.ID)
+	if err != nil {
+		utils.DebugPrintln("DeleteDomainsByAppID", err)
+	}
 }
 
 func InterfaceContainsDomainID(domains []interface{}, domain_id int64) bool {

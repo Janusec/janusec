@@ -32,7 +32,10 @@ func (dal *MyDAL) LoadInstanceKey() {
 		instanceKey = GenRandomAES256Key()
 		encryptedInstanceKey := AES256Encrypt(instanceKey, true)
 		hexInstanceKey := hex.EncodeToString(encryptedInstanceKey)
-		dal.SaveStringSetting("instance_key", hexInstanceKey)
+		err := dal.SaveStringSetting("instance_key", hexInstanceKey)
+		if err != nil {
+			utils.DebugPrintln("LoadInstanceKey SaveStringSetting", err)
+		}
 	} else {
 		hexEncryptedKey, err := dal.SelectStringSetting("instance_key")
 		utils.CheckError("LoadInstanceKey", err)
@@ -47,7 +50,10 @@ func (dal *MyDAL) LoadNodesKey() {
 		NodesKey = GenRandomAES256Key()
 		encryptedNodesKey := AES256Encrypt(NodesKey, true)
 		HexEncryptedNodesKey = hex.EncodeToString(encryptedNodesKey)
-		dal.SaveStringSetting("nodes_key", HexEncryptedNodesKey)
+		err := dal.SaveStringSetting("nodes_key", HexEncryptedNodesKey)
+		if err != nil {
+			utils.DebugPrintln("LoadNodesKey SaveStringSetting", err)
+		}
 	} else {
 		var err error
 		HexEncryptedNodesKey, err = dal.SelectStringSetting("nodes_key")
@@ -133,7 +139,10 @@ func GetRandomSaltString() string {
 
 func SHA256Hash(plaintext string) string {
 	hash := sha256.New()
-	hash.Write([]byte(plaintext))
+	_, err := hash.Write([]byte(plaintext))
+	if err != nil {
+		utils.DebugPrintln("SHA256Hash hash.Write", err)
+	}
 	result := fmt.Sprintf("%x", hash.Sum(nil))
 	return result
 }

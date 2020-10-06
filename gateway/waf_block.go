@@ -13,6 +13,7 @@ import (
 	"net/http"
 
 	"janusec/models"
+	"janusec/utils"
 )
 
 // GenerateBlockPage ...
@@ -20,7 +21,10 @@ func GenerateBlockPage(w http.ResponseWriter, hitInfo *models.HitInfo) {
 	tmpl := template.New("Janusec")
 	tmpl, _ = tmpl.Parse(blockHTML)
 	w.WriteHeader(403)
-	tmpl.Execute(w, hitInfo)
+	err := tmpl.Execute(w, hitInfo)
+	if err != nil {
+		utils.DebugPrintln("GenerateBlockPage tmpl.Execute error", err)
+	}
 }
 
 // GenerateBlockConcent ...
@@ -28,7 +32,10 @@ func GenerateBlockConcent(hitInfo *models.HitInfo) []byte {
 	tmpl := template.New("Janusec")
 	tmpl, _ = tmpl.Parse(blockHTML)
 	buf := new(bytes.Buffer)
-	tmpl.Execute(buf, hitInfo)
+	err := tmpl.Execute(buf, hitInfo)
+	if err != nil {
+		utils.DebugPrintln("GenerateBlockConcent tmpl.Execute error", err)
+	}
 	return buf.Bytes()
 }
 

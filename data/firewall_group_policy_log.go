@@ -117,14 +117,21 @@ func (dal *MyDAL) SelectGroupHitLogByID(id int64) (*models.GroupHitLog, error) {
 
 func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64, request_count int64, offset int64) (simpleGroupHitLogs []*models.SimpleGroupHitLog) {
 	stmt, err := dal.db.Prepare(sqlSelectSimpleGroupHitLogs)
-	utils.CheckError("SelectGroupHitLogs Prepare", err)
+	if err != nil {
+		utils.DebugPrintln("SelectGroupHitLogs Prepare", err)
+	}
 	defer stmt.Close()
 	rows, err := stmt.Query(appID, startTime, endTime, request_count, offset)
-	utils.CheckError("SelectGroupHitLogs Query", err)
+	if err != nil {
+		utils.DebugPrintln("SelectGroupHitLogs Query", err)
+	}
 	defer rows.Close()
 	for rows.Next() {
 		simpleGroupHitLog := new(models.SimpleGroupHitLog)
-		rows.Scan(&simpleGroupHitLog.ID, &simpleGroupHitLog.RequestTime, &simpleGroupHitLog.ClientIP, &simpleGroupHitLog.Host, &simpleGroupHitLog.Method, &simpleGroupHitLog.UrlPath, &simpleGroupHitLog.Action, &simpleGroupHitLog.PolicyID, &simpleGroupHitLog.AppID)
+		err = rows.Scan(&simpleGroupHitLog.ID, &simpleGroupHitLog.RequestTime, &simpleGroupHitLog.ClientIP, &simpleGroupHitLog.Host, &simpleGroupHitLog.Method, &simpleGroupHitLog.UrlPath, &simpleGroupHitLog.Action, &simpleGroupHitLog.PolicyID, &simpleGroupHitLog.AppID)
+		if err != nil {
+			utils.DebugPrintln("SelectGroupHitLogs rows.Scan", err)
+		}
 		simpleGroupHitLogs = append(simpleGroupHitLogs, simpleGroupHitLog)
 	}
 	return simpleGroupHitLogs

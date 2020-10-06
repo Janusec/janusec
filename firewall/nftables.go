@@ -48,7 +48,11 @@ func InitNFTables() {
 		HasTimeout: true,
 		KeyType:    nftables.TypeIPAddr,
 	}
-	conn.AddSet(set, []nftables.SetElement{})
+	err := conn.AddSet(set, []nftables.SetElement{})
+	if err != nil {
+		utils.DebugPrintln("InitNFTables AddSet error", err)
+		return
+	}
 	rules, err := conn.GetRule(table, chain)
 	if len(rules) == 0 {
 		conn.AddRule(&nftables.Rule{

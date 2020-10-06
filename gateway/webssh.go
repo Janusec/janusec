@@ -105,11 +105,17 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if data.CFG.PrimaryNode.Admin.WebSSHEnabled == false {
-		wsConn.WriteMessage(websocket.TextMessage, []byte("WebSSH disabled in config.json!\r\n"))
+		err = wsConn.WriteMessage(websocket.TextMessage, []byte("WebSSH disabled in config.json!\r\n"))
+		if err != nil {
+			utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err)
+		}
 		return
 	}
 	var host HostInfo
-	json.Unmarshal(msg, &host)
+	err = json.Unmarshal(msg, &host)
+	if err != nil {
+		utils.DebugPrintln("WebSSHHandlerFunc json.Unmarshal error", err)
+	}
 	if err := wsConn.WriteMessage(websocket.TextMessage, []byte("Connecting "+host.IP+":"+host.Port+" ... Please wait a moment!\r\n")); err != nil {
 		return
 	}
@@ -117,7 +123,10 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	go SSH(&sshInput, &sshOutput, &host, errChan)
 	err = <-errChan
 	if err != nil {
-		wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+		err = wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+		if err != nil {
+			utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err)
+		}
 		return
 	}
 	var logBuf bytes.Buffer
@@ -126,7 +135,10 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-errChan:
-			wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+			err = wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+			if err != nil {
+				utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err)
+			}
 			return
 		default:
 			if wsConn == nil {

@@ -115,15 +115,16 @@ func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 		return false
 	}
 	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, data.RootKey)
-	//decryptedAuthBytes, err := data.AES256Decrypt(authBytes, true)
-	utils.CheckError("IsValidAuthKey DecryptWithKey", err)
 	if err != nil {
+		utils.DebugPrintln("IsValidAuthKey DecryptWithKey", err)
 		return false
 	}
 	// check timestamp
 	nodeAuth := new(models.NodeAuth)
 	err = json.Unmarshal(decryptedAuthBytes, nodeAuth)
-	utils.CheckError("IsValidAuthKey Unmarshal", err)
+	if err != nil {
+		utils.DebugPrintln("IsValidAuthKey Unmarshal", err)
+	}
 	curTime := time.Now().Unix()
 	secondsDiff := math.Abs(float64(curTime - nodeAuth.CurTime))
 	if secondsDiff > 180.0 {
@@ -136,10 +137,15 @@ func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 	node.LastIP = srcIP
 	node.LastRequestTime = curTime
 	dbNode, err := GetDBNodeByID(node.ID)
-	utils.CheckError("IsValidAuthKey GetDBNodeByID", err)
+	if err != nil {
+		utils.DebugPrintln("IsValidAuthKey GetDBNodeByID", err)
+	}
 	dbNode.Version = nodeVersion
 	dbNode.LastIP = srcIP
 	dbNode.LastRequestTime = curTime
-	data.DAL.UpdateNodeLastInfo(nodeVersion, srcIP, curTime, node.ID)
+	err = data.DAL.UpdateNodeLastInfo(nodeVersion, srcIP, curTime, node.ID)
+	if err != nil {
+		utils.DebugPrintln("IsValidAuthKey UpdateNodeLastInfo", err)
+	}
 	return true
 }

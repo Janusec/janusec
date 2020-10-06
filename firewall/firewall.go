@@ -118,7 +118,10 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 	mediaType, mediaParams, _ := mime.ParseMediaType(contentType)
 	if strings.HasPrefix(mediaType, "multipart/form-data") {
 		// ChkPoint_UploadFileExt
-		r.ParseMultipartForm(1024)
+		err := r.ParseMultipartForm(1024)
+		if err != nil {
+			utils.DebugPrintln("IsRequestHitPolicy ParseMultipartForm", err)
+		}
 		if r.MultipartForm != nil {
 			for _, filesHeader := range r.MultipartForm.File {
 				for _, fileHeader := range filesHeader {
@@ -150,13 +153,18 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 	} else if strings.HasPrefix(mediaType, "application/json") {
 		var params interface{}
 		err := json.Unmarshal(bodyBuf, &params)
-		utils.CheckError("IsRequestHitPolicy Unmarshal", err)
+		if err != nil {
+			utils.DebugPrintln("IsRequestHitPolicy Unmarshal", err)
+		}
 		matched, policy := IsJSONValueHitPolicy(ctxMap, appID, params)
 		if matched == true {
 			return matched, policy
 		}
 	} else {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			utils.DebugPrintln("IsRequestHitPolicy r.ParseForm", err)
+		}
 	}
 
 	params := r.Form // include GET/POST/ Multipart non-File , but not include json

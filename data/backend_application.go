@@ -26,7 +26,7 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 	var dbApps []*models.DBApplication
 	for rows.Next() {
 		dbApp := new(models.DBApplication)
-		rows.Scan(
+		err = rows.Scan(
 			&dbApp.ID,
 			&dbApp.Name,
 			&dbApp.InternalScheme,
@@ -38,6 +38,9 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 			&dbApp.OAuthRequired,
 			&dbApp.SessionSeconds,
 			&dbApp.Owner)
+		if err != nil {
+			utils.DebugPrintln("SelectApplications rows.Scan", err)
+		}
 		dbApps = append(dbApps, dbApp)
 	}
 	return dbApps

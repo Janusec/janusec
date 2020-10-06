@@ -155,7 +155,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			if stateSession == nil {
 				entranceURL, err := getOAuthEntrance(state)
 				if err != nil {
-					w.Write([]byte(err.Error()))
+					_, err = w.Write([]byte(err.Error()))
+					if err != nil {
+						utils.DebugPrintln("w.Write error", err)
+					}
 					return
 				}
 				// Save Application URL for CallBack
@@ -165,7 +168,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				usermgmt.OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
 				session.Values[state] = state
 				session.Options = &sessions.Options{Path: "/", MaxAge: 300}
-				session.Save(r, w)
+				err = session.Save(r, w)
+				if err != nil {
+					utils.DebugPrintln("session.Save error", err)
+				}
 				//fmt.Println("1002 cache state:", oauthState, url, "307 to:", entranceURL)
 				http.Redirect(w, r, entranceURL, http.StatusTemporaryRedirect)
 				return
@@ -176,7 +182,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			if found == false {
 				// Time expired, clear session
 				session.Options = &sessions.Options{Path: "/", MaxAge: -1}
-				session.Save(r, w)
+				err := session.Save(r, w)
+				if err != nil {
+					utils.DebugPrintln("session.Save error", err)
+				}
 				http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 				return
 			}
@@ -186,7 +195,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				session.Values["userid"] = nil
 				entranceURL, err := getOAuthEntrance(state)
 				if err != nil {
-					w.Write([]byte(err.Error()))
+					_, err = w.Write([]byte(err.Error()))
+					if err != nil {
+						utils.DebugPrintln("w.Write error", err)
+					}
 					return
 				}
 				http.Redirect(w, r, entranceURL, http.StatusTemporaryRedirect)
@@ -195,7 +207,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			session.Values["userid"] = oauthState.UserID
 			session.Values["access_token"] = oauthState.AccessToken
 			session.Options = &sessions.Options{Path: "/", MaxAge: int(app.SessionSeconds)}
-			session.Save(r, w)
+			err := session.Save(r, w)
+			if err != nil {
+				utils.DebugPrintln("session.Save error", err)
+			}
 			http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 			return
 		}
@@ -207,7 +222,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	dest := backend.SelectBackendRoute(app, r, srcIP)
 	if dest == nil {
-		w.Write([]byte("Error: No route found, please check the configuration."))
+		_, err := w.Write([]byte("Error: No route found, please check the configuration."))
+		if err != nil {
+			utils.DebugPrintln("w.Write error", err)
+		}
 		return
 	}
 
@@ -253,16 +271,24 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return nil, err
 			}
-			cfg := &tls.Config{ServerName: r.Host, NextProtos: []string{"h2", "http/1.1"}}
+			cfg := &tls.Config{
+				ServerName: r.Host,
+				NextProtos: []string{"h2", "http/1.1"},
+				MinVersion: tls.VersionTLS12,
+			}
 			tlsConn := tls.Client(conn, cfg)
 			if err := tlsConn.Handshake(); err != nil {
-				conn.Close()
+				utils.DebugPrintln("tlsConn.Handshake error", err)
+				_ = conn.Close()
 				return nil, err
 			}
 			return tlsConn, nil //net.Dial("tcp", dest)
 		},
 	}
-	http2.ConfigureTransport(transport)
+	err := http2.ConfigureTransport(transport)
+	if err != nil {
+		utils.DebugPrintln("http2.ConfigureTransport error", err)
+	}
 
 	// Check static cache
 	if isStatic {
@@ -303,7 +329,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 							if resp.StatusCode == http.StatusOK {
 								//fmt.Println("200", backendAddr)
 								bodyBuf, _ := ioutil.ReadAll(resp.Body)
-								err = ioutil.WriteFile(targetFile, bodyBuf, 0666)
+								err = ioutil.WriteFile(targetFile, bodyBuf, 0600)
 								lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
 								if err != nil {
 									utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
@@ -419,6 +445,9 @@ func GetClientIP(r *http.Request, app *models.Application) (clientIP string) {
 func OAuthLogout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "janusec-token")
 	session.Options = &sessions.Options{Path: "/", MaxAge: -1}
-	session.Save(r, w)
+	err := session.Save(r, w)
+	if err != nil {
+		utils.DebugPrintln("OAuthLogout session.Save error", err)
+	}
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

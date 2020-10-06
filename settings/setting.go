@@ -12,22 +12,27 @@ import (
 
 	"janusec/data"
 	"janusec/models"
+	"janusec/utils"
 )
 
 func InitDefaultSettings() {
 	data.DAL.LoadInstanceKey()
 	data.DAL.LoadNodesKey()
+	var err error
 	if data.DAL.ExistsSetting("Backend_Last_Modified") == false {
-		data.DAL.SaveIntSetting("Backend_Last_Modified", 0)
+		err = data.DAL.SaveIntSetting("Backend_Last_Modified", 0)
 	}
 	if data.DAL.ExistsSetting("Firewall_Last_Modified") == false {
-		data.DAL.SaveIntSetting("Firewall_Last_Modified", 0)
+		err = data.DAL.SaveIntSetting("Firewall_Last_Modified", 0)
 	}
 	if data.DAL.ExistsSetting("Sync_Seconds") == false {
-		data.DAL.SaveIntSetting("Sync_Seconds", 600)
+		err = data.DAL.SaveIntSetting("Sync_Seconds", 600)
 	}
 	if data.DAL.ExistsSetting("Log_Expire_Seconds") == false {
-		data.DAL.SaveIntSetting("Log_Expire_Seconds", 7*86400)
+		err = data.DAL.SaveIntSetting("Log_Expire_Seconds", 7*86400)
+	}
+	if err != nil {
+		utils.DebugPrintln("InitDefaultSettings error", err)
 	}
 }
 

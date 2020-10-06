@@ -13,6 +13,7 @@ import (
 
 	"janusec/data"
 	"janusec/models"
+	"janusec/utils"
 
 	"github.com/gorilla/sessions"
 )
@@ -60,18 +61,23 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{})
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
-		session.Save(r, w)
+		err := session.Save(r, w)
+		if err != nil {
+			utils.DebugPrintln("session save error", err)
+		}
 		return authUser, nil
-	} else {
-		return nil, errors.New("Login failed.")
 	}
+	return nil, errors.New("Login failed.")
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) error {
 	session, _ := store.Get(r, "sessionid")
 	session.Values["authuser"] = nil
 	session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 0}
-	session.Save(r, w)
+	err := session.Save(r, w)
+	if err != nil {
+		utils.DebugPrintln("session save error", err)
+	}
 	return nil
 }
 
@@ -167,7 +173,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 			authUser.NeedModifyPWD = false
 			session.Values["authuser"] = authUser
 			session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
-			session.Save(r, w)
+			err = session.Save(r, w)
+			if err != nil {
+				utils.DebugPrintln("session save error", err)
+			}
 		} else {
 			err := data.DAL.UpdateAppUserNoPwd(username, email, isSuperAdmin, isCertAdmin, isAppAdmin, userID)
 			if err != nil {

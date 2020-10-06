@@ -84,8 +84,11 @@ func (dal *MyDAL) SelectCCPolicies() (ccPolicies []*models.CCPolicy) {
 	defer rows.Close()
 	for rows.Next() {
 		ccPolicy := new(models.CCPolicy)
-		rows.Scan(&ccPolicy.AppID, &ccPolicy.IntervalMilliSeconds, &ccPolicy.MaxCount, &ccPolicy.BlockSeconds,
+		err = rows.Scan(&ccPolicy.AppID, &ccPolicy.IntervalMilliSeconds, &ccPolicy.MaxCount, &ccPolicy.BlockSeconds,
 			&ccPolicy.Action, &ccPolicy.StatByURL, &ccPolicy.StatByUserAgent, &ccPolicy.StatByCookie, &ccPolicy.IsEnabled)
+		if err != nil {
+			utils.DebugPrintln("SelectCCPolicies rows.Scan", err)
+		}
 		ccPolicies = append(ccPolicies, ccPolicy)
 	}
 	return ccPolicies

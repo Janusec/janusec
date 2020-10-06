@@ -38,7 +38,10 @@ func AuthCodeVerifyFunc(w http.ResponseWriter, r *http.Request) {
 	totpItem, _ := usermgmt.GetTOTPByUID(uid) //data.DAL.GetTOTPItemByUID(uid)
 	verifyOK := usermgmt.VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
 	if verifyOK {
-		usermgmt.UpdateTOTPVerified(totpItem.ID)
+		_, err := usermgmt.UpdateTOTPVerified(totpItem.ID)
+		if err != nil {
+			utils.DebugPrintln("UpdateTOTPVerified error", err)
+		}
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}

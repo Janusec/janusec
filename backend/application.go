@@ -76,9 +76,12 @@ func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) 
 	if destLen == 1 {
 		dest = dests[0]
 	} else if destLen > 1 {
-		// ns := time.Now().Nanosecond() deprecated, change to Hash(IP+UA)
+		// According to Hash(IP+UA)
 		h := fnv.New32a()
-		h.Write([]byte(srcIP + r.UserAgent()))
+		_, err := h.Write([]byte(srcIP + r.UserAgent()))
+		if err != nil {
+			utils.DebugPrintln("SelectBackendRoute h.Write", err)
+		}
 		hashUInt32 := h.Sum32()
 		destIndex := hashUInt32 % destLen
 		dest = dests[destIndex]
@@ -182,22 +185,6 @@ func LoadRoute() {
 	}
 }
 
-/*
-func LoadStaticDirs() {
-	for i,_ := range Apps {
-		app := Apps[i]
-		rows,err := DB.Query("select directory from staticdirs where appID=$1", app.ID)
-		utils.CheckError(err)
-		for rows.Next() {
-			var directory string
-			err = rows.Scan(&directory)
-			utils.CheckError(err)
-			app.StaticDirs = append(app.StaticDirs, directory)
-		}
-	}
-}
-*/
-
 func LoadAppDomainNames() {
 	for _, app := range Apps {
 		for _, domain := range Domains {
@@ -227,7 +214,10 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 		// delete outdated destinations from DB
 		if !InterfaceContainsDestinationID(destinations, dest.ID) {
 			app.Route.Delete(dest.RequestRoute)
-			data.DAL.DeleteDestinationByID(dest.ID)
+			err := data.DAL.DeleteDestinationByID(dest.ID)
+			if err != nil {
+				utils.DebugPrintln("DeleteDestinationByID", err)
+			}
 		}
 	}
 	var newDestinations []*models.Destination
@@ -241,10 +231,17 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 		destDest := strings.TrimSpace(destMap["destination"].(string))
 		appID := app.ID //int64(destMap["appID"].(float64))
 		nodeID := int64(destMap["node_id"].(float64))
+		var err error
 		if destID == 0 {
-			destID, _ = data.DAL.InsertDestination(routeType, requestRoute, backendRoute, destDest, appID, nodeID)
+			destID, err = data.DAL.InsertDestination(routeType, requestRoute, backendRoute, destDest, appID, nodeID)
+			if err != nil {
+				utils.DebugPrintln("InsertDestination", err)
+			}
 		} else {
-			data.DAL.UpdateDestinationNode(routeType, requestRoute, backendRoute, destDest, appID, nodeID, destID)
+			err = data.DAL.UpdateDestinationNode(routeType, requestRoute, backendRoute, destDest, appID, nodeID, destID)
+			if err != nil {
+				utils.DebugPrintln("UpdateDestinationNode", err)
+			}
 		}
 		dest := &models.Destination{
 			ID:           destID,
@@ -285,7 +282,10 @@ func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
 	for _, oldDomain := range app.Domains {
 		if !InterfaceContainsDomainID(appDomains, oldDomain.ID) {
 			DomainsMap.Delete(oldDomain.Name)
-			data.DAL.DeleteDomainByDomainID(oldDomain.ID)
+			err := data.DAL.DeleteDomainByDomainID(oldDomain.ID)
+			if err != nil {
+				utils.DebugPrintln("UpdateAppDomains DeleteDomainByDomainID", err)
+			}
 		}
 	}
 	app.Domains = newAppDomains
@@ -330,7 +330,10 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 	} else {
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
-			data.DAL.UpdateApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, appID)
+			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, appID)
+			if err != nil {
+				utils.DebugPrintln("UpdateApplication", err)
+			}
 			app.Name = appName
 			app.InternalScheme = internalScheme
 			app.RedirectHTTPS = redirectHttps
@@ -363,7 +366,10 @@ func GetApplicationIndex(appID int64) int {
 }
 
 func DeleteDestinationsByApp(appID int64) {
-	data.DAL.DeleteDestinationsByAppID(appID)
+	err := data.DAL.DeleteDestinationsByAppID(appID)
+	if err != nil {
+		utils.DebugPrintln("DeleteDestinationsByAppID", err)
+	}
 }
 
 func DeleteApplicationByID(appID int64) error {
@@ -373,9 +379,13 @@ func DeleteApplicationByID(appID int64) error {
 	}
 	DeleteDomainsByApp(app)
 	DeleteDestinationsByApp(appID)
-	firewall.DeleteCCPolicyByAppID(appID)
+	err = firewall.DeleteCCPolicyByAppID(appID)
+	if err != nil {
+		utils.DebugPrintln("DeleteApplicationByID DeleteCCPolicyByAppID", err)
+	}
 	err = data.DAL.DeleteApplication(appID)
 	if err != nil {
+		utils.DebugPrintln("DeleteApplicationByID DeleteApplication", err)
 		return err
 	}
 	i := GetApplicationIndex(appID)

@@ -49,7 +49,10 @@ func (dal *MyDAL) SelectDestinationsByAppID(app_id int64) (dests []*models.Desti
 	defer rows.Close()
 	for rows.Next() {
 		dest := &models.Destination{AppID: app_id}
-		rows.Scan(&dest.ID, &dest.RouteType, &dest.RequestRoute, &dest.BackendRoute, &dest.Destination, &dest.NodeID)
+		err = rows.Scan(&dest.ID, &dest.RouteType, &dest.RequestRoute, &dest.BackendRoute, &dest.Destination, &dest.NodeID)
+		if err != nil {
+			utils.DebugPrintln("SelectDestinationsByAppID rows.Scan", err)
+		}
 		dests = append(dests, dest)
 	}
 	return dests

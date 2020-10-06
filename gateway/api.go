@@ -207,5 +207,8 @@ func GenResponseByObject(w http.ResponseWriter, object interface{}, err error) {
 		resp.Error = &errStr
 	}
 	resp.Object = object
-	json.NewEncoder(w).Encode(resp)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		utils.DebugPrintln("GenResponseByObject Encode error", err)
+	}
 }

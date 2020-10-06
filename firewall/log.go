@@ -22,8 +22,14 @@ import (
 // InitHitLog ...
 func InitHitLog() {
 	if data.IsPrimary {
-		data.DAL.CreateTableIfNotExistsGroupHitLog()
-		data.DAL.CreateTableIfNotExistsCCLog()
+		err := data.DAL.CreateTableIfNotExistsGroupHitLog()
+		if err != nil {
+			utils.DebugPrintln("InitHitLog CreateTableIfNotExistsGroupHitLog error", err)
+		}
+		err = data.DAL.CreateTableIfNotExistsCCLog()
+		if err != nil {
+			utils.DebugPrintln("InitHitLog CreateTableIfNotExistsCCLog error", err)
+		}
 	}
 }
 
@@ -40,7 +46,10 @@ func LogCCRequest(r *http.Request, appID int64, clientIP string, policy *models.
 	}
 	rawRequest := string(rawRequestBytes[:maxRawSize])
 	if data.IsPrimary {
-		data.DAL.InsertCCLog(requestTime, clientIP, r.Host, r.Method, r.URL.Path, r.URL.RawQuery, contentType, r.UserAgent(), cookies, rawRequest, int64(policy.Action), appID)
+		err = data.DAL.InsertCCLog(requestTime, clientIP, r.Host, r.Method, r.URL.Path, r.URL.RawQuery, contentType, r.UserAgent(), cookies, rawRequest, int64(policy.Action), appID)
+		if err != nil {
+			utils.DebugPrintln("InsertCCLog error", err)
+		}
 	} else {
 		ccLog := &models.CCLog{
 			RequestTime: requestTime,
@@ -72,7 +81,10 @@ func LogGroupHitRequest(r *http.Request, appID int64, clientIP string, policy *m
 	}
 	rawRequest := string(rawRequestBytes[:maxRawSize])
 	if data.IsPrimary {
-		data.DAL.InsertGroupHitLog(requestTime, clientIP, r.Host, r.Method, r.URL.Path, r.URL.RawQuery, contentType, r.UserAgent(), cookies, rawRequest, int64(policy.Action), policy.ID, policy.VulnID, appID)
+		err = data.DAL.InsertGroupHitLog(requestTime, clientIP, r.Host, r.Method, r.URL.Path, r.URL.RawQuery, contentType, r.UserAgent(), cookies, rawRequest, int64(policy.Action), policy.ID, policy.VulnID, appID)
+		if err != nil {
+			utils.DebugPrintln("InsertGroupHitLog error", err)
+		}
 	} else {
 		regexHitLog := &models.GroupHitLog{
 			RequestTime: requestTime,

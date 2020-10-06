@@ -57,7 +57,10 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		utils.DebugPrintln("WxworkCallbackWithCode GetResponse", err)
 	}
 	tokenResponse := WxworkAccessToken{}
-	json.Unmarshal(resp, &tokenResponse)
+	err = json.Unmarshal(resp, &tokenResponse)
+	if err != nil {
+		utils.DebugPrintln("WxworkCallbackWithCode json.Unmarshal error", err)
+	}
 	// Step 2.3: Get UserID, https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=ACCESS_TOKEN&code=CODE
 	userURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=%s&code=%s", tokenResponse.AccessToken, code)
 	request, _ = http.NewRequest("GET", userURL, nil)
@@ -66,7 +69,10 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		utils.DebugPrintln("WxworkCallbackWithCode GetResponse", err)
 	}
 	wxworkUser := WxworkUser{}
-	json.Unmarshal(resp, &wxworkUser)
+	err = json.Unmarshal(resp, &wxworkUser)
+	if err != nil {
+		utils.DebugPrintln("WxworkCallbackWithCode json.Unmarshal error", err)
+	}
 	if state == "admin" {
 		// Insert into db if not existed
 		id, _ := data.DAL.InsertIfNotExistsAppUser(wxworkUser.UserID, "", "", "", false, false, false, false)
@@ -82,7 +88,10 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.ExpiresIn}
-		session.Save(r, w)
+		err := session.Save(r, w)
+		if err != nil {
+			utils.DebugPrintln("WxworkCallbackWithCode session save error", err)
+		}
 		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}

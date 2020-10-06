@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"janusec/models"
+	"janusec/utils"
 	//"fmt"
 )
 
@@ -23,7 +24,10 @@ func NewConfig(filename string) (*models.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	json.Unmarshal(configBytes, config)
+	err = json.Unmarshal(configBytes, config)
+	if err != nil {
+		utils.DebugPrintln("NewConfig json.Unmarshal", err)
+	}
 	if strings.ToLower(config.NodeRole) == "primary" {
 		dbPassword := config.PrimaryNode.Database.Password
 		if len(dbPassword) <= 32 {
@@ -33,7 +37,7 @@ func NewConfig(filename string) (*models.Config, error) {
 			encryptedConfig := models.EncryptedConfig(*config)
 			encryptedConfig.PrimaryNode.Database.Password = encryptedPassword
 			encryptedConfigBytes, _ := json.MarshalIndent(encryptedConfig, "", "\t")
-			err = ioutil.WriteFile(filename, encryptedConfigBytes, 0644)
+			err = ioutil.WriteFile(filename, encryptedConfigBytes, 0600)
 		} else {
 			// Decrypt password
 			encryptedPassword, err := hex.DecodeString(dbPassword)

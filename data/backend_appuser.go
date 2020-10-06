@@ -31,7 +31,10 @@ func (dal *MyDAL) CreateTableIfNotExistsAppUsers() error {
 
 func (dal *MyDAL) IsExistsAppUser(username string) bool {
 	var existAdmin int
-	dal.db.QueryRow(sqlIsExistUser, username).Scan(&existAdmin)
+	err := dal.db.QueryRow(sqlIsExistUser, username).Scan(&existAdmin)
+	if err != nil {
+		utils.DebugPrintln("IsExistsAppUser QueryRow", err)
+	}
 	if existAdmin == 0 {
 		return false
 	} else {

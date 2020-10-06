@@ -31,13 +31,21 @@ var (
 func InitGroupPolicy() {
 	var dbGroupPolicies []*models.GroupPolicy
 	if data.IsPrimary {
-		data.DAL.CreateTableIfNotExistsGroupPolicy()
-		data.DAL.CreateTableIfNotExistCheckItems()
+		err := data.DAL.CreateTableIfNotExistsGroupPolicy()
+		if err != nil {
+			utils.DebugPrintln("CreateTableIfNotExistsGroupPolicy error", err)
+		}
+		err = data.DAL.CreateTableIfNotExistCheckItems()
+		if err != nil {
+			utils.DebugPrintln("CreateTableIfNotExistCheckItems error", err)
+		}
 		existRegexPolicy := data.DAL.ExistsGroupPolicy()
 		if existRegexPolicy == false {
-			data.DAL.SetIDSeqStartWith("group_policies", 10101)
+			err := data.DAL.SetIDSeqStartWith("group_policies", 10101)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy SetIDSeqStartWith error", err)
+			}
 			curTime := time.Now().Unix()
-
 			groupPolicyID, err := data.DAL.InsertGroupPolicy("Code Leakage", 0, 100, int64(models.ChkPointURLPath), models.Action_Block_100, true, 0, curTime)
 			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLPath, models.OperationRegexMatch, "", `(?i)/\.(git|svn)/`, groupPolicyID)
@@ -185,8 +193,14 @@ func DeleteGroupPolicyByID(id int64) error {
 	if err != nil {
 		return err
 	}
-	DeleteCheckItemsByGroupPolicy(groupPolicy)
-	data.DAL.DeleteGroupPolicyByID(id)
+	err = DeleteCheckItemsByGroupPolicy(groupPolicy)
+	if err != nil {
+		utils.DebugPrintln("DeleteCheckItemsByGroupPolicy error", err)
+	}
+	err = data.DAL.DeleteGroupPolicyByID(id)
+	if err != nil {
+		utils.DebugPrintln("DeleteGroupPolicyByID error", err)
+	}
 	i := GetGroupPolicyIndex(id)
 	groupPolicies = append(groupPolicies[:i], groupPolicies[i+1:]...)
 	data.UpdateFirewallLastModified()
@@ -214,10 +228,15 @@ func UpdateGroupPolicy(r *http.Request, userID int64) (*models.GroupPolicy, erro
 	curTime := time.Now().Unix()
 	if curGroupPolicy.ID == 0 {
 		newID, err := data.DAL.InsertGroupPolicy(curGroupPolicy.Description, curGroupPolicy.AppID, curGroupPolicy.VulnID, curGroupPolicy.HitValue, curGroupPolicy.Action, curGroupPolicy.IsEnabled, curGroupPolicy.UserID, curTime)
-		utils.CheckError("UpdateGroupPolicy InsertGroupPolicy", err)
+		if err != nil {
+			utils.DebugPrintln("UpdateGroupPolicy InsertGroupPolicy", err)
+		}
 		curGroupPolicy.ID = newID
 		groupPolicies = append(groupPolicies, curGroupPolicy)
-		UpdateCheckItems(curGroupPolicy, checkItems)
+		err = UpdateCheckItems(curGroupPolicy, checkItems)
+		if err != nil {
+			utils.DebugPrintln("UpdateGroupPolicy UpdateCheckItems error", err)
+		}
 	} else {
 		groupPolicy, err := GetGroupPolicyByID(curGroupPolicy.ID)
 		utils.CheckError("UpdateGroupPolicy GetGroupPolicyByID", err)
@@ -230,7 +249,10 @@ func UpdateGroupPolicy(r *http.Request, userID int64) (*models.GroupPolicy, erro
 		groupPolicy.IsEnabled = curGroupPolicy.IsEnabled
 		groupPolicy.UserID = curGroupPolicy.UserID
 		groupPolicy.UpdateTime = curTime
-		UpdateCheckItems(groupPolicy, checkItems)
+		err = UpdateCheckItems(groupPolicy, checkItems)
+		if err != nil {
+			utils.DebugPrintln("UpdateGroupPolicy UpdateCheckItems error", err)
+		}
 	}
 	return curGroupPolicy, nil
 }

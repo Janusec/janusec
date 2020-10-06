@@ -41,7 +41,10 @@ type DingtalkUserInfo struct {
 
 func GetSignature(msg []byte, key []byte) string {
 	hmac := hmac.New(sha256.New, key)
-	hmac.Write(msg)
+	_, err := hmac.Write(msg)
+	if err != nil {
+		utils.DebugPrintln("GetSignature hmac.Write error", err)
+	}
 	digest := hmac.Sum(nil)
 	return url.QueryEscape(base64.StdEncoding.EncodeToString(digest))
 }
@@ -73,7 +76,10 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		utils.DebugPrintln("DingtalkCallbackWithCode GetResponse", err)
 	}
 	dingtalkResponse := DingtalkResponse{}
-	json.Unmarshal(resp, &dingtalkResponse)
+	err = json.Unmarshal(resp, &dingtalkResponse)
+	if err != nil {
+		utils.DebugPrintln("DingtalkCallbackWithCode json.Unmarshal error", err)
+	}
 	dingtalkUser := dingtalkResponse.UserInfo
 	if state == "admin" {
 		// Insert into db if not existed
@@ -90,7 +96,10 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400}
-		session.Save(r, w)
+		err := session.Save(r, w)
+		if err != nil {
+			utils.DebugPrintln("DingtalkCallbackWithCode session save error", err)
+		}
 		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}

@@ -28,7 +28,7 @@ func CheckError(msg string, err error) {
 
 func InitLogger() {
 	logFilename := "./log/janusec" + time.Now().Format("20060102") + ".log"
-	logFile, err := os.OpenFile(logFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile(logFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		CheckError("InitLogger", err)
 		os.Exit(1)
@@ -61,11 +61,13 @@ func DebugPrintln(a ...interface{}) {
 // AccessLog record log for each application
 func AccessLog(domain string, method string, ip string, url string, ua string) {
 	now := time.Now()
-	f, err := os.OpenFile("./log/"+domain+now.Format("20060102")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile("./log/"+domain+now.Format("20060102")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		log.Println("error opening file: %v", err)
 	}
-	defer f.Close()
 	log.SetOutput(f)
 	log.Printf("[%s] %s [%s] UA:[%s]\n", ip, method, url, ua)
+	if err := f.Close(); err != nil {
+		log.Println("error closing file: %v", err)
+	}
 }

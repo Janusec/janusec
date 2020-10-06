@@ -34,7 +34,9 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 	var conn *ldap.Conn
 	var err error
 	if data.CFG.PrimaryNode.OAuth.LDAP.UsingTLS {
-		conn, err = ldap.DialTLS("tcp", data.CFG.PrimaryNode.OAuth.LDAP.Address, &tls.Config{InsecureSkipVerify: true})
+		conn, err = ldap.DialTLS("tcp",
+			data.CFG.PrimaryNode.OAuth.LDAP.Address,
+			&tls.Config{MinVersion: tls.VersionTLS12})
 	} else {
 		conn, err = ldap.Dial("tcp", data.CFG.PrimaryNode.OAuth.LDAP.Address)
 	}
@@ -64,7 +66,10 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			// Not exist totp item, means it is the First Login, Create totp key for current uid
 			totpKey := genKey()
-			data.DAL.InsertTOTPItem(username, totpKey, false)
+			_, err := data.DAL.InsertTOTPItem(username, totpKey, false)
+			if err != nil {
+				utils.DebugPrintln("InsertTOTPItem error", err)
+			}
 			// redirect to qrcode scaning page to register in Mobile APP
 			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
 			return
