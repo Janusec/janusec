@@ -48,11 +48,10 @@
 
 English:   
 https://janusec.github.io/  
-https://doc.janusec.com/  
+
 
 中文:   
-https://doc.janusec.com/cn/  
-https://janusec.github.io/cn/  
+https://doc.janusec.com/cn/   
 
 ## Requirements (需求)   
 
@@ -66,7 +65,7 @@ https://janusec.github.io/cn/
 
 Detailed documentation is available at： [Janusec Application Gateway Quick Start](https://janusec.github.io/documentation/quick-start/).  
 
-详细文档可在这里获取： [Janusec应用网关快速入门](https://janusec.github.io/cn/quick-start/).
+详细文档可在这里获取： [Janusec应用网关快速入门](https://doc.janusec.com/cn/quick-start/).
 
 ## Quick Start for Developer (开发快速指引)   
 
@@ -103,7 +102,7 @@ When listen=true in config.json （当config.json中listen=true时，使用如�
 When using primary node only, any application domain name can be used for admin. / 只使用主节点时，任意应用域名均可用于访问管理入口 
 But if you have one or more replica nodes, you should apply for a seperate domain name for primary node. / 如果使用了副本节点，应为主节点申请一个单独的域名。   
 
-[Janusec Application Gateway Configuration](https://janusec.github.io/documentation/quick-start/) / [Janusec应用网关配置](https://janusec.github.io/cn/quick-start/)   
+[Janusec Application Gateway Configuration](https://janusec.github.io/documentation/quick-start/) / [Janusec应用网关配置](https://doc.janusec.com/cn/quick-start/)   
 
 ## Release (发布) 
 
@@ -127,7 +126,7 @@ Janusec Application Gateway source files are made available under the terms of t
 ## Support (支持)  
 
 * Product: [https://janusec.github.io/](https://janusec.github.io/)  
-* 产品网站 [https://janusec.github.io/cn/](https://janusec.github.io/cn/)   
+* 产品网站 [https://doc.janusec.com/cn/](https://doc.janusec.com/cn/)   
 * Official site / 官方网站: [https://www.janusec.com/](https://www.janusec.com/)  
 * Email: `support#janusec.com`  
 * QQ Group / QQ群: 776900157  , @[U2](https://github.com/zhyale) (The Author)  
