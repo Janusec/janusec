@@ -27,3 +27,13 @@ type OAuthState struct {
 	UserID      string
 	AccessToken string
 }
+
+// AccessStat record access statistics
+type AccessStat struct {
+	ID         int64  `json:"id"`
+	AppID      int64  `json:"app_id"`
+	URLPath    string `json:"url_path"`
+	StatDate   string `json:"stat_date"` // Format("20060102")
+	Count      int64  `json:"count"`
+	UpdateTime int64  `json:"update_time"` // Used for expired cleanup
+}
