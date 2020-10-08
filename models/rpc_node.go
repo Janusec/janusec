@@ -80,3 +80,11 @@ type RPCTOTP struct {
 	Error  *string `json:"err"`
 	Object *TOTP   `json:"object"`
 }
+
+type RPCStatRequest struct {
+	Action   string      `json:"action"`
+	ObjectID int64       `json:"id"`
+	NodeID   int64       `json:"node_id"`
+	AuthKey  string      `json:"auth_key"`
+	Object   *AccessStat `json:"object"`
+}
