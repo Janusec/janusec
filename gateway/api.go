@@ -190,6 +190,13 @@ func APIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "updatetotp":
 		id := int64(param["id"].(float64))
 		obj, err = usermgmt.UpdateTOTPVerified(id)
+	case "getaccessstat":
+		obj, err = GetAccessStat(param)
+	case "getpopcontents":
+		obj, err = GetTodayPopularContent(param)
+	case "inc_stat":
+		obj = nil
+		err = ReplicaIncAccessStat(r)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

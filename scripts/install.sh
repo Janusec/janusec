@@ -6,7 +6,7 @@ if [ $UID -ne 0 ]; then
 fi
 # check systemd
 if ! command -v systemctl > /dev/null; then 
-    printf "Failed! systemd not found, please use CentOS/RHEL 7 or Debian 9 . \n";
+    printf "Failed! systemd not found, please use CentOS/RHEL 7/8+ or Debian 9/10+ . \n";
     exit 1
 fi
 
@@ -15,8 +15,8 @@ install_dir="/usr/local/janusec"
 
 printf "Installing Janusec Application Gateway... \n"
 printf "Requirements:\n"
-printf "* CentOS/RHEL 7 or Debian 9, x86_64, with systemd \n"
-printf "* PostgreSQL 9.3/9.4/9.5/9.6/10 (Primary Node Only) \n\n"
+printf "* CentOS/RHEL 7/8+ or Debian 9/10+, x86_64, with systemd and nftables \n"
+printf "* PostgreSQL 9.3/9.4/9.5/9.6/10+ (Primary Node Only) \n\n"
 
 printf "Installation Path: ${install_dir}/ \n"
 printf "Please select one of the following node types: \n"

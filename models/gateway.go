@@ -27,3 +27,19 @@ type OAuthState struct {
 	UserID      string
 	AccessToken string
 }
+
+// AccessStat record access statistics
+type AccessStat struct {
+	AppID      int64  `json:"app_id"`
+	URLPath    string `json:"url_path"`
+	StatDate   string `json:"stat_date"` // Format("20060102")
+	Delta      int64  `json:"delta"`
+	UpdateTime int64  `json:"update_time"` // Used for expired cleanup
+}
+
+// PopularContent i.e. top visited URL Path
+type PopularContent struct {
+	AppID   int64  `json:"app_id"`
+	URLPath string `json:"url_path"`
+	Amount  int64  `json:"amount"`
+}
