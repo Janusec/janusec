@@ -66,7 +66,7 @@ func InitAccessStat() {
 // IncAmountToDB sync to database
 func IncAmountToDB(appID int64, urlPath string, statDate string, delta int64, updateTime int64) {
 	if data.IsPrimary {
-		data.DAL.IncAmount(appID, urlPath, statDate, delta, updateTime)
+		_ = data.DAL.IncAmount(appID, urlPath, statDate, delta, updateTime)
 	} else {
 		// Replica Node
 		fmt.Println("To Do: IncAmountToDB")
