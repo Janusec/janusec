@@ -38,10 +38,10 @@ func InitAccessStat() {
 
 	// synchronize statMap to database periodically
 	statTicker := time.NewTicker(time.Duration(2) * time.Minute)
-	now := time.Now()
-	statDate := now.Format("20060102")
-	expiredTime := now.Unix() - 86400*14
 	for range statTicker.C {
+		now := time.Now()
+		statDate := now.Format("20060102")
+		expiredTime := now.Unix() - 86400*14
 		if data.IsPrimary {
 			// Clear expired access statistics
 			go data.DAL.ClearExpiredAccessStats(expiredTime)
