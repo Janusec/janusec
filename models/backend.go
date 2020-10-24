@@ -13,6 +13,7 @@ import (
 	"sync"
 )
 
+// Application i.e. Web site
 type Application struct {
 	ID             int64          `json:"id"`
 	Name           string         `json:"name"`
@@ -32,8 +33,13 @@ type Application struct {
 	OAuthRequired  bool      `json:"oauth_required"`
 	SessionSeconds int64     `json:"session_seconds"`
 	Owner          string    `json:"owner"`
+
+	// CSP (Content Security Policy) v0.9.11
+	CSPEnabled bool   `json:"csp_enabled"`
+	CSP        string `json:"csp"`
 }
 
+// DBApplication for storage in database
 type DBApplication struct {
 	ID             int64    `json:"id"`
 	Name           string   `json:"name"`
@@ -46,6 +52,9 @@ type DBApplication struct {
 	OAuthRequired  bool     `json:"oauth_required"`
 	SessionSeconds int64    `json:"session_seconds"`
 	Owner          string   `json:"owner"`
+	// CSP (Content Security Policy) v0.9.11
+	CSPEnabled bool   `json:"csp_enabled"`
+	CSP        string `json:"csp"`
 }
 
 type DomainRelation struct {
@@ -107,6 +116,10 @@ type Destination struct {
 
 	AppID  int64 `json:"app_id"`
 	NodeID int64 `json:"node_id"`
+
+	// Online status of Destination (IP:Port), added in V0.9.11
+	Online    bool  `json:"online"`
+	CheckTime int64 `json:"check_time"`
 }
 
 type CertItem struct {

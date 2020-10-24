@@ -197,6 +197,8 @@ func APIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "inc_stat":
 		obj = nil
 		err = ReplicaIncAccessStat(r)
+	case "gate_health":
+		obj, err = GetGatewayHealth()
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

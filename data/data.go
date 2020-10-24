@@ -32,7 +32,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "0.9.10"
+	Version = "0.9.11"
 	// NodeKey share with all nodes
 	NodeKey []byte
 )

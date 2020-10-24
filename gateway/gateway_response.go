@@ -62,7 +62,6 @@ func rewriteResponse(resp *http.Response) (err error) {
 				hitInfo := &models.HitInfo{TypeID: 2, PolicyID: policy.ID, VulnName: vulnName.(string)}
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 				blockContent := GenerateBlockConcent(hitInfo)
-				//fmt.Println("rewriteResponse Action_Block_100 blockContent", string(blockContent))
 				body := ioutil.NopCloser(bytes.NewReader(blockContent))
 				resp.Body = body
 				resp.ContentLength = int64(len(blockContent))
@@ -95,6 +94,11 @@ func rewriteResponse(resp *http.Response) (err error) {
 	// HSTS
 	if (app.HSTSEnabled == true) && (r.TLS != nil) {
 		resp.Header.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+	}
+
+	// CSP Content-Security-Policy, 0.9.11+
+	if app.CSPEnabled {
+		resp.Header.Set("Content-Security-Policy", app.CSP)
 	}
 
 	// Static Cache

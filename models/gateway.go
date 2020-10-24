@@ -43,3 +43,23 @@ type PopularContent struct {
 	URLPath string `json:"url_path"`
 	Amount  int64  `json:"amount"`
 }
+
+// InternalErrorInfo i.e. 502 or server offline
+type InternalErrorInfo struct {
+	Description string `json:"description"`
+}
+
+// GateHealth give basic information
+type GateHealth struct {
+	StartTime   int64   `json:"start_time"`
+	CurrentTime int64   `json:"cur_time"`
+	CPULoad1    float64 `json:"cpu_load1"`
+	CPULoad5    float64 `json:"cpu_load5"`
+	CPULoad15   float64 `json:"cpu_load15"`
+	MemUsed     uint64  `json:"mem_used"`
+	MemTotal    uint64  `json:"mem_total"`
+	DiskUsed    uint64  `json:"disk_used"`
+	DiskTotal   uint64  `json:"disk_total"`
+	TimeZone    string  `json:"time_zone"`
+	TimeOffset  int     `json:"time_offset"`
+}

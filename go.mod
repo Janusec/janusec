@@ -10,6 +10,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/lib/pq v1.8.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/shirou/gopsutil v2.20.9+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/yookoala/gofast v0.4.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a

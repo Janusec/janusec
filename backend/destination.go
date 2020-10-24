@@ -7,6 +7,12 @@
 
 package backend
 
+import (
+	"janusec/models"
+	"net"
+	"time"
+)
+
 //"../models"
 
 func InterfaceContainsDestinationID(destinations []interface{}, destID int64) bool {
@@ -18,4 +24,22 @@ func InterfaceContainsDestinationID(destinations []interface{}, destID int64) bo
 		}
 	}
 	return false
+}
+
+// CheckOfflineDestinations check offline destinations and reset the online status
+func CheckOfflineDestinations(nowTimeStamp int64) {
+	for _, app := range Apps {
+		for _, dest := range app.Destinations {
+			if dest.RouteType == models.ReverseProxyRoute && dest.Online == false {
+				go func() {
+					conn, err := net.DialTimeout("tcp", dest.Destination, time.Second)
+					if err == nil {
+						defer conn.Close()
+						dest.Online = true
+						dest.CheckTime = nowTimeStamp
+					}
+				}()
+			}
+		}
+	}
 }

@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"janusec/backend"
 	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
@@ -37,7 +38,7 @@ func InitAccessStat() {
 	}
 
 	// synchronize statMap to database periodically
-	statTicker := time.NewTicker(time.Duration(2) * time.Minute)
+	statTicker := time.NewTicker(time.Duration(1) * time.Minute)
 	for range statTicker.C {
 		now := time.Now()
 		statDate := now.Format("20060102")
@@ -60,6 +61,9 @@ func InitAccessStat() {
 			})
 			return true
 		})
+
+		// check offline destinations
+		backend.CheckOfflineDestinations(now.Unix())
 	}
 }
 

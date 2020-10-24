@@ -45,7 +45,7 @@ func SelectDestination(app *models.Application) string {
 // SelectBackendRoute will replace SelectDestination
 func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) *models.Destination {
 	routePath := utils.GetRoutePath(r.URL.Path)
-	var dests []*models.Destination
+	var dests, onlineDests []*models.Destination
 	hit := false
 	if routePath != "/" {
 		// First check /abc/
@@ -71,10 +71,20 @@ func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) 
 		dests = valueI.([]*models.Destination)
 	}
 
-	destLen := uint32(len(dests))
+	// get online destinations
+	for _, dest := range dests {
+		if dest.Online {
+			onlineDests = append(onlineDests, dest)
+		}
+	}
+
+	destLen := uint32(len(onlineDests))
+	if destLen == 0 {
+		return nil
+	}
 	var dest *models.Destination
 	if destLen == 1 {
-		dest = dests[0]
+		dest = onlineDests[0]
 	} else if destLen > 1 {
 		// According to Hash(IP+UA)
 		h := fnv.New32a()
@@ -84,7 +94,7 @@ func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) 
 		}
 		hashUInt32 := h.Sum32()
 		destIndex := hashUInt32 % destLen
-		dest = dests[destIndex]
+		dest = onlineDests[destIndex]
 	}
 	if dest.RouteType == models.ReverseProxyRoute {
 		if dest.RequestRoute != dest.BackendRoute {
@@ -144,7 +154,10 @@ func LoadApps() {
 				Route:          sync.Map{},
 				OAuthRequired:  dbApp.OAuthRequired,
 				SessionSeconds: dbApp.SessionSeconds,
-				Owner:          dbApp.Owner}
+				Owner:          dbApp.Owner,
+				CSPEnabled:     dbApp.CSPEnabled,
+				CSP:            dbApp.CSP,
+			}
 			Apps = append(Apps, app)
 		}
 	} else {
@@ -307,11 +320,16 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 	}
 	oauthRequired := application["oauth_required"].(bool)
 	sessionSeconds := int64(application["session_seconds"].(float64))
+	cspEnabled := application["csp_enabled"].(bool)
+	var csp string
+	if csp, ok = application["csp"].(string); !ok {
+		csp = ""
+	}
 	owner := application["owner"].(string)
 	var app *models.Application
 	if appID == 0 {
 		// new application
-		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner)
+		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp)
 		app = &models.Application{
 			ID: newID, Name: appName,
 			InternalScheme: internalScheme,
@@ -325,12 +343,14 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 			Description:    description,
 			OAuthRequired:  oauthRequired,
 			SessionSeconds: sessionSeconds,
-			Owner:          owner}
+			Owner:          owner,
+			CSPEnabled:     cspEnabled,
+			CSP:            csp}
 		Apps = append(Apps, app)
 	} else {
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
-			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, appID)
+			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
 			if err != nil {
 				utils.DebugPrintln("UpdateApplication", err)
 			}
@@ -344,8 +364,10 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 			app.OAuthRequired = oauthRequired
 			app.SessionSeconds = sessionSeconds
 			app.Owner = owner
+			app.CSPEnabled = cspEnabled
+			app.CSP = csp
 		} else {
-			return nil, errors.New("Application not found.")
+			return nil, errors.New("application not found")
 		}
 	}
 	destinations := application["destinations"].([]interface{})

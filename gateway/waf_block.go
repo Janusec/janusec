@@ -16,12 +16,15 @@ import (
 	"janusec/utils"
 )
 
+var tmplBlockReq, tmplBlockResp *template.Template
+
 // GenerateBlockPage ...
 func GenerateBlockPage(w http.ResponseWriter, hitInfo *models.HitInfo) {
-	tmpl := template.New("Janusec")
-	tmpl, _ = tmpl.Parse(blockHTML)
+	if tmplBlockReq == nil {
+		tmplBlockReq, _ = template.New("blockReq").Parse(blockHTML)
+	}
 	w.WriteHeader(403)
-	err := tmpl.Execute(w, hitInfo)
+	err := tmplBlockReq.Execute(w, hitInfo)
 	if err != nil {
 		utils.DebugPrintln("GenerateBlockPage tmpl.Execute error", err)
 	}
@@ -29,17 +32,18 @@ func GenerateBlockPage(w http.ResponseWriter, hitInfo *models.HitInfo) {
 
 // GenerateBlockConcent ...
 func GenerateBlockConcent(hitInfo *models.HitInfo) []byte {
-	tmpl := template.New("Janusec")
-	tmpl, _ = tmpl.Parse(blockHTML)
+	if tmplBlockResp == nil {
+		tmplBlockResp, _ = template.New("blockResp").Parse(blockHTML)
+	}
 	buf := new(bytes.Buffer)
-	err := tmpl.Execute(buf, hitInfo)
+	err := tmplBlockResp.Execute(buf, hitInfo)
 	if err != nil {
 		utils.DebugPrintln("GenerateBlockConcent tmpl.Execute error", err)
 	}
 	return buf.Bytes()
 }
 
-var blockHTML = `<!DOCTYPE html>
+const blockHTML = `<!DOCTYPE html>
 <html>
 <head>
 <title>403 Forbidden</title>
@@ -72,7 +76,7 @@ body {
 </style>
 <body>
 <div class="block_div">
-<a href="http://www.janusec.com/" target="_blank" class="text-logo">JANUSEC</a>
+<h1 class="text-logo">JANUSEC</h1>
 <hr>
 Reason: {{.VulnName}}, Policy ID: {{.PolicyID}}, by Janusec Application Gateway
 </div>

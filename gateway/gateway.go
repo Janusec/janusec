@@ -63,6 +63,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	r.URL.Scheme = app.InternalScheme
 	r.URL.Host = r.Host
 
+	nowTimeStamp := time.Now().Unix()
 	// dynamic
 	srcIP := GetClientIP(r, app)
 	isStatic := firewall.IsStaticResource(r)
@@ -78,7 +79,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				Action:    ccPolicy.Action,
 				ClientID:  clientID,
 				TargetURL: targetURL,
-				BlockTime: time.Now().Unix()}
+				BlockTime: nowTimeStamp}
 			switch ccPolicy.Action {
 			case models.Action_Block_100:
 				if needLog {
@@ -124,7 +125,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				hitInfo := &models.HitInfo{TypeID: 2,
 					PolicyID: policy.ID, VulnName: "Group Policy Hit",
 					Action: policy.Action, ClientID: clientID,
-					TargetURL: targetURL, BlockTime: time.Now().Unix()}
+					TargetURL: targetURL, BlockTime: nowTimeStamp}
 				captchaHitInfo.Store(clientID, hitInfo)
 				captchaURL := CaptchaEntrance + "?id=" + clientID
 				http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
@@ -222,10 +223,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	dest := backend.SelectBackendRoute(app, r, srcIP)
 	if dest == nil {
-		_, err := w.Write([]byte("Error: No route found, please check the configuration."))
-		if err != nil {
-			utils.DebugPrintln("w.Write error", err)
+		errInfo := &models.InternalErrorInfo{
+			Description: "Internal Servers Offline",
 		}
+		GenerateInternalErrorResponse(w, errInfo)
 		return
 	}
 
@@ -265,11 +266,29 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		IdleConnTimeout:       30 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			return net.Dial("tcp", dest.Destination)
+			conn, err := net.Dial("tcp", dest.Destination)
+			dest.CheckTime = nowTimeStamp
+			if err != nil {
+				dest.Online = false
+				utils.DebugPrintln("DialContext error", err)
+				errInfo := &models.InternalErrorInfo{
+					Description: "Internal Server Offline",
+				}
+				GenerateInternalErrorResponse(w, errInfo)
+			}
+			return conn, err
 		},
 		DialTLS: func(network, addr string) (net.Conn, error) {
 			conn, err := net.Dial("tcp", dest.Destination)
+			dest.CheckTime = nowTimeStamp
 			if err != nil {
+				dest.Online = false
+				dest.CheckTime = nowTimeStamp
+				utils.DebugPrintln("DialContext error", err)
+				errInfo := &models.InternalErrorInfo{
+					Description: "Internal Server Offline",
+				}
+				GenerateInternalErrorResponse(w, errInfo)
 				return nil, err
 			}
 			cfg := &tls.Config{
