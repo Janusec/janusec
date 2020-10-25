@@ -1,11 +1,17 @@
-# [Janusec Application Gateway / Janusec应用网关](https://www.janusec.com/) &nbsp; [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Protect%20web%20applications%20from%20network%20attacks%20with%20open%20source%20Janusec%20Application%20Gateway&url=https://github.com/Janusec/janusec&via=janusec&hashtags=waf,web,application,firewall,gateway)
+# [Janusec Application Gateway / JANUSEC应用网关](https://www.janusec.com/) &nbsp; [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Protect%20web%20applications%20from%20network%20attacks%20with%20open%20source%20Janusec%20Application%20Gateway&url=https://github.com/Janusec/janusec&via=janusec&hashtags=waf,web,application,firewall,gateway)
 
 [![Build Status](https://travis-ci.org/Janusec/janusec.svg?branch=master)](https://travis-ci.org/Janusec/janusec)
 
 
-## Provide Fast and Secure Application Delivery   
-## 提供快速、安全的应用交付   
+## Provide Fast and Secure Application Delivery / 提供快速、安全的应用交付   
+
 ![Janusec Application Gateway](gateway1.png)  
+
+Janusec Application Gateway Introduction PPT：
+
+中文： https://www.janusec.com/download/Janusec-Application-Gateway-CN.pdf   
+
+English: https://www.janusec.com/download/Janusec-Application-Gateway.pdf   
 
 ### Key Features (主要特性)  
 
