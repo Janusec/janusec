@@ -24,7 +24,7 @@ func RPCSelectGroupPolicies() (groupPolicies []*models.GroupPolicy) {
 		utils.CheckError("RPCSelectGroupPolicies GetResponse", err)
 		return nil
 	}
-	rpcGroupPolicies := new(models.RPCGroupPolicies)
+	rpcGroupPolicies := &models.RPCGroupPolicies{}
 	if err := json.Unmarshal(resp, rpcGroupPolicies); err != nil {
 		utils.CheckError("RPCSelectGroupPolicies Unmarshal", err)
 		return nil

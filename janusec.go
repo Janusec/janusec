@@ -78,11 +78,11 @@ func main() {
 			tls.TLS_AES_256_GCM_SHA384,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 			//tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
 			//tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
 			//tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 			//tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
 			//tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
 			//tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
@@ -93,10 +93,13 @@ func main() {
 		admin := data.CFG.PrimaryNode.Admin
 		if admin.Listen == true {
 			adminMux := http.NewServeMux()
-			adminMux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
-			adminMux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
-			adminMux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
-			adminMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
+			LoadAPIRoute(adminMux)
+			/*
+				adminMux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
+				adminMux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
+				adminMux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
+				adminMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
+			*/
 			if len(admin.ListenHTTP) > 0 {
 				go func() {
 					listen, err := net.Listen("tcp", admin.ListenHTTP)
@@ -131,10 +134,13 @@ func main() {
 			}
 		} else {
 			// Add API and admin
-			gateMux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
-			gateMux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
-			gateMux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
-			gateMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
+			LoadAPIRoute(gateMux)
+			/*
+				gateMux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
+				gateMux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
+				gateMux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
+				gateMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
+			*/
 		}
 	}
 	// Add OAuth2
@@ -194,6 +200,15 @@ func AddContextHandler(next http.Handler) http.Handler {
 	})
 }
 
+// LoadAPIRoute set HandleFunc
+func LoadAPIRoute(mux *http.ServeMux) {
+	mux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
+	mux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
+	mux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
+	mux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
+}
+
+// SetOSEnv set environment
 func SetOSEnv() {
 	// Enable TLS 1.3 for golang 1.12, not required in golang 1.14
 	// os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")

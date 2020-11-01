@@ -23,7 +23,7 @@ func RPCSelectDomains() (dbDomains []*models.DBDomain) {
 		utils.CheckError("RPCSelectDomains GetResponse", err)
 		return nil
 	}
-	rpcDBDomains := new(models.RPCDBDomains)
+	rpcDBDomains := &models.RPCDBDomains{}
 	err = json.Unmarshal(resp, rpcDBDomains)
 	if err != nil {
 		utils.CheckError("RPCSelectDomains Unmarshal", err)

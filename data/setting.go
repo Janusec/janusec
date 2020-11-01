@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	Settings               []*models.Setting
+	Settings                             = []*models.Setting{}
 	Backend_Last_Modified  int64         = 0 // seconds since 1970.01.01
 	Firewall_Last_Modified int64         = 0
 	Sync_Seconds           time.Duration = (120 * time.Second)

@@ -39,7 +39,8 @@ func (dal *MyDAL) CreateTableIfNotExistsDestinations() error {
 	return err
 }
 
-func (dal *MyDAL) SelectDestinationsByAppID(app_id int64) (dests []*models.Destination) {
+func (dal *MyDAL) SelectDestinationsByAppID(app_id int64) []*models.Destination {
+	dests := []*models.Destination{}
 	const sqlSelectDestinationsByAppID = `SELECT id,route_type,request_route,backend_route,destination,node_id FROM destinations WHERE app_id=$1`
 	rows, err := dal.db.Query(sqlSelectDestinationsByAppID, app_id)
 	utils.CheckError("SelectDestinationsByAppID", err)

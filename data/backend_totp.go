@@ -27,7 +27,7 @@ func (dal *MyDAL) GetTOTPIDByUID(uid string) (id int64, err error) {
 
 // GetTOTPItemByUID return object
 func (dal *MyDAL) GetTOTPItemByUID(uid string) (*models.TOTP, error) {
-	var totpItem = new(models.TOTP)
+	var totpItem = &models.TOTP{}
 	const sqlGetTOTP = `select id,uid,totp_key,totp_verified from totp where uid=$1`
 	err := dal.db.QueryRow(sqlGetTOTP, uid).Scan(&totpItem.ID, &totpItem.UID, &totpItem.TOTPKey, &totpItem.TOTPVerified)
 	return totpItem, err

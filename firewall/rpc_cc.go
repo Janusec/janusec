@@ -24,7 +24,7 @@ func RPCSelectCCPolicies() (ccPolicies []*models.CCPolicy) {
 		utils.CheckError("RPCSelectCCPolicies GetResponse", err)
 		return nil
 	}
-	rpcCCPolicies := new(models.RPCCCPolicies)
+	rpcCCPolicies := &models.RPCCCPolicies{}
 	if err := json.Unmarshal(resp, rpcCCPolicies); err != nil {
 		utils.CheckError("RPCSelectCCPolicies Unmarshal", err)
 		return nil

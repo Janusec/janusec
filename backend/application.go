@@ -21,9 +21,8 @@ import (
 	"janusec/utils"
 )
 
-var (
-	Apps []*models.Application
-)
+// Apps i.e. all web applications
+var Apps = []*models.Application{}
 
 // SelectDestination deprecated from v0.9.8
 /*
@@ -45,7 +44,8 @@ func SelectDestination(app *models.Application) string {
 // SelectBackendRoute will replace SelectDestination
 func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) *models.Destination {
 	routePath := utils.GetRoutePath(r.URL.Path)
-	var dests, onlineDests []*models.Destination
+	var dests []*models.Destination
+	var onlineDests = []*models.Destination{}
 	hit := false
 	if routePath != "/" {
 		// First check /abc/
@@ -212,7 +212,7 @@ func GetApplications(authUser *models.AuthUser) ([]*models.Application, error) {
 	if authUser.IsAppAdmin {
 		return Apps, nil
 	}
-	var myApps []*models.Application
+	myApps := []*models.Application{}
 	for _, app := range Apps {
 		if app.Owner == authUser.Username {
 			myApps = append(myApps, app)
@@ -233,7 +233,7 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 			}
 		}
 	}
-	var newDestinations []*models.Destination
+	var newDestinations = []*models.Destination{}
 	for _, destinationInterface := range destinations {
 		// add new destinations to DB and app
 		destMap := destinationInterface.(map[string]interface{})
@@ -263,7 +263,9 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 			BackendRoute: backendRoute,
 			Destination:  destDest,
 			AppID:        appID,
-			NodeID:       nodeID}
+			NodeID:       nodeID,
+			Online:       true,
+		}
 		newDestinations = append(newDestinations, dest)
 	}
 	app.Destinations = newDestinations

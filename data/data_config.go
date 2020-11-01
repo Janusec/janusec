@@ -19,7 +19,7 @@ import (
 )
 
 func NewConfig(filename string) (*models.Config, error) {
-	config := new(models.Config)
+	config := &models.Config{}
 	configBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err

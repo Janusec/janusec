@@ -27,12 +27,13 @@ func (dal *MyDAL) CreateTableIfNotExistsDomains() error {
 	return err
 }
 
-func (dal *MyDAL) SelectDomains() (dbDomains []*models.DBDomain) {
+func (dal *MyDAL) SelectDomains() []*models.DBDomain {
 	rows, err := dal.db.Query(sqlSelectDomains)
 	utils.CheckError("SelectDomains", err)
 	defer rows.Close()
+	dbDomains := []*models.DBDomain{}
 	for rows.Next() {
-		dbDomain := new(models.DBDomain)
+		dbDomain := &models.DBDomain{}
 		err = rows.Scan(&dbDomain.ID, &dbDomain.Name, &dbDomain.AppID, &dbDomain.CertID, &dbDomain.Redirect, &dbDomain.Location)
 		dbDomains = append(dbDomains, dbDomain)
 	}

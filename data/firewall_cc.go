@@ -78,12 +78,13 @@ func (dal *MyDAL) InsertCCPolicy(appID int64, IntervalMilliSeconds time.Duration
 	return err
 }
 
-func (dal *MyDAL) SelectCCPolicies() (ccPolicies []*models.CCPolicy) {
+func (dal *MyDAL) SelectCCPolicies() []*models.CCPolicy {
+	ccPolicies := []*models.CCPolicy{}
 	rows, err := dal.db.Query(sqlSelectCCPolicies)
 	utils.CheckError("SelectCCPolicies", err)
 	defer rows.Close()
 	for rows.Next() {
-		ccPolicy := new(models.CCPolicy)
+		ccPolicy := &models.CCPolicy{}
 		err = rows.Scan(&ccPolicy.AppID, &ccPolicy.IntervalMilliSeconds, &ccPolicy.MaxCount, &ccPolicy.BlockSeconds,
 			&ccPolicy.Action, &ccPolicy.StatByURL, &ccPolicy.StatByUserAgent, &ccPolicy.StatByCookie, &ccPolicy.IsEnabled)
 		if err != nil {

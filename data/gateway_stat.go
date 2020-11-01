@@ -65,12 +65,13 @@ func (dal *MyDAL) GetAccessStatByAppIDAndDate(appID int64, statDate string) int6
 }
 
 // GetPopularContent return top visited URL Path
-func (dal *MyDAL) GetPopularContent(appID int64, statDate string) (topPaths []models.PopularContent, err error) {
+func (dal *MyDAL) GetPopularContent(appID int64, statDate string) ([]*models.PopularContent, error) {
+	topPaths := []*models.PopularContent{}
 	if appID == 0 {
 		const sqlQuery0 = `SELECT app_id,url_path,amount from access_stats WHERE stat_date=$1 ORDER BY amount DESC LIMIT 100`
 		rows, _ := dal.db.Query(sqlQuery0, statDate)
 		for rows.Next() {
-			var popContent models.PopularContent
+			var popContent = &models.PopularContent{}
 			_ = rows.Scan(&popContent.AppID, &popContent.URLPath, &popContent.Amount)
 			topPaths = append(topPaths, popContent)
 		}
@@ -79,7 +80,7 @@ func (dal *MyDAL) GetPopularContent(appID int64, statDate string) (topPaths []mo
 	const sqlQuery1 = `SELECT app_id,url_path,amount from access_stats WHERE app_id=$1 and stat_date=$2 ORDER BY amount DESC LIMIT 100`
 	rows, _ := dal.db.Query(sqlQuery1, appID, statDate)
 	for rows.Next() {
-		var popContent models.PopularContent
+		var popContent = &models.PopularContent{}
 		_ = rows.Scan(&popContent.AppID, &popContent.URLPath, &popContent.Amount)
 		topPaths = append(topPaths, popContent)
 	}

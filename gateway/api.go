@@ -88,6 +88,8 @@ func APIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = usermgmt.GetAuthUser(w, r)
 	case "getapps":
 		obj, err = backend.GetApplications(authUser)
+	case "get_vip_apps":
+		obj, err = backend.GetVipApps(authUser)
 	case "getapp":
 		id := int64(param["id"].(float64))
 		obj, err = backend.GetApplicationByID(id)
@@ -199,6 +201,8 @@ func APIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		err = ReplicaIncAccessStat(r)
 	case "gate_health":
 		obj, err = GetGatewayHealth()
+	case "get_ports": // v0.9.12
+		obj, err = backend.GetVipApps(authUser)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil
@@ -208,7 +212,7 @@ func APIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func GenResponseByObject(w http.ResponseWriter, object interface{}, err error) {
-	resp := new(models.RPCResponse)
+	resp := &models.RPCResponse{}
 	if err == nil {
 		resp.Error = nil
 	} else {

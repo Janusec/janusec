@@ -32,9 +32,9 @@ func (dal *MyDAL) SelectCertificates() []*models.DBCertItem {
 	rows, err := dal.db.Query(sqlSelectCertificates)
 	utils.CheckError("SelectCertificates", err)
 	defer rows.Close()
-	var dbCerts []*models.DBCertItem
+	var dbCerts = []*models.DBCertItem{}
 	for rows.Next() {
-		dbCert := new(models.DBCertItem)
+		dbCert := &models.DBCertItem{}
 		err = rows.Scan(&dbCert.ID, &dbCert.CommonName,
 			&dbCert.CertContent, &dbCert.EncryptedPrivKey,
 			&dbCert.ExpireTime, &dbCert.Description)

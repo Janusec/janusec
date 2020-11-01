@@ -35,7 +35,7 @@ func GenerateBlockConcent(hitInfo *models.HitInfo) []byte {
 	if tmplBlockResp == nil {
 		tmplBlockResp, _ = template.New("blockResp").Parse(blockHTML)
 	}
-	buf := new(bytes.Buffer)
+	buf := &bytes.Buffer{}
 	err := tmplBlockResp.Execute(buf, hitInfo)
 	if err != nil {
 		utils.DebugPrintln("GenerateBlockConcent tmpl.Execute error", err)

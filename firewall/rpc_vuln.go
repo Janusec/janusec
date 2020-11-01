@@ -24,7 +24,7 @@ func RPCSelectVulntypes() (vulnTypes []*models.VulnType) {
 		utils.CheckError("RPCSelectVulntypes GetResponse", err)
 		return nil
 	}
-	rpcVulnTypes := new(models.RPCVulntypes)
+	rpcVulnTypes := &models.RPCVulntypes{}
 	if err := json.Unmarshal(resp, rpcVulnTypes); err != nil {
 		utils.CheckError("RPCSelectVulntypes Unmarshal", err)
 		return nil

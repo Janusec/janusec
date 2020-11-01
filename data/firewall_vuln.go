@@ -35,12 +35,13 @@ func (dal *MyDAL) ExistsVulnType() bool {
 	}
 }
 
-func (dal *MyDAL) SelectVulnTypes() (vulnTypes []*models.VulnType, err error) {
+func (dal *MyDAL) SelectVulnTypes() ([]*models.VulnType, error) {
+	vulnTypes := []*models.VulnType{}
 	rows, err := dal.db.Query(sqlSelectVulnTypes)
 	utils.CheckError("SelectVulnTypes", err)
 	defer rows.Close()
 	for rows.Next() {
-		vulnType := new(models.VulnType)
+		vulnType := &models.VulnType{}
 		err = rows.Scan(&vulnType.ID, &vulnType.Name)
 		utils.CheckError("SelectVulnTypes rows.Scan", err)
 		if err != nil {

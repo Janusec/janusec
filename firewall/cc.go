@@ -19,10 +19,10 @@ import (
 )
 
 var (
-	ccPoliciesList []*models.CCPolicy
-	ccPolicies     sync.Map //map[int64]*models.CCPolicy // key: appID==0  Global Policy
-	ccCounts       sync.Map //map[int64]*(map[string]*models.ClientStat) // appID, clientID, ClientStat
-	ccTickers      sync.Map //map[int64]*time.Ticker
+	ccPoliciesList = []*models.CCPolicy{}
+	ccPolicies     = sync.Map{} //map[int64]*models.CCPolicy // key: appID==0  Global Policy
+	ccCounts       = sync.Map{} //map[int64]*(map[string]*models.ClientStat) // appID, clientID, ClientStat
+	ccTickers      = sync.Map{} //map[int64]*time.Ticker
 )
 
 // ClearCCStatByClientID clear CC stat by client id

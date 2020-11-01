@@ -19,7 +19,7 @@ func RPCGetSettings() []*models.Setting {
 		Action: "getsettings", Object: nil}
 	resp, err := GetRPCResponse(rpcRequest)
 	utils.CheckError("RPCGetSettings", err)
-	rpcSettings := new(models.RPCSettings)
+	rpcSettings := &models.RPCSettings{}
 	if err = json.Unmarshal(resp, rpcSettings); err != nil {
 		utils.CheckError("RPCGetSettings Unmarshal", err)
 	}
@@ -31,7 +31,7 @@ func RPCGetOAuthConfig() *models.OAuthConfig {
 		Action: "getoauthconf", Object: nil}
 	resp, err := GetRPCResponse(rpcRequest)
 	utils.CheckError("RPCGetOAuthConfig", err)
-	rpcOAuthConf := new(models.RPCOAuthConfig)
+	rpcOAuthConf := &models.RPCOAuthConfig{}
 	if err = json.Unmarshal(resp, rpcOAuthConf); err != nil {
 		utils.CheckError("RPCGetOAuthConfig Unmarshal", err)
 	}

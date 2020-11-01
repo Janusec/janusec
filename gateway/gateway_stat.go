@@ -24,7 +24,7 @@ var (
 	// statMap format: sync.Map[app_id][*sync.Map]
 	// key: app_id
 	// value: * sync.map[url_path][count]
-	statMap sync.Map
+	statMap = sync.Map{}
 )
 
 // InitAccessStat init table
@@ -129,7 +129,7 @@ func GetAccessStat(param map[string]interface{}) (accessStat []int64, err error)
 }
 
 // GetTodayPopularContent return top visited URL Path of today
-func GetTodayPopularContent(param map[string]interface{}) (topPaths []models.PopularContent, err error) {
+func GetTodayPopularContent(param map[string]interface{}) (topPaths []*models.PopularContent, err error) {
 	appID := int64(param["app_id"].(float64))
 	statDate := time.Now().Format("20060102")
 	topPaths, err = data.DAL.GetPopularContent(appID, statDate)

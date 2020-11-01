@@ -15,14 +15,14 @@ import (
 	"janusec/utils"
 )
 
-func RPCSelectApplications() (apps []*models.Application) {
+func RPCSelectApplications() []*models.Application {
 	rpcRequest := &models.RPCRequest{Action: "getapps", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectApplications GetResponse", err)
 		return nil
 	}
-	rpcApps := new(models.RPCApplications)
+	rpcApps := &models.RPCApplications{}
 	err = json.Unmarshal(resp, rpcApps)
 	if err != nil {
 		utils.CheckError("RPCSelectApplications Unmarshal", err)
@@ -30,4 +30,22 @@ func RPCSelectApplications() (apps []*models.Application) {
 	}
 	applications := rpcApps.Object
 	return applications
+}
+
+// RPCSelectVipApplications VIP for port forwarding
+func RPCSelectVipApplications() []*models.VipApp {
+	rpcRequest := &models.RPCRequest{Action: "get_vip_apps", Object: nil}
+	resp, err := data.GetRPCResponse(rpcRequest)
+	if err != nil {
+		utils.CheckError("RPCSelectVipApplications GetResponse", err)
+		return nil
+	}
+	rpcVipApps := &models.RPCVipApps{}
+	err = json.Unmarshal(resp, rpcVipApps)
+	if err != nil {
+		utils.CheckError("RPCSelectVipApplications Unmarshal", err)
+		return nil
+	}
+	vipApps := rpcVipApps.Object
+	return vipApps
 }

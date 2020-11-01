@@ -61,7 +61,7 @@ func (dal *MyDAL) SelectCCLogByID(id int64) (*models.CCLog, error) {
 	stmt, err := dal.db.Prepare(sqlSelectCCLogByID)
 	utils.CheckError("SelectCCLogByID Prepare", err)
 	defer stmt.Close()
-	cc_log := new(models.CCLog)
+	cc_log := &models.CCLog{}
 	err = stmt.QueryRow(id).Scan(&cc_log.ID,
 		&cc_log.RequestTime,
 		&cc_log.ClientIP,
@@ -79,21 +79,15 @@ func (dal *MyDAL) SelectCCLogByID(id int64) (*models.CCLog, error) {
 	return cc_log, err
 }
 
-func (dal *MyDAL) SelectCCLogs(appID int64, startTime int64, endTime int64, request_count int64, offset int64) (simpleCCLogs []*models.SimpleCCLog) {
-	/*
-		stmt, err := dal.db.Prepare(sqlSelectSimpleCCLogs)
-		if err != nil {
-			utils.DebugPrintln("SelectCCLogs Prepare", err)
-		}
-		defer stmt.Close()
-	*/
+func (dal *MyDAL) SelectCCLogs(appID int64, startTime int64, endTime int64, request_count int64, offset int64) []*models.SimpleCCLog {
+	simpleCCLogs := []*models.SimpleCCLog{}
 	rows, err := dal.db.Query(sqlSelectSimpleCCLogs, appID, startTime, endTime, request_count, offset)
 	if err != nil {
 		utils.DebugPrintln("SelectCCLogs Query", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		simpleCCLog := new(models.SimpleCCLog)
+		simpleCCLog := &models.SimpleCCLog{}
 		err = rows.Scan(&simpleCCLog.ID, &simpleCCLog.RequestTime, &simpleCCLog.ClientIP, &simpleCCLog.Host, &simpleCCLog.Method, &simpleCCLog.UrlPath, &simpleCCLog.Action, &simpleCCLog.AppID)
 		if err != nil {
 			utils.DebugPrintln("SelectCCLogs rows.Scan", err)

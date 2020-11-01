@@ -30,9 +30,9 @@ func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
 	rows, err := dal.db.Query(sqlSelectAllNodes)
 	utils.CheckError("SelectAllNodes", err)
 	defer rows.Close()
-	var dbNodes []*models.DBNode
+	dbNodes := []*models.DBNode{}
 	for rows.Next() {
-		dbNode := new(models.DBNode)
+		dbNode := &models.DBNode{}
 		err = rows.Scan(&dbNode.ID, &dbNode.Version, &dbNode.LastIP, &dbNode.LastRequestTime)
 		dbNodes = append(dbNodes, dbNode)
 	}

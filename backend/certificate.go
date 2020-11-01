@@ -17,9 +17,7 @@ import (
 	"janusec/utils"
 )
 
-var (
-	Certs []*models.CertItem
-)
+var Certs = []*models.CertItem{}
 
 func LoadCerts() {
 	//fmt.Println("LoadCerts")
@@ -27,7 +25,7 @@ func LoadCerts() {
 		Certs = Certs[0:0]
 		dbCerts := data.DAL.SelectCertificates()
 		for _, dbCert := range dbCerts {
-			cert := new(models.CertItem)
+			cert := &models.CertItem{}
 			cert.ID = dbCert.ID
 			cert.CommonName = dbCert.CommonName
 			cert.CertContent = dbCert.CertContent
@@ -74,7 +72,7 @@ func GetCertificates(authUser *models.AuthUser) ([]*models.CertItem, error) {
 		return Certs, nil
 	} else {
 		// Remove private key
-		var simpleCerts []*models.CertItem
+		var simpleCerts = []*models.CertItem{}
 		for _, cert := range Certs {
 			simpleCert := &models.CertItem{
 				ID:             cert.ID,
@@ -152,7 +150,7 @@ func UpdateCertificate(param map[string]interface{}, authUser *models.AuthUser) 
 	if id == 0 {
 		//new certificate
 		newID := data.DAL.InsertCertificate(commonName, certContent, encryptedPrivKey, expireTime, description)
-		certItem = new(models.CertItem)
+		certItem = &models.CertItem{}
 		certItem.ID = newID
 		Certs = append(Certs, certItem)
 	} else {

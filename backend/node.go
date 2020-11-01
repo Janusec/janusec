@@ -23,8 +23,8 @@ import (
 )
 
 var (
-	dbNodes  []*models.DBNode
-	nodesMap sync.Map //map[ip string]*models.Node
+	dbNodes  = []*models.DBNode{}
+	nodesMap = sync.Map{} //map[ip string]*models.Node
 )
 
 func LoadNodes() {
@@ -120,7 +120,7 @@ func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 		return false
 	}
 	// check timestamp
-	nodeAuth := new(models.NodeAuth)
+	nodeAuth := &models.NodeAuth{}
 	err = json.Unmarshal(decryptedAuthBytes, nodeAuth)
 	if err != nil {
 		utils.DebugPrintln("IsValidAuthKey Unmarshal", err)

@@ -16,18 +16,19 @@ import (
 	"janusec/utils"
 )
 
-func RPCSelectCertificates() (certs []*models.CertItem) {
+func RPCSelectCertificates() []*models.CertItem {
+	certs := []*models.CertItem{}
 	rpcRequest := &models.RPCRequest{
 		Action: "getcerts", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectCertificates GetResponse", err)
-		return nil
+		return certs
 	}
-	rpcCertItems := new(models.RPCCertItems)
+	rpcCertItems := &models.RPCCertItems{}
 	if err = json.Unmarshal(resp, rpcCertItems); err != nil {
 		utils.CheckError("RPCSelectCertificates Unmarshal", err)
-		return nil
+		return certs
 	}
 	certItems := rpcCertItems.Object
 	for _, certItem := range certItems {

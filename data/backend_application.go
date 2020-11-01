@@ -25,7 +25,7 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 	defer rows.Close()
 	var dbApps []*models.DBApplication
 	for rows.Next() {
-		dbApp := new(models.DBApplication)
+		dbApp := &models.DBApplication{}
 		err = rows.Scan(
 			&dbApp.ID,
 			&dbApp.Name,

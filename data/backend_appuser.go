@@ -64,7 +64,7 @@ func (dal *MyDAL) SelectHashPwdAndSalt(username string) (userID int64, hashpwd s
 }
 
 func (dal *MyDAL) SelectAppUserByName(username string) *models.AppUser {
-	appUser := new(models.AppUser)
+	appUser := &models.AppUser{}
 	const sqlSelectAppUserByName = `SELECT id,username,hashpwd,salt,email,is_super_admin,is_cert_admin,is_app_admin,need_modify_pwd FROM appusers WHERE username=$1`
 	err := dal.db.QueryRow(sqlSelectAppUserByName, username).Scan(
 		&appUser.ID,
@@ -84,9 +84,9 @@ func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
 	rows, err := dal.db.Query(sqlSelectAppUsers)
 	utils.CheckError("SelectAppUsers", err)
 	defer rows.Close()
-	var queryUsers []*models.QueryAppUser
+	var queryUsers = []*models.QueryAppUser{}
 	for rows.Next() {
-		queryUser := new(models.QueryAppUser)
+		queryUser := &models.QueryAppUser{}
 		err = rows.Scan(&queryUser.ID, &queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin)
 		queryUsers = append(queryUsers, queryUser)
 	}
@@ -94,7 +94,7 @@ func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
 }
 
 func (dal *MyDAL) SelectAppUserByID(userID int64) *models.QueryAppUser {
-	queryUser := new(models.QueryAppUser)
+	queryUser := &models.QueryAppUser{}
 	queryUser.ID = userID
 	err := dal.db.QueryRow(sqlSelectAppUserByID, userID).Scan(&queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin)
 	utils.CheckError("SelectAppUserByID", err)

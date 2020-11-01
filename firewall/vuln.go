@@ -17,10 +17,10 @@ import (
 )
 
 var (
-	vulnTypes []*models.VulnType
+	vulnTypes = []*models.VulnType{}
 
 	// VulnMap map[int64]string
-	VulnMap sync.Map
+	VulnMap = sync.Map{}
 )
 
 // InitVulnType ...

@@ -82,7 +82,7 @@ func Logout(w http.ResponseWriter, r *http.Request) error {
 }
 
 func GetAppUsers(authUser *models.AuthUser) ([]*models.AppUser, error) {
-	var appUsers []*models.AppUser
+	var appUsers = []*models.AppUser{}
 	query_users := data.DAL.SelectAppUsers()
 	for _, query_user := range query_users {
 		appUser := new(models.AppUser)

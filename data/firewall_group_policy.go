@@ -42,12 +42,13 @@ func (dal *MyDAL) UpdateGroupPolicy(description string, appID int64, vulnID int6
 	return err
 }
 
-func (dal *MyDAL) SelectGroupPolicies() (groupPolicies []*models.GroupPolicy) {
+func (dal *MyDAL) SelectGroupPolicies() []*models.GroupPolicy {
+	groupPolicies := []*models.GroupPolicy{}
 	rows, err := dal.db.Query(sqlSelectGroupPolicies)
 	utils.CheckError("SelectGroupPolicies", err)
 	defer rows.Close()
 	for rows.Next() {
-		groupPolicy := new(models.GroupPolicy)
+		groupPolicy := &models.GroupPolicy{}
 		err = rows.Scan(&groupPolicy.ID, &groupPolicy.Description, &groupPolicy.AppID, &groupPolicy.VulnID,
 			&groupPolicy.HitValue, &groupPolicy.Action, &groupPolicy.IsEnabled, &groupPolicy.UserID, &groupPolicy.UpdateTime)
 		utils.CheckError("SelectGroupPolicies Scan", err)
@@ -56,12 +57,13 @@ func (dal *MyDAL) SelectGroupPolicies() (groupPolicies []*models.GroupPolicy) {
 	return groupPolicies
 }
 
-func (dal *MyDAL) SelectGroupPoliciesByAppID(appID int64) (groupPolicies []*models.GroupPolicy, err error) {
+func (dal *MyDAL) SelectGroupPoliciesByAppID(appID int64) ([]*models.GroupPolicy, error) {
+	groupPolicies := []*models.GroupPolicy{}
 	rows, err := dal.db.Query(sqlSelectGroupPoliciesByAppID, appID)
 	utils.CheckError("SelectGroupPoliciesByAppID", err)
 	defer rows.Close()
 	for rows.Next() {
-		groupPolicy := new(models.GroupPolicy)
+		groupPolicy := &models.GroupPolicy{}
 		groupPolicy.AppID = appID
 		err = rows.Scan(&groupPolicy.ID, &groupPolicy.Description, &groupPolicy.VulnID,
 			&groupPolicy.HitValue, &groupPolicy.Action, &groupPolicy.IsEnabled, &groupPolicy.UserID, &groupPolicy.UpdateTime)

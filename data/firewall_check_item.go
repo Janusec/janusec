@@ -36,7 +36,8 @@ func (dal *MyDAL) InsertCheckItem(checkPoint models.ChkPoint, operation models.O
 	return newID, err
 }
 
-func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) (checkItems []*models.CheckItem, err error) {
+func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) ([]*models.CheckItem, error) {
+	checkItems := []*models.CheckItem{}
 	rows, err := dal.db.Query(sqlSelectCheckItemsByGroupID, groupPolicyID)
 	utils.CheckError("SelectCheckItemsByGroupID", err)
 	if err != nil {
@@ -44,7 +45,7 @@ func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) (checkItems []*
 	}
 	defer rows.Close()
 	for rows.Next() {
-		checkItem := new(models.CheckItem)
+		checkItem := &models.CheckItem{}
 		err = rows.Scan(&checkItem.ID, &checkItem.CheckPoint, &checkItem.Operation, &checkItem.KeyName, &checkItem.RegexPolicy)
 		utils.CheckError("SelectCheckItemsByGroupID Scan", err)
 		checkItems = append(checkItems, checkItem)

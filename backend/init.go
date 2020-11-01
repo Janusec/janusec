@@ -24,6 +24,11 @@ func InitDatabase() {
 	if err != nil {
 		utils.DebugPrintln("InitDatabase applications", err)
 	}
+	// 0.9.12 +,  VipApplications
+	err = dal.CreateTableIfNotExistsVipApplications()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase applications", err)
+	}
 	err = dal.CreateTableIfNotExistsDomains()
 	if err != nil {
 		utils.DebugPrintln("InitDatabase domains", err)
@@ -98,6 +103,7 @@ func InitDatabase() {
 func LoadAppConfiguration() {
 	LoadCerts()
 	LoadApps()
+	LoadVipApps()
 	if data.IsPrimary {
 		LoadDestinations()
 		LoadDomains()

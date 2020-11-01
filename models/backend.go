@@ -196,3 +196,40 @@ const (
 	IPMethod_X_REAL_IP       IPMethod = 1 << 2
 	IPMethod_REAL_IP         IPMethod = 1 << 3
 )
+
+// VipApp configuration, added from 0.9.12, database table name forwarding_app
+type VipApp struct {
+	ID int64 `json:"id"`
+
+	Name string `json:"name"`
+
+	// Port on Gateway
+	ListenPort int64 `json:"listen_port"`
+
+	// IsTCP: true for TCP, false for UDP
+	IsTCP bool `json:"is_tcp"`
+
+	// Targets, memory use only, not save to database
+	Targets []*VipTarget `json:"targets"`
+
+	// Route: map[port][]*VipTarget
+	// {3001: ["192.168.1.1:3306", "192.168.1.2:3306"], 3002: [...]}
+	// Route sync.Map `json:"-"`
+
+	Owner string `json:"owner"`
+
+	Description string `json:"description"`
+}
+
+// VipTarget added from 0.9.12
+type VipTarget struct {
+	ID       int64 `json:"id"`
+	VipAppID int64 `json:"vip_app_id"`
+
+	// Destination is backend IP:Port
+	Destination string `json:"destination"`
+
+	// Online status of Destination (IP:Port)
+	Online    bool  `json:"online"`
+	CheckTime int64 `json:"check_time"`
+}

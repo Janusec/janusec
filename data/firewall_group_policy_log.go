@@ -95,27 +95,28 @@ func (dal *MyDAL) SelectGroupHitLogByID(id int64) (*models.GroupHitLog, error) {
 	stmt, err := dal.db.Prepare(sqlSelectGroupHitLogByID)
 	utils.CheckError("SelectGroupHitLogByID Prepare", err)
 	defer stmt.Close()
-	group_hit_log := new(models.GroupHitLog)
-	err = stmt.QueryRow(id).Scan(&group_hit_log.ID,
-		&group_hit_log.RequestTime,
-		&group_hit_log.ClientIP,
-		&group_hit_log.Host,
-		&group_hit_log.Method,
-		&group_hit_log.UrlPath,
-		&group_hit_log.UrlQuery,
-		&group_hit_log.ContentType,
-		&group_hit_log.UserAgent,
-		&group_hit_log.Cookies,
-		&group_hit_log.RawRequest,
-		&group_hit_log.Action,
-		&group_hit_log.PolicyID,
-		&group_hit_log.VulnID,
-		&group_hit_log.AppID)
+	groupHitLog := &models.GroupHitLog{}
+	err = stmt.QueryRow(id).Scan(&groupHitLog.ID,
+		&groupHitLog.RequestTime,
+		&groupHitLog.ClientIP,
+		&groupHitLog.Host,
+		&groupHitLog.Method,
+		&groupHitLog.UrlPath,
+		&groupHitLog.UrlQuery,
+		&groupHitLog.ContentType,
+		&groupHitLog.UserAgent,
+		&groupHitLog.Cookies,
+		&groupHitLog.RawRequest,
+		&groupHitLog.Action,
+		&groupHitLog.PolicyID,
+		&groupHitLog.VulnID,
+		&groupHitLog.AppID)
 	utils.CheckError("SelectGroupHitLogByID QueryRow", err)
-	return group_hit_log, err
+	return groupHitLog, err
 }
 
-func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64, request_count int64, offset int64) (simpleGroupHitLogs []*models.SimpleGroupHitLog) {
+func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64, request_count int64, offset int64) []*models.SimpleGroupHitLog {
+	simpleGroupHitLogs := []*models.SimpleGroupHitLog{}
 	stmt, err := dal.db.Prepare(sqlSelectSimpleGroupHitLogs)
 	if err != nil {
 		utils.DebugPrintln("SelectGroupHitLogs Prepare", err)
@@ -127,7 +128,7 @@ func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64
 	}
 	defer rows.Close()
 	for rows.Next() {
-		simpleGroupHitLog := new(models.SimpleGroupHitLog)
+		simpleGroupHitLog := &models.SimpleGroupHitLog{}
 		err = rows.Scan(&simpleGroupHitLog.ID, &simpleGroupHitLog.RequestTime, &simpleGroupHitLog.ClientIP, &simpleGroupHitLog.Host, &simpleGroupHitLog.Method, &simpleGroupHitLog.UrlPath, &simpleGroupHitLog.Action, &simpleGroupHitLog.PolicyID, &simpleGroupHitLog.AppID)
 		if err != nil {
 			utils.DebugPrintln("SelectGroupHitLogs rows.Scan", err)
@@ -137,7 +138,8 @@ func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64
 	return simpleGroupHitLogs
 }
 
-func (dal *MyDAL) SelectVulnStatByAppID(appID int64, startTime int64, endTime int64) (vulnStat []*models.VulnStat, err error) {
+func (dal *MyDAL) SelectVulnStatByAppID(appID int64, startTime int64, endTime int64) ([]*models.VulnStat, error) {
+	vulnStat := []*models.VulnStat{}
 	stmt, err := dal.db.Prepare(sqlSelectVulnStatByAppID)
 	utils.CheckError("SelectVulnStatByAppID Prepare", err)
 	defer stmt.Close()
@@ -154,7 +156,8 @@ func (dal *MyDAL) SelectVulnStatByAppID(appID int64, startTime int64, endTime in
 	return vulnStat, err
 }
 
-func (dal *MyDAL) SelectAllVulnStat(startTime int64, endTime int64) (vulnStat []*models.VulnStat, err error) {
+func (dal *MyDAL) SelectAllVulnStat(startTime int64, endTime int64) ([]*models.VulnStat, error) {
+	vulnStat := []*models.VulnStat{}
 	stmt, err := dal.db.Prepare(sqlSelectAllVulnStat)
 	utils.CheckError("SelectAllVulnStat Prepare", err)
 	defer stmt.Close()

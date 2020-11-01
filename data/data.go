@@ -32,14 +32,14 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "0.9.11"
+	Version = "0.9.12"
 	// NodeKey share with all nodes
 	NodeKey []byte
 )
 
 // InitDAL init Data Access Layer
 func InitDAL() {
-	DAL = new(MyDAL)
+	DAL = &MyDAL{}
 	var err error
 	CFG, err = NewConfig("./config.json")
 	utils.CheckError("InitDAL", err)

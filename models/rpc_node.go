@@ -46,6 +46,11 @@ type RPCApplications struct {
 	Object []*Application `json:"object"`
 }
 
+type RPCVipApps struct {
+	Error  *string   `json:"err"`
+	Object []*VipApp `json:"object"`
+}
+
 type RPCDBDomains struct {
 	Error  *string     `json:"err"`
 	Object []*DBDomain `json:"object"`

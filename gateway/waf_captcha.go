@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	captchaHitInfo sync.Map // (clientID string, *HitInfo)
+	captchaHitInfo = sync.Map{} // (clientID string, *HitInfo)
 	formTemplate   = template.Must(template.New("captcha").Parse(formTemplateSrc))
 )
 

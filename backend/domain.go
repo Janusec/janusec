@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	Domains    []*models.Domain
-	DomainsMap sync.Map //DomainsMap (string, models.DomainRelation)
+	Domains    = []*models.Domain{}
+	DomainsMap = sync.Map{} //DomainsMap (string, models.DomainRelation)
 )
 
 func LoadDomains() {
@@ -79,7 +79,7 @@ func UpdateDomain(app *models.Application, domainMapInterface interface{}) *mode
 	if domainID == 0 {
 		// New domain
 		newDomainID := data.DAL.InsertDomain(domainName, app.ID, certID, redirect, location)
-		domain = new(models.Domain)
+		domain = &models.Domain{}
 		domain.ID = newDomainID
 		Domains = append(Domains, domain)
 	} else {

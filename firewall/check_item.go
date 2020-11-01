@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	checkPointCheckItemsMap sync.Map //(models.ChkPoint, []*models.CheckItem)
+	checkPointCheckItemsMap = sync.Map{} //(models.ChkPoint, []*models.CheckItem)
 )
 
 // GetCheckItemIndex ...
@@ -153,7 +153,7 @@ func UpdateCheckItems(groupPolicy *models.GroupPolicy, checkItems []*models.Chec
 			checkPointCheckItemsMap.Store(hitCheckPoint, checkPointCheckItems)
 		}
 	}
-	var newCheckItems []*models.CheckItem
+	var newCheckItems = []*models.CheckItem{}
 	for _, checkItem := range checkItems {
 		// add new check_items to DB and group_policy
 		if checkItem.ID == 0 {

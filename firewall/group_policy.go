@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	groupPolicies []*models.GroupPolicy
+	groupPolicies = []*models.GroupPolicy{}
 )
 
 // InitGroupPolicy ...
