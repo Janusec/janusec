@@ -43,3 +43,19 @@ func (dal *MyDAL) SelectVipApplications() []*models.VipApp {
 	}
 	return vipApps
 }
+
+// InsertVipApp create new port forwarding
+func (dal *MyDAL) InsertVipApp(vipAppName string, listenPort int64, isTCP bool, owner string, description string) (newID int64) {
+	const sqlInsertVipApp = `INSERT INTO vip_apps(name,listen_port,is_tcp,owner,description) VALUES($1,$2,$3,$4,$5) RETURNING id`
+	err := dal.db.QueryRow(sqlInsertVipApp, vipAppName, listenPort, isTCP, owner, description).Scan(&newID)
+	utils.CheckError("InsertVipApp", err)
+	return newID
+}
+
+// UpdateVipAppByID update an existed VipApp
+func (dal *MyDAL) UpdateVipAppByID(vipAppName string, listenPort int64, isTCP bool, owner string, description string, vipAppID int64) error {
+	const sqlUpdateVipApp = `UPDATE vip_apps SET name=$1,listen_port=$2,is_tcp=$3,owner=$4,description=$5 WHERE id=$6`
+	_, err := dal.db.Exec(sqlUpdateVipApp, vipAppName, listenPort, isTCP, owner, description, vipAppID)
+	utils.CheckError("InsertVipApp", err)
+	return err
+}

@@ -93,12 +93,21 @@ func APIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "getapp":
 		id := int64(param["id"].(float64))
 		obj, err = backend.GetApplicationByID(id)
+	case "get_vip_app":
+		id := int64(param["id"].(float64))
+		obj, err = backend.GetVipAppByID(id)
 	case "updateapp":
 		obj, err = backend.UpdateApplication(param)
+	case "update_vip_app":
+		obj, err = backend.UpdateVipApp(param)
 	case "delapp":
 		obj = nil
 		id := int64(param["id"].(float64))
 		err = backend.DeleteApplicationByID(id)
+	case "del_vip_app":
+		obj = nil
+		id := int64(param["id"].(float64))
+		err = backend.DeleteVipAppByID(id)
 	case "getcerts":
 		obj, err = backend.GetCertificates(authUser)
 	case "getcert":

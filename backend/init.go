@@ -14,6 +14,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// InitDatabase create if not exists tables
 func InitDatabase() {
 	dal := data.DAL
 	err := dal.CreateTableIfNotExistsCertificates()
@@ -36,6 +37,10 @@ func InitDatabase() {
 	err = dal.CreateTableIfNotExistsDestinations()
 	if err != nil {
 		utils.DebugPrintln("InitDatabase destinations", err)
+	}
+	err = dal.CreateTableIfNotExistsVipTargets()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase vip_targets", err)
 	}
 	err = dal.CreateTableIfNotExistsSettings()
 	if err != nil {

@@ -12,7 +12,7 @@ import (
 	"janusec/utils"
 )
 
-//
+// CreateTableIfNotExistsVipTargets create vip_targets
 func (dal *MyDAL) CreateTableIfNotExistsVipTargets() error {
 	const sqlCreateTableIfNotExistsVipTargets = `CREATE TABLE IF NOT EXISTS vip_targets(id bigserial PRIMARY KEY,vip_app_id bigint NOT NULL,destination varchar(128) NOT NULL)`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsVipTargets)
@@ -38,4 +38,28 @@ func (dal *MyDAL) SelectVipTargetsByAppID(vipAppID int64) []*models.VipTarget {
 		targets = append(targets, vipTarget)
 	}
 	return targets
+}
+
+// UpdateVipTarget ... update port forwarding target
+func (dal *MyDAL) UpdateVipTarget(vipAppID int64, destination string, id int64) error {
+	const sqlUpdateTarget = `UPDATE vip_targets SET vip_app_id=$1,destination=$2 WHERE id=$3`
+	_, err := dal.db.Exec(sqlUpdateTarget, vipAppID, destination, id)
+	utils.CheckError("UpdateVipTarget", err)
+	return err
+}
+
+// InsertVipTarget create new VipTarget
+func (dal *MyDAL) InsertVipTarget(vipAppID int64, destination string) (newID int64, err error) {
+	const sqlInsertTarget = `INSERT INTO vip_targets(vip_app_id, destination) VALUES($1,$2) RETURNING id`
+	err = dal.db.QueryRow(sqlInsertTarget, vipAppID, destination).Scan(&newID)
+	utils.CheckError("InsertVipTarget", err)
+	return newID, err
+}
+
+// DeleteVipTargetByID delete VipTarget by id
+func (dal *MyDAL) DeleteVipTargetByID(id int64) error {
+	const sqlDeleteVipTargetByID = `DELETE FROM vip_targets WHERE id=$1`
+	_, err := dal.db.Exec(sqlDeleteVipTargetByID, id)
+	utils.CheckError("DeleteDestinationByID", err)
+	return err
 }
