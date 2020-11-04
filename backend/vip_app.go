@@ -9,9 +9,14 @@ package backend
 
 import (
 	"errors"
+	"fmt"
+	"hash/fnv"
+	"io"
 	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
+	"net"
+	"strconv"
 	"strings"
 )
 
@@ -46,6 +51,72 @@ func LoadVipApps() {
 			VipApps = rpcVipApps
 		}
 	}
+	// Start Port Forwarding
+	for _, vipApp := range VipApps {
+		go StartPortForwarding(vipApp)
+	}
+}
+
+// StartPortForwarding ...
+func StartPortForwarding(vipApp *models.VipApp) {
+	incoming, err := net.Listen("tcp", ":"+strconv.FormatInt(vipApp.ListenPort, 10))
+	if err != nil {
+		utils.DebugPrintln("could not start server on %d: %v", vipApp.ListenPort, err)
+	}
+	fmt.Println("server running on ", vipApp.ListenPort)
+
+	proxy, err := incoming.Accept()
+	if err != nil {
+		utils.DebugPrintln("could not accept client connection", err)
+	}
+	defer proxy.Close()
+
+	remoteAddr := proxy.RemoteAddr()
+	fmt.Printf("client '%v' connected!\n", remoteAddr)
+
+	vipTarget := SelectVipTarget(vipApp, remoteAddr.String())
+	if vipTarget != nil {
+		target, err := net.Dial("tcp", vipTarget.Destination)
+		if err != nil {
+			utils.DebugPrintln("could not connect to target", err)
+		}
+		defer target.Close()
+
+		fmt.Printf("connection to server %v established!\n", target.RemoteAddr())
+
+		go func() { io.Copy(target, proxy) }()
+		go func() { io.Copy(proxy, target) }()
+	}
+
+}
+
+// SelectVipTarget will replace SelectDestination
+func SelectVipTarget(vipApp *models.VipApp, srcIP string) *models.VipTarget {
+	var onlineTargets = []*models.VipTarget{}
+	for _, target := range vipApp.Targets {
+		if target.Online {
+			onlineTargets = append(onlineTargets, target)
+		}
+	}
+	targetLen := uint32(len(onlineTargets))
+	if targetLen == 0 {
+		return nil
+	}
+	var target *models.VipTarget
+	if targetLen == 1 {
+		target = onlineTargets[0]
+	} else if targetLen > 1 {
+		// According to Hash(IP)
+		h := fnv.New32a()
+		_, err := h.Write([]byte(srcIP))
+		if err != nil {
+			utils.DebugPrintln("SelectVipTarget h.Write", err)
+		}
+		hashUInt32 := h.Sum32()
+		targetIndex := hashUInt32 % targetLen
+		target = onlineTargets[targetIndex]
+	}
+	return target
 }
 
 // GetVipApps return list of all port forwarding configuration
@@ -155,13 +226,10 @@ func UpdateTargets(vipApp *models.VipApp, targets []interface{}) {
 	vipApp.Targets = newTargets
 }
 
+// DeleteVipAppByID delete port forwarding
 func DeleteVipAppByID(id int64) error {
-	app, err := GetVipAppByID(id)
-	if err != nil {
-		return err
-	}
-	DeleteTargetsByAppID(id)
-	err = data.DAL.DeleteVipAppByID(id)
+	DeleteVipTargetsByAppID(id)
+	err := data.DAL.DeleteVipAppByID(id)
 	if err != nil {
 		utils.DebugPrintln("DeleteVipAppByID ", err)
 		return err
@@ -170,4 +238,14 @@ func DeleteVipAppByID(id int64) error {
 	VipApps = append(VipApps[:i], VipApps[i+1:]...)
 	data.UpdateBackendLastModified()
 	return nil
+}
+
+// GetVipAppIndex find the VipApp index in slice
+func GetVipAppIndex(vipAppID int64) int {
+	for i := 0; i < len(VipApps); i++ {
+		if VipApps[i].ID == vipAppID {
+			return i
+		}
+	}
+	return -1
 }

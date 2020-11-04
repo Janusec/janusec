@@ -63,3 +63,11 @@ func (dal *MyDAL) DeleteVipTargetByID(id int64) error {
 	utils.CheckError("DeleteDestinationByID", err)
 	return err
 }
+
+// DeleteVipTargetsByVipAppID delete all targets for one port forwarding app
+func (dal *MyDAL) DeleteVipTargetsByVipAppID(vipAppID int64) error {
+	const sqlDeleteVipTargetsByVipAppID = `DELETE FROM vip_targets WHERE vip_app_id=$1`
+	_, err := dal.db.Exec(sqlDeleteVipTargetsByVipAppID, vipAppID)
+	utils.CheckError("DeleteVipTargetsByVipAppID", err)
+	return err
+}
