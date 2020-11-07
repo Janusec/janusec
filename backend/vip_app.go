@@ -61,18 +61,85 @@ func LoadVipApps() {
 
 // ListenOnVIP ...
 func ListenOnVIP(vipApp *models.VipApp) {
-	vipListener, err := net.Listen("tcp", ":"+strconv.FormatInt(vipApp.ListenPort, 10))
+	address := ":" + strconv.FormatInt(vipApp.ListenPort, 10)
+	if vipApp.IsTCP {
+		vipListener, err := net.Listen("tcp", address)
+		if err != nil {
+			utils.DebugPrintln("could not start server on port ", vipApp.ListenPort, err)
+			fmt.Println("ListenOnVIP could not start server on port ", vipApp.ListenPort, vipListener, err)
+		}
+		if vipListener != nil {
+			defer vipListener.Close()
+		}
+		go VIPForwarding(vipApp, vipListener)
+		fmt.Println("Working", vipApp.Name, vipApp.ListenPort)
+		<-vipApp.ExitChan
+		fmt.Println("Exited:", vipApp.Name)
+		return
+	}
+	// UDP
+	udpAddr, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
-		utils.DebugPrintln("could not start server on port ", vipApp.ListenPort, err)
-		fmt.Println("ListenOnVIP could not start server on port ", vipApp.ListenPort, vipListener, err)
+		fmt.Println("ResolveUDPAddr err:", err)
+		return
 	}
-	if vipListener != nil {
-		defer vipListener.Close()
+	udpConn, err := net.ListenUDP("udp", udpAddr)
+	//udpConn, err := net.ListenPacket("udp", address)
+	if err != nil {
+		utils.DebugPrintln("could not start udp port ", vipApp.ListenPort, err)
+		fmt.Println("ListenOnVIP could not start udp port ", vipApp.ListenPort, err)
 	}
-	go VIPForwarding(vipApp, vipListener)
-	fmt.Println("Working", vipApp.Name, vipApp.ListenPort)
+	if udpConn != nil {
+		defer udpConn.Close()
+	}
+	fmt.Println("ListenOnVIP udpConn.RemoteAddr", udpConn.RemoteAddr())
+	go UDPForwarding(vipApp, udpConn)
+	fmt.Println("UDP Working", vipApp.Name, vipApp.ListenPort)
 	<-vipApp.ExitChan
 	fmt.Println("Exited:", vipApp.Name)
+}
+
+// UDPForwarding ...
+func UDPForwarding(vipApp *models.VipApp, udpConn *net.UDPConn) {
+	dataIn := make([]byte, 1024)
+	dataOut := make([]byte, 1024)
+	for {
+		lenIn, clientAddr, err := udpConn.ReadFromUDP(dataIn)
+		if err != nil {
+			fmt.Printf("UDPForwarding error during read: %s", err)
+		}
+		fmt.Println("UDPForwarding Accept", udpConn, clientAddr)
+		//clientAddr := udpConn.RemoteAddr().String()
+		localAddr := udpConn.LocalAddr().String()
+		//localUDPAddr, err := net.ResolveUDPAddr("udp", localAddr)
+		vipTarget := SelectVipTarget(vipApp, clientAddr.String())
+		targetAddr, err := net.ResolveUDPAddr("udp", vipTarget.Destination)
+		if err != nil {
+			fmt.Println("UDPForwarding ResolveUDPAddr", err)
+		}
+		fmt.Println("UDPForwarding", clientAddr, localAddr, targetAddr.String())
+		if vipTarget != nil {
+			srcAddr := &net.UDPAddr{IP: net.IPv4zero, Port: 0}
+			targetConn, err := net.DialUDP("udp", srcAddr, targetAddr)
+			if err != nil {
+				utils.DebugPrintln("DialUDP could not connect to target", targetAddr.String(), err)
+				fmt.Println("DialUDP could not connect to target", targetAddr.String(), err)
+			}
+			if targetConn == nil {
+				break
+			}
+			defer targetConn.Close()
+			// Log to file
+			utils.VipAccessLog(vipApp.Name, clientAddr.String(), localAddr, vipTarget.Destination)
+			// stream copy
+			//go func() { io.Copy(targetConn, udpConn) }()
+			//go func() { io.Copy(udpConn, targetConn) }()
+			targetConn.Write(dataIn[:lenIn])
+			lenOut, _, err := targetConn.ReadFromUDP(dataOut)
+			udpConn.Write(dataOut[:lenOut])
+		}
+	}
+
 }
 
 // VIPForwarding accept connections and forward to backend targets
@@ -100,7 +167,7 @@ func VIPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
 		if vipTarget != nil {
 			target, err := net.Dial("tcp", vipTarget.Destination)
 			if err != nil {
-				utils.DebugPrintln("could not connect to target", err)
+				utils.DebugPrintln("could not connect to target", vipTarget.Destination, err)
 			}
 			defer target.Close()
 			// Log to file
