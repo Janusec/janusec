@@ -37,6 +37,7 @@ func LoadVipApps() {
 				Targets:     []*models.VipTarget{},
 				Owner:       dbApp.Owner,
 				Description: dbApp.Description,
+				ExitChan:    make(chan bool),
 			}
 			VipApps = append(VipApps, vipApp)
 		}
@@ -53,41 +54,62 @@ func LoadVipApps() {
 	}
 	// Start Port Forwarding
 	for _, vipApp := range VipApps {
-		go StartPortForwarding(vipApp)
+		go ListenOnVIP(vipApp)
+
 	}
 }
 
-// StartPortForwarding ...
-func StartPortForwarding(vipApp *models.VipApp) {
-	incoming, err := net.Listen("tcp", ":"+strconv.FormatInt(vipApp.ListenPort, 10))
+// ListenOnVIP ...
+func ListenOnVIP(vipApp *models.VipApp) {
+	vipListener, err := net.Listen("tcp", ":"+strconv.FormatInt(vipApp.ListenPort, 10))
 	if err != nil {
-		utils.DebugPrintln("could not start server on %d: %v", vipApp.ListenPort, err)
+		utils.DebugPrintln("could not start server on port ", vipApp.ListenPort, err)
+		fmt.Println("ListenOnVIP could not start server on port ", vipApp.ListenPort, vipListener, err)
 	}
-	fmt.Println("server running on ", vipApp.ListenPort)
-
-	proxy, err := incoming.Accept()
-	if err != nil {
-		utils.DebugPrintln("could not accept client connection", err)
+	if vipListener != nil {
+		defer vipListener.Close()
 	}
-	defer proxy.Close()
+	go VIPForwarding(vipApp, vipListener)
+	fmt.Println("Working", vipApp.Name, vipApp.ListenPort)
+	<-vipApp.ExitChan
+	fmt.Println("Exited:", vipApp.Name)
+}
 
-	remoteAddr := proxy.RemoteAddr()
-	fmt.Printf("client '%v' connected!\n", remoteAddr)
-
-	vipTarget := SelectVipTarget(vipApp, remoteAddr.String())
-	if vipTarget != nil {
-		target, err := net.Dial("tcp", vipTarget.Destination)
-		if err != nil {
-			utils.DebugPrintln("could not connect to target", err)
+// VIPForwarding accept connections and forward to backend targets
+func VIPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
+	for {
+		fmt.Println("Waiting Accept")
+		if vipListener == nil {
+			break
 		}
-		defer target.Close()
+		proxy, err := vipListener.Accept()
+		if proxy == nil {
+			break
+		}
+		if err != nil {
+			utils.DebugPrintln("port forwarding: could not accept client connection", err)
+		}
+		fmt.Println("Received data", proxy)
 
-		fmt.Printf("connection to server %v established!\n", target.RemoteAddr())
+		defer proxy.Close()
 
-		go func() { io.Copy(target, proxy) }()
-		go func() { io.Copy(proxy, target) }()
+		remoteAddr := proxy.RemoteAddr()
+		fmt.Printf("client '%v' connected!\n", remoteAddr)
+
+		vipTarget := SelectVipTarget(vipApp, remoteAddr.String())
+		if vipTarget != nil {
+			target, err := net.Dial("tcp", vipTarget.Destination)
+			if err != nil {
+				utils.DebugPrintln("could not connect to target", err)
+			}
+			defer target.Close()
+			// Log to file
+			utils.VipAccessLog(vipApp.Name, remoteAddr.String(), proxy.LocalAddr().String(), vipTarget.Destination)
+			// stream copy
+			go func() { io.Copy(target, proxy) }()
+			go func() { io.Copy(proxy, target) }()
+		}
 	}
-
 }
 
 // SelectVipTarget will replace SelectDestination
@@ -131,9 +153,13 @@ func GetVipApps(authUser *models.AuthUser) ([]*models.VipApp, error) {
 // UpdateVipApp create or update VipApp for port forwarding
 func UpdateVipApp(param map[string]interface{}) (*models.VipApp, error) {
 	application := param["object"].(map[string]interface{})
+	listenPort := int64(application["listen_port"].(float64))
+	if listenPort <= 1024 {
+		return nil, errors.New("port number must be greater than 1024")
+	}
 	appID := int64(application["id"].(float64))
 	appName := application["name"].(string)
-	listenPort := int64(application["listen_port"].(float64))
+
 	isTCP := application["is_tcp"].(bool)
 	var description string
 	var ok bool
@@ -141,39 +167,53 @@ func UpdateVipApp(param map[string]interface{}) (*models.VipApp, error) {
 		description = ""
 	}
 	owner := application["owner"].(string)
-	var app *models.VipApp
+	var vipApp *models.VipApp
 	if appID == 0 {
 		// new application
 		newID := data.DAL.InsertVipApp(appName, listenPort, isTCP, owner, description)
-		app = &models.VipApp{
+		vipApp = &models.VipApp{
 			ID:          newID,
 			Name:        appName,
 			ListenPort:  listenPort,
 			IsTCP:       isTCP,
 			Owner:       owner,
 			Description: description,
+			ExitChan:    make(chan bool),
 		}
-		VipApps = append(VipApps, app)
+		VipApps = append(VipApps, vipApp)
 	} else {
-		app, _ = GetVipAppByID(appID)
-		if app != nil {
+		vipApp, _ = GetVipAppByID(appID)
+		if vipApp != nil {
 			err := data.DAL.UpdateVipAppByID(appName, listenPort, isTCP, owner, description, appID)
 			if err != nil {
 				utils.DebugPrintln("UpdateVipApp", err)
 			}
-			app.Name = appName
-			app.ListenPort = listenPort
-			app.IsTCP = isTCP
-			app.Owner = owner
-			app.Description = description
+			vipApp.Name = appName
+			vipApp.ListenPort = listenPort
+			vipApp.IsTCP = isTCP
+			vipApp.Owner = owner
+			vipApp.Description = description
+			fmt.Println("send exit signal to", vipApp.Name)
+			vipApp.ExitChan <- true
+			fmt.Println("sended exit signal to", vipApp.Name)
 		} else {
 			return nil, errors.New("Port Forwarding not found")
 		}
 	}
+	fmt.Println("update targets ...")
 	targets := application["targets"].([]interface{})
-	UpdateTargets(app, targets)
+	UpdateTargets(vipApp, targets)
+	vipListener, err := net.Listen("tcp", ":"+strconv.FormatInt(vipApp.ListenPort, 10))
+	if err != nil {
+		utils.DebugPrintln("could not start server on port ", vipApp.ListenPort, err)
+		fmt.Println("UpdateVipApp could not start server on port ", vipApp.ListenPort, vipListener, err)
+	}
+	if vipListener != nil {
+		vipListener.Close()
+	}
+	go ListenOnVIP(vipApp)
 	data.UpdateBackendLastModified()
-	return app, nil
+	return vipApp, err
 }
 
 // GetVipAppByID return the designated VipApp
@@ -183,7 +223,7 @@ func GetVipAppByID(id int64) (*models.VipApp, error) {
 			return app, nil
 		}
 	}
-	return nil, errors.New("Not found.")
+	return nil, errors.New("not found")
 }
 
 // UpdateTargets update the list of backend IP:Port
@@ -235,6 +275,7 @@ func DeleteVipAppByID(id int64) error {
 		return err
 	}
 	i := GetVipAppIndex(id)
+	VipApps[i].ExitChan <- true
 	VipApps = append(VipApps[:i], VipApps[i+1:]...)
 	data.UpdateBackendLastModified()
 	return nil

@@ -219,6 +219,9 @@ type VipApp struct {
 	Owner string `json:"owner"`
 
 	Description string `json:"description"`
+
+	// ExitChan used for exit, when VipApp deleted or port changed.
+	ExitChan chan bool `json:"-"`
 }
 
 // VipTarget added from 0.9.12

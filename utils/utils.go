@@ -63,11 +63,25 @@ func AccessLog(domain string, method string, ip string, url string, ua string) {
 	now := time.Now()
 	f, err := os.OpenFile("./log/"+domain+now.Format("20060102")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
-		log.Println("error opening file: %v", err)
+		log.Printf("error opening file: %s\n", err.Error())
 	}
 	log.SetOutput(f)
 	log.Printf("[%s] %s [%s] UA:[%s]\n", ip, method, url, ua)
 	if err := f.Close(); err != nil {
-		log.Println("error closing file: %v", err)
+		log.Printf("error closing file: %s\n", err.Error())
+	}
+}
+
+// VipAccessLog record logs of port forwarding
+func VipAccessLog(name string, clientAddr string, gateAddr string, backendAddr string) {
+	now := time.Now()
+	f, err := os.OpenFile("./log/PortForwarding"+now.Format("20060102")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		log.Printf("error opening file: %s\n", err.Error())
+	}
+	log.SetOutput(f)
+	log.Printf("[%s] [%s] --> [%s] --> [%s]\n", name, clientAddr, gateAddr, backendAddr)
+	if err := f.Close(); err != nil {
+		log.Printf("error closing file: %s\n", err.Error())
 	}
 }
