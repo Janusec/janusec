@@ -18,6 +18,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // VipApps : list of all port forwarding configuration
@@ -66,115 +67,136 @@ func ListenOnVIP(vipApp *models.VipApp) {
 		vipListener, err := net.Listen("tcp", address)
 		if err != nil {
 			utils.DebugPrintln("could not start server on port ", vipApp.ListenPort, err)
-			fmt.Println("ListenOnVIP could not start server on port ", vipApp.ListenPort, vipListener, err)
 		}
 		if vipListener != nil {
 			defer vipListener.Close()
 		}
-		go VIPForwarding(vipApp, vipListener)
-		fmt.Println("Working", vipApp.Name, vipApp.ListenPort)
+		go TCPForwarding(vipApp, vipListener)
+		// Waiting exit signal
 		<-vipApp.ExitChan
-		fmt.Println("Exited:", vipApp.Name)
 		return
 	}
 	// UDP
 	udpAddr, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
-		fmt.Println("ResolveUDPAddr err:", err)
+		utils.DebugPrintln("ResolveUDPAddr", address, err)
 		return
 	}
-	udpConn, err := net.ListenUDP("udp", udpAddr)
-	//udpConn, err := net.ListenPacket("udp", address)
+	udpListenConn, err := net.ListenUDP("udp", udpAddr)
+
+	//udpListenConn, err := net.ListenPacket("udp", address)
 	if err != nil {
-		utils.DebugPrintln("could not start udp port ", vipApp.ListenPort, err)
-		fmt.Println("ListenOnVIP could not start udp port ", vipApp.ListenPort, err)
+		utils.DebugPrintln("ListenOnVIP could not start udp port ", vipApp.ListenPort, err)
 	}
-	if udpConn != nil {
-		defer udpConn.Close()
+	if udpListenConn != nil {
+		defer udpListenConn.Close()
 	}
-	fmt.Println("ListenOnVIP udpConn.RemoteAddr", udpConn.RemoteAddr())
-	go UDPForwarding(vipApp, udpConn)
-	fmt.Println("UDP Working", vipApp.Name, vipApp.ListenPort)
+	go UDPForwarding(vipApp, udpListenConn)
 	<-vipApp.ExitChan
-	fmt.Println("Exited:", vipApp.Name)
 }
 
 // UDPForwarding ...
-func UDPForwarding(vipApp *models.VipApp, udpConn *net.UDPConn) {
-	dataIn := make([]byte, 1024)
-	dataOut := make([]byte, 1024)
+func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 	for {
-		lenIn, clientAddr, err := udpConn.ReadFromUDP(dataIn)
+		dataBuf := make([]byte, 4096)
+		//oob := make([]byte, 4096)
+		//dataInLen, _, _, clientAddr, err := udpListenConn.ReadMsgUDP(dataBuf, oob)
+		dataInLen, clientAddr, err := udpListenConn.ReadFromUDP(dataBuf)
 		if err != nil {
-			fmt.Printf("UDPForwarding error during read: %s", err)
+			fmt.Println("UDPForwarding ReadMsgUDP", err)
+			break
 		}
-		fmt.Println("UDPForwarding Accept", udpConn, clientAddr)
-		//clientAddr := udpConn.RemoteAddr().String()
-		localAddr := udpConn.LocalAddr().String()
-		//localUDPAddr, err := net.ResolveUDPAddr("udp", localAddr)
+
 		vipTarget := SelectVipTarget(vipApp, clientAddr.String())
-		targetAddr, err := net.ResolveUDPAddr("udp", vipTarget.Destination)
 		if err != nil {
 			fmt.Println("UDPForwarding ResolveUDPAddr", err)
+			break
 		}
-		fmt.Println("UDPForwarding", clientAddr, localAddr, targetAddr.String())
 		if vipTarget != nil {
-			srcAddr := &net.UDPAddr{IP: net.IPv4zero, Port: 0}
-			targetConn, err := net.DialUDP("udp", srcAddr, targetAddr)
+			targetAddr, err := net.ResolveUDPAddr("udp", vipTarget.Destination)
+			udpTargetConn, err := net.DialUDP("udp", nil, targetAddr)
 			if err != nil {
-				utils.DebugPrintln("DialUDP could not connect to target", targetAddr.String(), err)
-				fmt.Println("DialUDP could not connect to target", targetAddr.String(), err)
-			}
-			if targetConn == nil {
+				utils.DebugPrintln("UDPForwarding DialUDP could not connect to target", vipTarget.Destination, err)
+				vipTarget.Online = false
+				vipTarget.CheckTime = time.Now().Unix()
 				break
 			}
-			defer targetConn.Close()
+			if udpTargetConn == nil {
+				break
+			}
+			defer udpTargetConn.Close()
+
 			// Log to file
-			utils.VipAccessLog(vipApp.Name, clientAddr.String(), localAddr, vipTarget.Destination)
-			// stream copy
-			//go func() { io.Copy(targetConn, udpConn) }()
-			//go func() { io.Copy(udpConn, targetConn) }()
-			targetConn.Write(dataIn[:lenIn])
-			lenOut, _, err := targetConn.ReadFromUDP(dataOut)
-			udpConn.Write(dataOut[:lenOut])
+			proxyAddr := udpListenConn.LocalAddr().String()
+			utils.VipAccessLog(vipApp.Name, clientAddr.String(), proxyAddr, vipTarget.Destination)
+
+			udpTargetConn.SetDeadline(time.Now().Add(30 * time.Second))
+			go func() {
+				// make receiver ready before send request
+				data := make([]byte, 4096)
+				for {
+					n, _, err := udpTargetConn.ReadFromUDP(data)
+					if err != nil {
+						break
+					}
+					// Response to client
+					_, err = udpListenConn.WriteToUDP(data[:n], clientAddr)
+					if err != nil {
+						break
+					}
+				}
+			}()
+
+			// forward to target
+			_, err = udpTargetConn.Write(dataBuf[:dataInLen])
+			if err != nil {
+				utils.DebugPrintln("UDPForwarding to target", vipTarget.Destination, err)
+				continue
+			}
 		}
 	}
 
 }
 
-// VIPForwarding accept connections and forward to backend targets
-func VIPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
+// TCPForwarding accept connections and forward to backend targets
+func TCPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
 	for {
-		fmt.Println("Waiting Accept")
 		if vipListener == nil {
+			fmt.Println("TCPForwarding vipListener nil, break")
 			break
 		}
 		proxy, err := vipListener.Accept()
 		if proxy == nil {
+			fmt.Println("TCPForwarding proxy nil, break")
 			break
 		}
 		if err != nil {
-			utils.DebugPrintln("port forwarding: could not accept client connection", err)
+			utils.DebugPrintln("TCPForwarding port forwarding: could not accept client connection", err)
 		}
-		fmt.Println("Received data", proxy)
-
-		defer proxy.Close()
-
 		remoteAddr := proxy.RemoteAddr()
-		fmt.Printf("client '%v' connected!\n", remoteAddr)
-
 		vipTarget := SelectVipTarget(vipApp, remoteAddr.String())
 		if vipTarget != nil {
 			target, err := net.Dial("tcp", vipTarget.Destination)
 			if err != nil {
-				utils.DebugPrintln("could not connect to target", vipTarget.Destination, err)
+				utils.DebugPrintln("TCPForwarding could not connect to target", vipTarget.Destination, err)
+				vipTarget.Online = false
+				vipTarget.CheckTime = time.Now().Unix()
+				continue
 			}
-			defer target.Close()
+			//defer target.Close()
 			// Log to file
 			utils.VipAccessLog(vipApp.Name, remoteAddr.String(), proxy.LocalAddr().String(), vipTarget.Destination)
 			// stream copy
-			go func() { io.Copy(target, proxy) }()
-			go func() { io.Copy(proxy, target) }()
+			go func() {
+				io.Copy(target, proxy)
+			}()
+			go func() {
+				io.Copy(proxy, target)
+				proxy.Close()
+				target.Close()
+			}()
+		} else {
+			proxy.Close()
 		}
 	}
 }

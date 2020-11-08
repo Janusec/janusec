@@ -80,7 +80,7 @@ func VipAccessLog(name string, clientAddr string, gateAddr string, backendAddr s
 		log.Printf("error opening file: %s\n", err.Error())
 	}
 	log.SetOutput(f)
-	log.Printf("[%s] [%s] --> [%s] --> [%s]\n", name, clientAddr, gateAddr, backendAddr)
+	log.Printf("[%s] [%s] -> [%s] -> [%s]\n", name, clientAddr, gateAddr, backendAddr)
 	if err := f.Close(); err != nil {
 		log.Printf("error closing file: %s\n", err.Error())
 	}
