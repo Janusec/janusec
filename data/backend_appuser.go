@@ -17,7 +17,7 @@ const (
 	sqlIsExistUser          = `SELECT coalesce((SELECT 1 FROM appusers WHERE username=$1 limit 1),0)`
 	sqlSelectHashPwdAndSalt = `SELECT id,hashpwd,salt,need_modify_pwd FROM appusers WHERE username=$1`
 	sqlSelectAppUsers       = `SELECT id,username,email,is_super_admin,is_cert_admin,is_app_admin FROM appusers`
-	sqlSelectAppUserByID    = `SELECT username,email,is_super_admin,is_cert_admin,is_app_admin FROM appusers WHERE id=$1`
+
 	sqlUpdateAppUserWithPwd = `UPDATE appusers SET username=$1,hashpwd=$2,salt=$3,email=$4,is_super_admin=$5,is_cert_admin=$6,is_app_admin=$7,need_modify_pwd=$8 WHERE id=$9`
 	sqlUpdateAppUserNoPwd   = `UPDATE appusers SET username=$1,email=$2,is_super_admin=$3,is_cert_admin=$4,is_app_admin=$5 WHERE id=$6`
 	sqlDeleteAppUser        = `DELETE FROM appusers WHERE id=$1`
@@ -96,7 +96,8 @@ func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
 func (dal *MyDAL) SelectAppUserByID(userID int64) *models.QueryAppUser {
 	queryUser := &models.QueryAppUser{}
 	queryUser.ID = userID
-	err := dal.db.QueryRow(sqlSelectAppUserByID, userID).Scan(&queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin)
+	const sqlSelectAppUserByID = `SELECT username,email,is_super_admin,is_cert_admin,is_app_admin,need_modify_pwd FROM appusers WHERE id=$1`
+	err := dal.db.QueryRow(sqlSelectAppUserByID, userID).Scan(&queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin, &queryUser.NeedModifyPWD)
 	utils.CheckError("SelectAppUserByID", err)
 	return queryUser
 }

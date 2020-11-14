@@ -83,19 +83,19 @@ func Logout(w http.ResponseWriter, r *http.Request) error {
 
 func GetAppUsers(authUser *models.AuthUser) ([]*models.AppUser, error) {
 	var appUsers = []*models.AppUser{}
-	query_users := data.DAL.SelectAppUsers()
-	for _, query_user := range query_users {
+	queryUsers := data.DAL.SelectAppUsers()
+	for _, queryUser := range queryUsers {
 		appUser := new(models.AppUser)
-		appUser.ID = query_user.ID
-		appUser.Username = query_user.Username
-		if query_user.Email.Valid {
-			appUser.Email = query_user.Email.String
+		appUser.ID = queryUser.ID
+		appUser.Username = queryUser.Username
+		if queryUser.Email.Valid {
+			appUser.Email = queryUser.Email.String
 		} else {
 			appUser.Email = ""
 		}
-		appUser.IsSuperAdmin = query_user.IsSuperAdmin
-		appUser.IsCertAdmin = query_user.IsCertAdmin
-		appUser.IsAppAdmin = query_user.IsAppAdmin
+		appUser.IsSuperAdmin = queryUser.IsSuperAdmin
+		appUser.IsCertAdmin = queryUser.IsCertAdmin
+		appUser.IsAppAdmin = queryUser.IsAppAdmin
 		if authUser.IsSuperAdmin || authUser.UserID == appUser.ID {
 			appUsers = append(appUsers, appUser)
 		}
@@ -113,16 +113,17 @@ func GetAppUserByID(userID int64) (*models.AppUser, error) {
 	if userID > 0 {
 		appUser := new(models.AppUser)
 		appUser.ID = userID
-		query_user := data.DAL.SelectAppUserByID(userID)
-		appUser.Username = query_user.Username
-		if query_user.Email.Valid {
-			appUser.Email = query_user.Email.String
+		queryUser := data.DAL.SelectAppUserByID(userID)
+		appUser.Username = queryUser.Username
+		if queryUser.Email.Valid {
+			appUser.Email = queryUser.Email.String
 		} else {
 			appUser.Email = ""
 		}
-		appUser.IsSuperAdmin = query_user.IsSuperAdmin
-		appUser.IsCertAdmin = query_user.IsCertAdmin
-		appUser.IsAppAdmin = query_user.IsAppAdmin
+		appUser.IsSuperAdmin = queryUser.IsSuperAdmin
+		appUser.IsCertAdmin = queryUser.IsCertAdmin
+		appUser.IsAppAdmin = queryUser.IsAppAdmin
+		appUser.NeedModifyPWD = queryUser.NeedModifyPWD
 		return appUser, nil
 	} else {
 		return nil, errors.New("id error")

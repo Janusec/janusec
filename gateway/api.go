@@ -99,7 +99,7 @@ func APIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "updateapp":
 		obj, err = backend.UpdateApplication(param)
 	case "update_vip_app":
-		obj, err = backend.UpdateVipApp(param)
+		obj, err = backend.UpdateVipApp(param, authUser)
 	case "delapp":
 		obj = nil
 		id := int64(param["id"].(float64))

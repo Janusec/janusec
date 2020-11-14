@@ -167,12 +167,13 @@ type AppUser struct {
 
 // QueryAppUser not include password and salt
 type QueryAppUser struct {
-	ID           int64
-	Username     string
-	Email        sql.NullString
-	IsSuperAdmin bool
-	IsCertAdmin  bool
-	IsAppAdmin   bool
+	ID            int64
+	Username      string
+	Email         sql.NullString
+	IsSuperAdmin  bool
+	IsCertAdmin   bool
+	IsAppAdmin    bool
+	NeedModifyPWD bool
 }
 
 // TOTP Authenticator

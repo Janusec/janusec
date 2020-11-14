@@ -94,12 +94,6 @@ func main() {
 		if admin.Listen == true {
 			adminMux := http.NewServeMux()
 			LoadAPIRoute(adminMux)
-			/*
-				adminMux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
-				adminMux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
-				adminMux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
-				adminMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
-			*/
 			if len(admin.ListenHTTP) > 0 {
 				go func() {
 					listen, err := net.Listen("tcp", admin.ListenHTTP)
@@ -135,12 +129,6 @@ func main() {
 		} else {
 			// Add API and admin
 			LoadAPIRoute(gateMux)
-			/*
-				gateMux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
-				gateMux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
-				gateMux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
-				gateMux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
-			*/
 		}
 	}
 	// Add OAuth2

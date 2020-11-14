@@ -56,7 +56,6 @@ func LoadVipApps() {
 	// Start Port Forwarding
 	for _, vipApp := range VipApps {
 		go ListenOnVIP(vipApp)
-
 	}
 }
 
@@ -82,43 +81,42 @@ func ListenOnVIP(vipApp *models.VipApp) {
 		utils.DebugPrintln("ResolveUDPAddr", address, err)
 		return
 	}
-	udpListenConn, err := net.ListenUDP("udp", udpAddr)
 
-	//udpListenConn, err := net.ListenPacket("udp", address)
+	udpListenConn, err := net.ListenUDP("udp", udpAddr)
 	if err != nil {
 		utils.DebugPrintln("ListenOnVIP could not start udp port ", vipApp.ListenPort, err)
 	}
 	if udpListenConn != nil {
 		defer udpListenConn.Close()
 	}
+	// Mode: not use ListenUDP, when response uses service port
 	go UDPForwarding(vipApp, udpListenConn)
+
 	<-vipApp.ExitChan
 }
 
-// UDPForwarding ...
+// UDPForwarding with DialUDP
 func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 	for {
-		dataBuf := make([]byte, 4096)
-		//oob := make([]byte, 4096)
-		//dataInLen, _, _, clientAddr, err := udpListenConn.ReadMsgUDP(dataBuf, oob)
+		dataBuf := make([]byte, 2048)
 		dataInLen, clientAddr, err := udpListenConn.ReadFromUDP(dataBuf)
 		if err != nil {
-			fmt.Println("UDPForwarding ReadMsgUDP", err)
+			//fmt.Println("UDPForwarding ReadMsgUDP", err)
 			break
 		}
 
 		vipTarget := SelectVipTarget(vipApp, clientAddr.String())
 		if err != nil {
-			fmt.Println("UDPForwarding ResolveUDPAddr", err)
+			//fmt.Println("UDPForwarding ResolveUDPAddr", err)
 			break
 		}
 		if vipTarget != nil {
+			vipTarget.CheckTime = time.Now().Unix()
 			targetAddr, err := net.ResolveUDPAddr("udp", vipTarget.Destination)
 			udpTargetConn, err := net.DialUDP("udp", nil, targetAddr)
 			if err != nil {
 				utils.DebugPrintln("UDPForwarding DialUDP could not connect to target", vipTarget.Destination, err)
 				vipTarget.Online = false
-				vipTarget.CheckTime = time.Now().Unix()
 				break
 			}
 			if udpTargetConn == nil {
@@ -133,10 +131,11 @@ func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 			udpTargetConn.SetDeadline(time.Now().Add(30 * time.Second))
 			go func() {
 				// make receiver ready before send request
-				data := make([]byte, 4096)
+				data := make([]byte, 2048)
 				for {
 					n, _, err := udpTargetConn.ReadFromUDP(data)
 					if err != nil {
+						vipTarget.Online = false
 						break
 					}
 					// Response to client
@@ -155,19 +154,18 @@ func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 			}
 		}
 	}
-
 }
 
 // TCPForwarding accept connections and forward to backend targets
 func TCPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
 	for {
 		if vipListener == nil {
-			fmt.Println("TCPForwarding vipListener nil, break")
+			// fmt.Println("TCPForwarding vipListener nil, break")
 			break
 		}
 		proxy, err := vipListener.Accept()
 		if proxy == nil {
-			fmt.Println("TCPForwarding proxy nil, break")
+			// fmt.Println("TCPForwarding proxy nil, break")
 			break
 		}
 		if err != nil {
@@ -177,13 +175,13 @@ func TCPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
 		vipTarget := SelectVipTarget(vipApp, remoteAddr.String())
 		if vipTarget != nil {
 			target, err := net.Dial("tcp", vipTarget.Destination)
+			vipTarget.CheckTime = time.Now().Unix()
 			if err != nil {
 				utils.DebugPrintln("TCPForwarding could not connect to target", vipTarget.Destination, err)
 				vipTarget.Online = false
-				vipTarget.CheckTime = time.Now().Unix()
 				continue
 			}
-			//defer target.Close()
+			vipTarget.Online = true
 			// Log to file
 			utils.VipAccessLog(vipApp.Name, remoteAddr.String(), proxy.LocalAddr().String(), vipTarget.Destination)
 			// stream copy
@@ -240,7 +238,10 @@ func GetVipApps(authUser *models.AuthUser) ([]*models.VipApp, error) {
 }
 
 // UpdateVipApp create or update VipApp for port forwarding
-func UpdateVipApp(param map[string]interface{}) (*models.VipApp, error) {
+func UpdateVipApp(param map[string]interface{}, authUser *models.AuthUser) (*models.VipApp, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("only super admin can configure port forwarding")
+	}
 	application := param["object"].(map[string]interface{})
 	listenPort := int64(application["listen_port"].(float64))
 	if listenPort <= 1024 {
@@ -282,14 +283,14 @@ func UpdateVipApp(param map[string]interface{}) (*models.VipApp, error) {
 			vipApp.IsTCP = isTCP
 			vipApp.Owner = owner
 			vipApp.Description = description
-			fmt.Println("send exit signal to", vipApp.Name)
+			// fmt.Println("send exit signal to", vipApp.Name)
 			vipApp.ExitChan <- true
-			fmt.Println("sended exit signal to", vipApp.Name)
+			// fmt.Println("sended exit signal to", vipApp.Name)
 		} else {
 			return nil, errors.New("Port Forwarding not found")
 		}
 	}
-	fmt.Println("update targets ...")
+	// fmt.Println("update targets ...")
 	targets := application["targets"].([]interface{})
 	UpdateTargets(vipApp, targets)
 	vipListener, err := net.Listen("tcp", ":"+strconv.FormatInt(vipApp.ListenPort, 10))

@@ -64,6 +64,7 @@ func InitAccessStat() {
 
 		// check offline destinations
 		backend.CheckOfflineDestinations(now.Unix())
+		backend.CheckOfflineVipTargets(now.Unix())
 	}
 }
 

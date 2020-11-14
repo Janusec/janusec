@@ -172,11 +172,6 @@ func UpdateCheckItems(groupPolicy *models.GroupPolicy, checkItems []*models.Chec
 		newCheckItems = append(newCheckItems, checkItem)
 	}
 	groupPolicy.CheckItems = newCheckItems
-	/*
-		for _, check_item := range group_policy.CheckItems {
-			fmt.Println("UpdateCheckItems", check_item)
-		}
-	*/
 	DebugTranverseCheckItems()
 	return nil
 }
