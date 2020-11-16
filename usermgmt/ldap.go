@@ -91,7 +91,12 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 	// Janusec admin user
 	if state == "admin" {
 		// Insert into db if not existed
-		id, _ := data.DAL.InsertIfNotExistsAppUser(username, "", "", "", false, false, false, false)
+		id, err := data.DAL.InsertIfNotExistsAppUser(username, "", "", "", false, false, false, false)
+		if err != nil {
+			w.WriteHeader(403)
+			w.Write([]byte("Error: " + err.Error()))
+			return
+		}
 		// create session
 		authUser := &models.AuthUser{
 			UserID:        id,

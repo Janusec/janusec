@@ -83,7 +83,12 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	dingtalkUser := dingtalkResponse.UserInfo
 	if state == "admin" {
 		// Insert into db if not existed
-		id, _ := data.DAL.InsertIfNotExistsAppUser(dingtalkUser.Nick, "", "", "", false, false, false, false)
+		id, err := data.DAL.InsertIfNotExistsAppUser(dingtalkUser.Nick, "", "", "", false, false, false, false)
+		if err != nil {
+			w.WriteHeader(403)
+			w.Write([]byte("Error: " + err.Error()))
+			return
+		}
 		// create session
 		authUser := &models.AuthUser{
 			UserID:        id,
@@ -96,7 +101,7 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400}
-		err := session.Save(r, w)
+		err = session.Save(r, w)
 		if err != nil {
 			utils.DebugPrintln("DingtalkCallbackWithCode session save error", err)
 		}

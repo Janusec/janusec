@@ -98,7 +98,12 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	}
 	if state == "admin" {
 		// Insert into db if not existed
-		id, _ := data.DAL.InsertIfNotExistsAppUser(feishuUser.Data.EnName, "", "", "", false, false, false, false)
+		id, err := data.DAL.InsertIfNotExistsAppUser(feishuUser.Data.EnName, "", "", "", false, false, false, false)
+		if err != nil {
+			w.WriteHeader(403)
+			w.Write([]byte("Error: " + err.Error()))
+			return
+		}
 		// create session
 		authUser := &models.AuthUser{
 			UserID:        id,
@@ -111,7 +116,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser
 		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: tokenResponse.Expire}
-		err := session.Save(r, w)
+		err = session.Save(r, w)
 		if err != nil {
 			utils.DebugPrintln("FeishuCallbackWithCode session save error", err)
 		}
