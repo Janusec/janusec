@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistCheckItems = `CREATE TABLE IF NOT EXISTS check_items(id bigserial primary key,check_point bigint,operation bigint,key_name varchar(256),regex_policy varchar(512),group_policy_id bigint)`
+	sqlCreateTableIfNotExistCheckItems = `CREATE TABLE IF NOT EXISTS check_items(id bigserial primary key,check_point bigint,operation bigint,key_name varchar(256) default '',regex_policy varchar(512),group_policy_id bigint)`
 	sqlInsertCheckItem                 = `INSERT INTO check_items(check_point,operation,key_name,regex_policy,group_policy_id) VALUES($1,$2,$3,$4,$5) RETURNING id`
 	sqlSelectCheckItemsByGroupID       = `SELECT id,check_point,operation,key_name,regex_policy FROM check_items WHERE group_policy_id=$1`
 	sqlDeleteCheckItemByID             = `DELETE FROM check_items WHERE id=$1`
