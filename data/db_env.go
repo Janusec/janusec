@@ -18,6 +18,10 @@ const (
 func (dal *MyDAL) SetIDSeqStartWith(tableName string, seq int64) error {
 	tableIDSeq := tableName + `_id_seq`
 	_, err := dal.db.Exec(sqlSetIDSeqStartWith, tableIDSeq, seq)
-	utils.CheckError("SetIDSeqStartWith", err)
+	if err != nil {
+		tableIDSeq := `"` + tableName + `_id_SEQ"`
+		_, err = dal.db.Exec(sqlSetIDSeqStartWith, tableIDSeq, seq)
+		utils.CheckError("SetIDSeqStartWith", err)
+	}
 	return err
 }

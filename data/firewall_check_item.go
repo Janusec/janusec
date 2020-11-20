@@ -13,12 +13,11 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistCheckItems = `CREATE TABLE IF NOT EXISTS check_items(id bigserial primary key,check_point bigint,operation bigint,key_name varchar(256) default '',regex_policy varchar(512),group_policy_id bigint)`
-	sqlInsertCheckItem                 = `INSERT INTO check_items(check_point,operation,key_name,regex_policy,group_policy_id) VALUES($1,$2,$3,$4,$5) RETURNING id`
-	sqlSelectCheckItemsByGroupID       = `SELECT id,check_point,operation,key_name,regex_policy FROM check_items WHERE group_policy_id=$1`
-	sqlDeleteCheckItemByID             = `DELETE FROM check_items WHERE id=$1`
-	sqlUpdateCheckItemByID             = `UPDATE check_items SET check_point=$1,operation=$2,key_name=$3,regex_policy=$4,group_policy_id=$5 WHERE id=$6`
-	//sqlDeleteCheckItemsByGroupID       = `DELETE FROM check_items WHERE group_policy_id=$1`
+	sqlCreateTableIfNotExistCheckItems = `CREATE TABLE IF NOT EXISTS "check_items"("id" bigserial primary key,"check_point" bigint,"operation" bigint,"key_name" VARCHAR(256) NOT NULL DEFAULT '',"regex_policy" VARCHAR(512) NOT NULL,"group_policy_id" bigint)`
+	sqlInsertCheckItem                 = `INSERT INTO "check_items"("check_point","operation","key_name","regex_policy","group_policy_id") VALUES($1,$2,$3,$4,$5) RETURNING "id"`
+	sqlSelectCheckItemsByGroupID       = `SELECT "id","check_point","operation","key_name","regex_policy" FROM "check_items" WHERE "group_policy_id"=$1`
+	sqlDeleteCheckItemByID             = `DELETE FROM "check_items" WHERE "id"=$1`
+	sqlUpdateCheckItemByID             = `UPDATE "check_items" SET "check_point"=$1,"operation"=$2,"key_name"=$3,"regex_policy"=$4,"group_policy_id"=$5 WHERE "id"=$6`
 )
 
 func (dal *MyDAL) CreateTableIfNotExistCheckItems() error {
@@ -36,8 +35,8 @@ func (dal *MyDAL) InsertCheckItem(checkPoint models.ChkPoint, operation models.O
 	return newID, err
 }
 
-func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) ([]*models.CheckItem, error) {
-	checkItems := []*models.CheckItem{}
+func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) ([]*models.DBCheckItem, error) {
+	checkItems := []*models.DBCheckItem{}
 	rows, err := dal.db.Query(sqlSelectCheckItemsByGroupID, groupPolicyID)
 	utils.CheckError("SelectCheckItemsByGroupID", err)
 	if err != nil {
@@ -45,7 +44,7 @@ func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) ([]*models.Chec
 	}
 	defer rows.Close()
 	for rows.Next() {
-		checkItem := &models.CheckItem{}
+		checkItem := &models.DBCheckItem{}
 		err = rows.Scan(&checkItem.ID, &checkItem.CheckPoint, &checkItem.Operation, &checkItem.KeyName, &checkItem.RegexPolicy)
 		utils.CheckError("SelectCheckItemsByGroupID Scan", err)
 		checkItems = append(checkItems, checkItem)
@@ -58,14 +57,6 @@ func (dal *MyDAL) DeleteCheckItemByID(id int64) error {
 	utils.CheckError("DeleteCheckItemByID", err)
 	return err
 }
-
-/*
-func (dal *MyDAL) DeleteCheckItemsByGroupID(group_policy_id int64) error {
-	_, err := dal.db.Exec(sqlDeleteCheckItemsByGroupID, group_policy_id)
-	utils.CheckError("DeleteCheckItemsByGroupID", err)
-	return err
-}
-*/
 
 func (dal *MyDAL) UpdateCheckItemByID(checkPoint models.ChkPoint, operation models.Operation, keyName string, regexPolicy string, groupPolicyID int64, checkItemID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCheckItemByID)

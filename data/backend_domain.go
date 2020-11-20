@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistsDomains = `CREATE TABLE IF NOT EXISTS domains(id bigserial PRIMARY KEY, name varchar(256) NOT NULL, app_id bigint NOT NULL, cert_id bigint, redirect boolean, location varchar(256))`
-	sqlSelectDomainsCountByCertID    = `SELECT COUNT(1) FROM domains WHERE cert_id=$1`
-	sqlSelectDomains                 = `SELECT id, name, app_id, cert_id, redirect, location FROM domains`
-	sqlInsertDomain                  = `INSERT INTO domains(name, app_id, cert_id, redirect, location) VALUES($1,$2,$3,$4,$5) RETURNING id`
-	sqlUpdateDomain                  = `UPDATE domains SET name=$1,app_id=$2,cert_id=$3,redirect=$4,location=$5 WHERE id=$6`
-	sqlDeleteDomainByDomainID        = `DELETE FROM domains WHERE id=$1`
-	sqlDeleteDomainByAppID           = `DELETE FROM domains WHERE app_id=$1`
+	sqlCreateTableIfNotExistsDomains = `CREATE TABLE IF NOT EXISTS "domains"("id" bigserial PRIMARY KEY, "name" VARCHAR(256) NOT NULL, "app_id" bigint NOT NULL, "cert_id" bigint, "redirect" boolean, "location" VARCHAR(256))`
+	sqlSelectDomainsCountByCertID    = `SELECT COUNT(1) FROM "domains" WHERE "cert_id"=$1`
+	sqlSelectDomains                 = `SELECT "id", "name", "app_id", "cert_id", "redirect", "location" FROM "domains"`
+	sqlInsertDomain                  = `INSERT INTO "domains"("name", "app_id", "cert_id", "redirect", "location") VALUES($1,$2,$3,$4,$5) RETURNING "id"`
+	sqlUpdateDomain                  = `UPDATE "domains" SET "name"=$1,"app_id"=$2,"cert_id"=$3,"redirect"=$4,"location"=$5 WHERE "id"=$6`
+	sqlDeleteDomainByDomainID        = `DELETE FROM "domains" WHERE "id"=$1`
+	sqlDeleteDomainByAppID           = `DELETE FROM "domains" WHERE "app_id"=$1`
 )
 
 func (dal *MyDAL) CreateTableIfNotExistsDomains() error {

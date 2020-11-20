@@ -66,48 +66,48 @@ func InitDatabase() {
 	// Upgrade to latest version
 	if dal.ExistColumnInTable("domains", "redirect") == false {
 		// v0.9.6+ required
-		err = dal.ExecSQL(`alter table domains add column redirect boolean default false, add column location varchar(256) default ''`)
+		err = dal.ExecSQL(`ALTER TABLE "domains" ADD COLUMN "redirect" boolean default false, ADD COLUMN "location" VARCHAR(256) NOT NULL DEFAULT ''`)
 		if err != nil {
-			utils.DebugPrintln("InitDatabase alter table domains", err)
+			utils.DebugPrintln("InitDatabase ALTER TABLE domains", err)
 		}
 	}
 	if dal.ExistColumnInTable("applications", "oauth_required") == false {
 		// v0.9.7+ required
-		err = dal.ExecSQL(`alter table applications add column oauth_required boolean default false, add column session_seconds bigint default 7200, add column owner varchar(128)`)
+		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "oauth_required" boolean default false, ADD COLUMN "session_seconds" bigint default 7200, ADD COLUMN "owner" VARCHAR(128)`)
 		if err != nil {
-			utils.DebugPrintln("InitDatabase alter table applications oauth", err)
+			utils.DebugPrintln("InitDatabase ALTER TABLE applications oauth", err)
 		}
 	}
 	if dal.ExistColumnInTable("destinations", "route_type") == false {
 		// v0.9.8+ required
-		err = dal.ExecSQL(`alter table destinations add column route_type bigint default 1, add column request_route varchar(128) default '/', add column backend_route varchar(128) default '/'`)
+		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "route_type" bigint default 1, ADD COLUMN "request_route" VARCHAR(128) default '/', ADD COLUMN "backend_route" VARCHAR(128) default '/'`)
 		if err != nil {
-			utils.DebugPrintln("InitDatabase alter table destinations", err)
+			utils.DebugPrintln("InitDatabase ALTER TABLE destinations", err)
 		}
 	}
 	if dal.ExistColumnInTable("ccpolicies", "interval_seconds") == true {
 		// v0.9.9 interval_seconds, v0.9.10 interval_milliseconds
-		err = dal.ExecSQL(`ALTER TABLE ccpolicies RENAME COLUMN interval_seconds TO interval_milliseconds`)
+		err = dal.ExecSQL(`ALTER TABLE "ccpolicies" RENAME COLUMN "interval_seconds" TO "interval_milliseconds"`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE ccpolicies", err)
 		}
-		err = dal.ExecSQL(`UPDATE ccpolicies SET interval_milliseconds=interval_milliseconds*1000`)
+		err = dal.ExecSQL(`UPDATE "ccpolicies" SET "interval_milliseconds"="interval_milliseconds"*1000`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase UPDATE ccpolicies", err)
 		}
 	}
 	if dal.ExistColumnInTable("applications", "csp") == false {
 		// v0.9.11 CSP
-		err = dal.ExecSQL(`alter table applications add column csp_enabled boolean default false, add column csp varchar(1024) default 'default-src ''self'''`)
+		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "csp_enabled" boolean default false, ADD COLUMN "csp" VARCHAR(1024) default 'default-src ''self'''`)
 		if err != nil {
-			utils.DebugPrintln("InitDatabase alter table applications", err)
+			utils.DebugPrintln("InitDatabase ALTER TABLE applications", err)
 		}
 	}
 	if dal.ExistColumnInTable("totp", "uid") == true {
 		// 0.9.12+fix
-		err = dal.ExecSQL(`ALTER TABLE totp RENAME COLUMN uid TO totp_uid`)
+		err = dal.ExecSQL(`ALTER TABLE "totp" RENAME COLUMN "uid" TO "totp_uid"`)
 		if err != nil {
-			utils.DebugPrintln("InitDatabase alter table totp", err)
+			utils.DebugPrintln("InitDatabase ALTER TABLE totp", err)
 		}
 	}
 }

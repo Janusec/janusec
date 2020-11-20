@@ -8,6 +8,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -105,15 +106,14 @@ type CheckItem struct {
 	GroupPolicy   *GroupPolicy `json:"-"`
 }
 
-/*
 type DBCheckItem struct {
-	ID            int64    `json:"id"`
-	CheckPoint    ChkPoint `json:"check_point"`
-	KeyName       string   `json:"key_name"`
-	RegexPolicy   string   `json:"regex_policy"`
-	GroupPolicyID int64    `json:"group_policy_id"`
+	ID            int64
+	CheckPoint    ChkPoint
+	Operation     Operation
+	KeyName       sql.NullString
+	RegexPolicy   string
+	GroupPolicyID int64
 }
-*/
 
 type ClientStat struct {
 	Count         int64

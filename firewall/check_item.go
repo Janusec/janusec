@@ -106,24 +106,44 @@ func UpdateCheckItemToMap(checkItem *models.CheckItem) {
 func LoadCheckItems() {
 	for _, groupPolicy := range groupPolicies {
 		var checkItems []*models.CheckItem
+		var dbCheckItems []*models.DBCheckItem
 		var err error
 		if data.IsPrimary {
-			checkItems, err = data.DAL.SelectCheckItemsByGroupID(groupPolicy.ID)
+			dbCheckItems, err = data.DAL.SelectCheckItemsByGroupID(groupPolicy.ID)
 			utils.CheckError("LoadCheckItems", err)
+			for _, dbCheckItem := range dbCheckItems {
+				var keyName = ""
+				if dbCheckItem.KeyName.Valid {
+					keyName = dbCheckItem.KeyName.String
+				}
+				checkItem := &models.CheckItem{
+					ID:            dbCheckItem.ID,
+					CheckPoint:    dbCheckItem.CheckPoint,
+					Operation:     dbCheckItem.Operation,
+					KeyName:       keyName,
+					RegexPolicy:   dbCheckItem.RegexPolicy,
+					GroupPolicyID: groupPolicy.ID,
+					GroupPolicy:   groupPolicy,
+				}
+				groupPolicy.CheckItems = append(groupPolicy.CheckItems, checkItem)
+				value, _ := checkPointCheckItemsMap.LoadOrStore(checkItem.CheckPoint, []*models.CheckItem{})
+				checkpointCheckItems := value.(([]*models.CheckItem))
+				checkpointCheckItems = append(checkpointCheckItems, checkItem)
+				checkPointCheckItemsMap.Store(checkItem.CheckPoint, checkpointCheckItems)
+			}
 		} else {
 			//fmt.Println("LoadCheckItems Replica Node group_policy:", group_policy)
 			checkItems = groupPolicy.CheckItems
-		}
-
-		for _, checkItem := range checkItems {
-			//fmt.Println("LoadCheckItems", group_policy.ID, check_item)
-			checkItem.GroupPolicy = groupPolicy
-			checkItem.GroupPolicyID = groupPolicy.ID
-			groupPolicy.CheckItems = append(groupPolicy.CheckItems, checkItem)
-			value, _ := checkPointCheckItemsMap.LoadOrStore(checkItem.CheckPoint, []*models.CheckItem{})
-			checkpointCheckItems := value.(([]*models.CheckItem))
-			checkpointCheckItems = append(checkpointCheckItems, checkItem)
-			checkPointCheckItemsMap.Store(checkItem.CheckPoint, checkpointCheckItems)
+			for _, checkItem := range checkItems {
+				//fmt.Println("LoadCheckItems", group_policy.ID, check_item)
+				checkItem.GroupPolicy = groupPolicy
+				checkItem.GroupPolicyID = groupPolicy.ID
+				groupPolicy.CheckItems = append(groupPolicy.CheckItems, checkItem)
+				value, _ := checkPointCheckItemsMap.LoadOrStore(checkItem.CheckPoint, []*models.CheckItem{})
+				checkpointCheckItems := value.(([]*models.CheckItem))
+				checkpointCheckItems = append(checkpointCheckItems, checkItem)
+				checkPointCheckItemsMap.Store(checkItem.CheckPoint, checkpointCheckItems)
+			}
 		}
 	}
 }

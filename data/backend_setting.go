@@ -12,21 +12,21 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistsSettings = `CREATE TABLE IF NOT EXISTS settings(id bigserial PRIMARY KEY, name varchar(128),bool_value boolean,int_value bigint,float_value decimal,string_value varchar(1024))`
-	sqlCountSettings                  = `SELECT COUNT(1) FROM settings`
-	sqlInsertBoolSetting              = `INSERT INTO settings(name,bool_value) values($1,$2)`
-	sqlInsertIntSetting               = `INSERT INTO settings(name,int_value) values($1,$2)`
-	sqlInsertFloatSetting             = `INSERT INTO settings(name,float_value) values($1,$2)`
-	sqlInsertStringSetting            = `INSERT INTO settings(name,string_value) values($1,$2)`
-	sqlUpdateBoolSetting              = `UPDATE settings set bool_value=$1 WHERE name=$2`
-	sqlUpdateIntSetting               = `UPDATE settings set int_value=$1 WHERE name=$2`
-	sqlUpdateFloatSetting             = `UPDATE settings set float_value=$1 WHERE name=$2`
-	sqlUpdateStringSetting            = `UPDATE settings set string_value=$1 WHERE name=$2`
-	sqlSelectBoolSetting              = `SELECT bool_value FROM settings WHERE name=$1`
-	sqlSelectIntSetting               = `SELECT int_value FROM settings WHERE name=$1`
-	sqlSelectFloatSetting             = `SELECT float_value FROM settings WHERE name=$1`
-	sqlSelectStringSetting            = `SELECT string_value FROM settings WHERE name=$1`
-	sqlExistsSetting                  = `SELECT coalesce((SELECT 1 FROM settings WHERE name=$1 limit 1),0)`
+	sqlCreateTableIfNotExistsSettings = `CREATE TABLE IF NOT EXISTS "settings"("id" bigserial PRIMARY KEY, "name" VARCHAR(128) NOT NULL,"bool_value" boolean,"int_value" bigint,"float_value" decimal,"string_value" VARCHAR(1024))`
+	sqlCountSettings                  = `SELECT COUNT(1) FROM "settings"`
+	sqlInsertBoolSetting              = `INSERT INTO "settings"("name","bool_value") VALUES($1,$2)`
+	sqlInsertIntSetting               = `INSERT INTO "settings"("name","int_value") VALUES($1,$2)`
+	sqlInsertFloatSetting             = `INSERT INTO "settings"("name","float_value") VALUES($1,$2)`
+	sqlInsertStringSetting            = `INSERT INTO "settings"("name","string_value") VALUES($1,$2)`
+	sqlUpdateBoolSetting              = `UPDATE "settings" SET "bool_value"=$1 WHERE "name"=$2`
+	sqlUpdateIntSetting               = `UPDATE "settings" SET "int_value"=$1 WHERE "name"=$2`
+	sqlUpdateFloatSetting             = `UPDATE "settings" SET "float_value"=$1 WHERE "name"=$2`
+	sqlUpdateStringSetting            = `UPDATE "settings" SET "string_value"=$1 WHERE "name"=$2`
+	sqlSelectBoolSetting              = `SELECT "bool_value" FROM "settings" WHERE "name"=$1`
+	sqlSelectIntSetting               = `SELECT "int_value" FROM "settings" WHERE "name"=$1`
+	sqlSelectFloatSetting             = `SELECT "float_value" FROM "settings" WHERE "name"=$1`
+	sqlSelectStringSetting            = `SELECT "string_value" FROM "settings" WHERE "name"=$1`
+	sqlExistsSetting                  = `SELECT COALESCE((SELECT 1 FROM "settings" WHERE "name"=$1 limit 1),0)`
 )
 
 func (dal *MyDAL) ExistsSetting(name string) bool {

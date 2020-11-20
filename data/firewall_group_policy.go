@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistsGroupPolicy = `CREATE TABLE IF NOT EXISTS group_policies(id bigserial primary key,description varchar(256),app_id bigint,vuln_id bigint,hit_value bigint,action bigint,is_enabled boolean,user_id bigint,update_time bigint)`
-	sqlExistsGroupPolicy                 = `SELECT coalesce((SELECT 1 FROM group_policies limit 1),0)`
-	sqlSelectGroupPolicies               = `SELECT id,description,app_id,vuln_id,hit_value,action,is_enabled,user_id,update_time FROM group_policies`
-	sqlSelectGroupPoliciesByAppID        = `SELECT id,description,vuln_id,hit_value,action,is_enabled,user_id,update_time FROM group_policies WHERE app_id=$1`
-	sqlInsertGroupPolicy                 = `INSERT INTO group_policies(description,app_id,vuln_id,hit_value,action,is_enabled,user_id,update_time) values($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`
-	sqlUpdateGroupPolicy                 = `UPDATE group_policies SET description=$1,app_id=$2,vuln_id=$3,hit_value=$4,action=$5,is_enabled=$6,user_id=$7,update_time=$8 WHERE id=$9`
-	sqlDeleteGroupPolicyByID             = `DELETE FROM group_policies WHERE id=$1`
+	sqlCreateTableIfNotExistsGroupPolicy = `CREATE TABLE IF NOT EXISTS "group_policies"("id" bigserial primary key,"description" VARCHAR(256) NOT NULL DEFAULT '',"app_id" bigint,"vuln_id" bigint,"hit_value" bigint,"action" bigint,"is_enabled" boolean,"user_id" bigint,"update_time" bigint)`
+	sqlExistsGroupPolicy                 = `SELECT COALESCE((SELECT 1 FROM "group_policies" limit 1),0)`
+	sqlSelectGroupPolicies               = `SELECT "id","description","app_id","vuln_id","hit_value","action","is_enabled","user_id","update_time" FROM "group_policies"`
+	sqlSelectGroupPoliciesByAppID        = `SELECT "id","description","vuln_id","hit_value","action","is_enabled","user_id","update_time" FROM "group_policies" WHERE "app_id"=$1`
+	sqlInsertGroupPolicy                 = `INSERT INTO "group_policies"("description","app_id","vuln_id","hit_value","action","is_enabled","user_id","update_time") VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`
+	sqlUpdateGroupPolicy                 = `UPDATE "group_policies" SET "description"=$1,"app_id"=$2,"vuln_id"=$3,"hit_value"=$4,"action"=$5,"is_enabled"=$6,"user_id"=$7,"update_time"=$8 WHERE "id"=$9`
+	sqlDeleteGroupPolicyByID             = `DELETE FROM "group_policies" WHERE "id"=$1`
 )
 
 func (dal *MyDAL) CreateTableIfNotExistsGroupPolicy() error {

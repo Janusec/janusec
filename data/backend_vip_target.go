@@ -14,7 +14,7 @@ import (
 
 // CreateTableIfNotExistsVipTargets create vip_targets
 func (dal *MyDAL) CreateTableIfNotExistsVipTargets() error {
-	const sqlCreateTableIfNotExistsVipTargets = `CREATE TABLE IF NOT EXISTS vip_targets(id bigserial PRIMARY KEY,vip_app_id bigint NOT NULL,destination varchar(128) NOT NULL)`
+	const sqlCreateTableIfNotExistsVipTargets = `CREATE TABLE IF NOT EXISTS "vip_targets"("id" bigserial PRIMARY KEY,"vip_app_id" bigint NOT NULL,"destination" VARCHAR(128) NOT NULL)`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsVipTargets)
 	return err
 }
@@ -22,7 +22,7 @@ func (dal *MyDAL) CreateTableIfNotExistsVipTargets() error {
 // SelectVipTargetsByAppID ...
 func (dal *MyDAL) SelectVipTargetsByAppID(vipAppID int64) []*models.VipTarget {
 	targets := []*models.VipTarget{}
-	const sqlSelectVipTargetsByAppID = `SELECT id,destination FROM vip_targets WHERE vip_app_id=$1`
+	const sqlSelectVipTargetsByAppID = `SELECT "id","destination" FROM "vip_targets" WHERE "vip_app_id"=$1`
 	rows, err := dal.db.Query(sqlSelectVipTargetsByAppID, vipAppID)
 	utils.CheckError("SelectDestinationsByAppID", err)
 	if err != nil {
@@ -42,7 +42,7 @@ func (dal *MyDAL) SelectVipTargetsByAppID(vipAppID int64) []*models.VipTarget {
 
 // UpdateVipTarget ... update port forwarding target
 func (dal *MyDAL) UpdateVipTarget(vipAppID int64, destination string, id int64) error {
-	const sqlUpdateTarget = `UPDATE vip_targets SET vip_app_id=$1,destination=$2 WHERE id=$3`
+	const sqlUpdateTarget = `UPDATE "vip_targets" SET "vip_app_id"=$1,"destination"=$2 WHERE "id"=$3`
 	_, err := dal.db.Exec(sqlUpdateTarget, vipAppID, destination, id)
 	utils.CheckError("UpdateVipTarget", err)
 	return err
@@ -50,7 +50,7 @@ func (dal *MyDAL) UpdateVipTarget(vipAppID int64, destination string, id int64) 
 
 // InsertVipTarget create new VipTarget
 func (dal *MyDAL) InsertVipTarget(vipAppID int64, destination string) (newID int64, err error) {
-	const sqlInsertTarget = `INSERT INTO vip_targets(vip_app_id, destination) VALUES($1,$2) RETURNING id`
+	const sqlInsertTarget = `INSERT INTO "vip_targets"("vip_app_id", "destination") VALUES($1,$2) RETURNING "id"`
 	err = dal.db.QueryRow(sqlInsertTarget, vipAppID, destination).Scan(&newID)
 	utils.CheckError("InsertVipTarget", err)
 	return newID, err
@@ -58,7 +58,7 @@ func (dal *MyDAL) InsertVipTarget(vipAppID int64, destination string) (newID int
 
 // DeleteVipTargetByID delete VipTarget by id
 func (dal *MyDAL) DeleteVipTargetByID(id int64) error {
-	const sqlDeleteVipTargetByID = `DELETE FROM vip_targets WHERE id=$1`
+	const sqlDeleteVipTargetByID = `DELETE FROM "vip_targets" WHERE "id"=$1`
 	_, err := dal.db.Exec(sqlDeleteVipTargetByID, id)
 	utils.CheckError("DeleteDestinationByID", err)
 	return err
@@ -66,7 +66,7 @@ func (dal *MyDAL) DeleteVipTargetByID(id int64) error {
 
 // DeleteVipTargetsByVipAppID delete all targets for one port forwarding app
 func (dal *MyDAL) DeleteVipTargetsByVipAppID(vipAppID int64) error {
-	const sqlDeleteVipTargetsByVipAppID = `DELETE FROM vip_targets WHERE vip_app_id=$1`
+	const sqlDeleteVipTargetsByVipAppID = `DELETE FROM "vip_targets" WHERE "vip_app_id"=$1`
 	_, err := dal.db.Exec(sqlDeleteVipTargetsByVipAppID, vipAppID)
 	utils.CheckError("DeleteVipTargetsByVipAppID", err)
 	return err

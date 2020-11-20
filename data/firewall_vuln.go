@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistsVulnType = `CREATE TABLE IF NOT EXISTS vulntypes(id bigint primary key,name varchar(128))`
-	sqlExistsVulnType                 = `SELECT coalesce((SELECT 1 FROM vulntypes LIMIT 1),0)`
-	sqlInsertVulnType                 = `INSERT INTO vulntypes(id,name) values($1,$2)`
-	sqlSelectVulnTypes                = `SELECT id,name FROM vulntypes`
+	sqlCreateTableIfNotExistsVulnType = `CREATE TABLE IF NOT EXISTS "vulntypes"("id" bigint primary key,"name" VARCHAR(128))`
+	sqlExistsVulnType                 = `SELECT COALESCE((SELECT 1 FROM "vulntypes" LIMIT 1),0)`
+	sqlInsertVulnType                 = `INSERT INTO "vulntypes"("id","name") VALUES($1,$2)`
+	sqlSelectVulnTypes                = `SELECT "id","name" FROM "vulntypes"`
 )
 
 func (dal *MyDAL) CreateTableIfNotExistsVulnType() error {

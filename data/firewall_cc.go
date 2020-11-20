@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistsCCPolicy = `CREATE TABLE IF NOT EXISTS ccpolicies(app_id bigint primary key,interval_milliseconds bigint,max_count bigint,block_seconds bigint,action bigint,stat_by_url boolean,stat_by_ua boolean,stat_by_cookie boolean,is_enabled boolean)`
-	sqlExistsCCPolicy                 = `SELECT coalesce((SELECT 1 FROM ccpolicies LIMIT 1),0)`
-	sqlExistsCCPolicyByAppID          = `SELECT coalesce((SELECT 1 FROM ccpolicies WHERE app_id=$1 LIMIT 1),0)`
-	sqlInsertCCPolicy                 = `INSERT INTO ccpolicies(app_id,interval_milliseconds,max_count,block_seconds,action,stat_by_url,stat_by_ua,stat_by_cookie,is_enabled) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`
-	sqlSelectCCPolicies               = `SELECT app_id,interval_milliseconds,max_count,block_seconds,action,stat_by_url,stat_by_ua,stat_by_cookie,is_enabled FROM ccpolicies`
-	sqlUpdateCCPolicy                 = `UPDATE ccpolicies SET interval_milliseconds=$1,max_count=$2,block_seconds=$3,action=$4,stat_by_url=$5,stat_by_ua=$6,stat_by_cookie=$7,is_enabled=$8 where app_id=$9`
-	sqlDeleteCCPolicy                 = `DELETE FROM ccpolicies WHERE app_id=$1`
+	sqlCreateTableIfNotExistsCCPolicy = `CREATE TABLE IF NOT EXISTS "ccpolicies"("app_id" bigint primary key,"interval_milliseconds" bigint,"max_count" bigint,"block_seconds" bigint,"action" bigint,"stat_by_url" boolean,"stat_by_ua" boolean,"stat_by_cookie" boolean,"is_enabled" boolean)`
+	sqlExistsCCPolicy                 = `SELECT COALESCE((SELECT 1 FROM "ccpolicies" LIMIT 1),0)`
+	sqlExistsCCPolicyByAppID          = `SELECT COALESCE((SELECT 1 FROM "ccpolicies" WHERE "app_id"=$1 LIMIT 1),0)`
+	sqlInsertCCPolicy                 = `INSERT INTO "ccpolicies"("app_id","interval_milliseconds","max_count","block_seconds","action","stat_by_url","stat_by_ua","stat_by_cookie","is_enabled") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`
+	sqlSelectCCPolicies               = `SELECT "app_id","interval_milliseconds","max_count","block_seconds","action","stat_by_url","stat_by_ua","stat_by_cookie","is_enabled" FROM "ccpolicies"`
+	sqlUpdateCCPolicy                 = `UPDATE "ccpolicies" SET "interval_milliseconds"=$1,"max_count"=$2,"block_seconds"=$3,"action"=$4,"stat_by_url"=$5,"stat_by_ua"=$6,"stat_by_cookie"=$7,"is_enabled"=$8 where "app_id"=$9`
+	sqlDeleteCCPolicy                 = `DELETE FROM "ccpolicies" WHERE "app_id"=$1`
 )
 
 func (dal *MyDAL) CreateTableIfNotExistsCCPolicy() error {

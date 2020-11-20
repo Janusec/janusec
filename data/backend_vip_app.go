@@ -14,14 +14,14 @@ import (
 
 // CreateTableIfNotExistsVipApplications ...
 func (dal *MyDAL) CreateTableIfNotExistsVipApplications() error {
-	const sqlCreateTableIfNotExistsVipApplications = `CREATE TABLE IF NOT EXISTS vip_apps(id bigserial PRIMARY KEY, name varchar(128) NOT NULL, listen_port bigint, is_tcp boolean default true, owner varchar(128), description varchar(256))`
+	const sqlCreateTableIfNotExistsVipApplications = `CREATE TABLE IF NOT EXISTS "vip_apps"("id" bigserial PRIMARY KEY, "name" VARCHAR(128) NOT NULL, "listen_port" bigint, "is_tcp" boolean default true, "owner" VARCHAR(128) NOT NULL DEFAULT '', "description" VARCHAR(256) NOT NULL DEFAULT '')`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsVipApplications)
 	return err
 }
 
 // SelectVipApplications ...
 func (dal *MyDAL) SelectVipApplications() []*models.VipApp {
-	const sqlSelectVipApplications = `SELECT id,name,listen_port,is_tcp,owner,description FROM vip_apps`
+	const sqlSelectVipApplications = `SELECT "id","name","listen_port","is_tcp","owner","description" FROM "vip_apps"`
 	rows, err := dal.db.Query(sqlSelectVipApplications)
 	utils.CheckError("SelectVipApplications", err)
 	defer rows.Close()
@@ -46,7 +46,7 @@ func (dal *MyDAL) SelectVipApplications() []*models.VipApp {
 
 // InsertVipApp create new port forwarding
 func (dal *MyDAL) InsertVipApp(vipAppName string, listenPort int64, isTCP bool, owner string, description string) (newID int64) {
-	const sqlInsertVipApp = `INSERT INTO vip_apps(name,listen_port,is_tcp,owner,description) VALUES($1,$2,$3,$4,$5) RETURNING id`
+	const sqlInsertVipApp = `INSERT INTO "vip_apps"("name","listen_port","is_tcp","owner","description") VALUES($1,$2,$3,$4,$5) RETURNING "id"`
 	err := dal.db.QueryRow(sqlInsertVipApp, vipAppName, listenPort, isTCP, owner, description).Scan(&newID)
 	utils.CheckError("InsertVipApp", err)
 	return newID
@@ -54,14 +54,14 @@ func (dal *MyDAL) InsertVipApp(vipAppName string, listenPort int64, isTCP bool, 
 
 // UpdateVipAppByID update an existed VipApp
 func (dal *MyDAL) UpdateVipAppByID(vipAppName string, listenPort int64, isTCP bool, owner string, description string, vipAppID int64) error {
-	const sqlUpdateVipApp = `UPDATE vip_apps SET name=$1,listen_port=$2,is_tcp=$3,owner=$4,description=$5 WHERE id=$6`
+	const sqlUpdateVipApp = `UPDATE "vip_apps" SET "name"=$1,"listen_port"=$2,"is_tcp"=$3,"owner"=$4,"description"=$5 WHERE "id"=$6`
 	_, err := dal.db.Exec(sqlUpdateVipApp, vipAppName, listenPort, isTCP, owner, description, vipAppID)
 	utils.CheckError("InsertVipApp", err)
 	return err
 }
 
 func (dal *MyDAL) DeleteVipAppByID(id int64) error {
-	const sqlDeleteVipAppByID = `DELETE FROM vip_apps WHERE id=$1`
+	const sqlDeleteVipAppByID = `DELETE FROM "vip_apps" WHERE "id"=$1`
 	_, err := dal.db.Exec(sqlDeleteVipAppByID, id)
 	utils.CheckError("DeleteVipAppByID", err)
 	return err
