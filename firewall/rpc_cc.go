@@ -18,7 +18,7 @@ import (
 // RPCSelectCCPolicies ...
 func RPCSelectCCPolicies() (ccPolicies []*models.CCPolicy) {
 	rpcRequest := &models.RPCRequest{
-		Action: "getccpolicies", Object: nil}
+		Action: "get_cc_policies", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectCCPolicies GetResponse", err)

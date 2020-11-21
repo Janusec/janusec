@@ -190,10 +190,11 @@ func AddContextHandler(next http.Handler) http.Handler {
 
 // LoadAPIRoute set HandleFunc
 func LoadAPIRoute(mux *http.ServeMux) {
-	mux.HandleFunc("/janusec-admin/api", gateway.APIHandlerFunc)
-	mux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
+	mux.HandleFunc("/janusec-admin/api", gateway.ReplicaAPIHandlerFunc)
+	mux.HandleFunc("/janusec-admin/ui-api", gateway.AdminAPIHandlerFunc)
 	mux.HandleFunc("/janusec-admin/webssh", gateway.WebSSHHandlerFunc)
 	mux.HandleFunc("/janusec-admin/oauth/get", gateway.OAuthGetHandleFunc)
+	mux.HandleFunc("/janusec-admin/", gateway.AdminHandlerFunc)
 }
 
 // SetOSEnv set environment

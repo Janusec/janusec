@@ -18,7 +18,7 @@ import (
 // RPCSelectVulntypes ...
 func RPCSelectVulntypes() (vulnTypes []*models.VulnType) {
 	rpcRequest := &models.RPCRequest{
-		Action: "getvulntypes", Object: nil}
+		Action: "get_vuln_types", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectVulntypes GetResponse", err)

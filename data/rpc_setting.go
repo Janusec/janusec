@@ -16,7 +16,7 @@ import (
 
 func RPCGetSettings() []*models.Setting {
 	rpcRequest := &models.RPCRequest{
-		Action: "getsettings", Object: nil}
+		Action: "get_settings", Object: nil}
 	resp, err := GetRPCResponse(rpcRequest)
 	utils.CheckError("RPCGetSettings", err)
 	rpcSettings := &models.RPCSettings{}
@@ -28,7 +28,7 @@ func RPCGetSettings() []*models.Setting {
 
 func RPCGetOAuthConfig() *models.OAuthConfig {
 	rpcRequest := &models.RPCRequest{
-		Action: "getoauthconf", Object: nil}
+		Action: "get_oauth_conf", Object: nil}
 	resp, err := GetRPCResponse(rpcRequest)
 	utils.CheckError("RPCGetOAuthConfig", err)
 	rpcOAuthConf := &models.RPCOAuthConfig{}

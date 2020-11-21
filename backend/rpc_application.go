@@ -16,7 +16,7 @@ import (
 )
 
 func RPCSelectApplications() []*models.Application {
-	rpcRequest := &models.RPCRequest{Action: "getapps", Object: nil}
+	rpcRequest := &models.RPCRequest{Action: "get_apps", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.CheckError("RPCSelectApplications GetResponse", err)
