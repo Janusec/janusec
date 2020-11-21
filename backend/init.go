@@ -80,7 +80,7 @@ func InitDatabase() {
 	}
 	if dal.ExistColumnInTable("destinations", "route_type") == false {
 		// v0.9.8+ required
-		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "route_type" bigint default 1, ADD COLUMN "request_route" VARCHAR(128) default '/', ADD COLUMN "backend_route" VARCHAR(128) default '/'`)
+		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "route_type" bigint default 1, ADD COLUMN "request_route" VARCHAR(128) NOT NULL DEFAULT '/', ADD COLUMN "backend_route" VARCHAR(128) NOT NULL DEFAULT '/'`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE destinations", err)
 		}
@@ -98,7 +98,7 @@ func InitDatabase() {
 	}
 	if dal.ExistColumnInTable("applications", "csp") == false {
 		// v0.9.11 CSP
-		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "csp_enabled" boolean default false, ADD COLUMN "csp" VARCHAR(1024) default 'default-src ''self'''`)
+		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "csp_enabled" boolean default false, ADD COLUMN "csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self'''`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications", err)
 		}

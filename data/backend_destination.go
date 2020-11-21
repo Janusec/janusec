@@ -34,7 +34,7 @@ func (dal *MyDAL) ExistsDestinationID(id int64) bool {
 }
 
 func (dal *MyDAL) CreateTableIfNotExistsDestinations() error {
-	const sqlCreateTableIfNotExistsDestinations = `CREATE TABLE IF NOT EXISTS "destinations"("id" bigserial PRIMARY KEY,"route_type" bigint default 1,"request_route" VARCHAR(128) default '/',"backend_route" VARCHAR(128) default '/',"destination" VARCHAR(128) NOT NULL,"app_id" bigint NOT NULL,"node_id" bigint NOT NULL)`
+	const sqlCreateTableIfNotExistsDestinations = `CREATE TABLE IF NOT EXISTS "destinations"("id" bigserial PRIMARY KEY,"route_type" bigint default 1,"request_route" VARCHAR(128) NOT NULL DEFAULT '/',"backend_route" VARCHAR(128) NOT NULL DEFAULT '/',"destination" VARCHAR(128) NOT NULL,"app_id" bigint NOT NULL,"node_id" bigint NOT NULL)`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsDestinations)
 	return err
 }
