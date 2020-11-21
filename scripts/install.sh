@@ -61,8 +61,11 @@ exit 0
 esac
 
 \cp -f ./janusec ${install_dir}/
-rm -rf ${install_dir}/static
-\cp -r ./static ${install_dir}/
+rm -rf ${install_dir}/static/janusec-admin
+\cp -r ./static/janusec-admin ${install_dir}/static/
+if [ ! -d ${install_dir}/static/welcome ]; then
+    \cp -r ./static/welcome ${install_dir}/static/
+fi
 
 # Check OS from /etc/os-release, ID="centos" or ID=debian or ID="rhel"
 os=`cat /etc/os-release | grep "^ID\=" | awk -F "=" '{print $2}' | sed 's/\"//g'`
