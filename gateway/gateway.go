@@ -52,8 +52,14 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	app := backend.GetApplicationByDomain(r.Host)
 	if app == nil {
-		hitInfo := &models.HitInfo{PolicyID: 0, VulnName: "Unknown Host"}
-		GenerateBlockPage(w, hitInfo)
+		// Static Web site
+		staticHandler := http.FileServer(http.Dir("./static/welcome"))
+		if strings.HasSuffix(r.URL.Path, "/") {
+			targetFile := "./static/welcome" + r.URL.Path + "index.html"
+			http.ServeFile(w, r, targetFile)
+			return
+		}
+		staticHandler.ServeHTTP(w, r)
 		return
 	}
 	if (r.TLS == nil) && (app.RedirectHTTPS == true) {

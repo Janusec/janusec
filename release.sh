@@ -10,6 +10,7 @@ mkdir -p ${dist_dir}
 rm -rf ${dist_dir}static
 mkdir ${dist_dir}static
 \cp -r ./static/janusec-admin ${dist_dir}static/
+\cp -r ./static/welcome ${dist_dir}static/
 \cp -f ./robots.txt ${dist_dir}static/
 \cp -f ./scripts/* ${dist_dir}
 cd ./dist/
