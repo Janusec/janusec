@@ -17,7 +17,7 @@ const (
 	sqlInsertGroupHitLog                  = `INSERT INTO "group_hit_logs"("request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`
 	sqlSelectGroupHitLogByID              = `SELECT "id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id" FROM "group_hit_logs" WHERE "id"=$1`
 	sqlSelectSimpleGroupHitLogs           = `SELECT "id","request_time","client_ip","host","method","url_path","action","policy_id","app_id" FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 LIMIT $4 OFFSET $5`
-	sqlSelectGroupHitLogsCount            = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND request_time BETWEEN $2 AND $3`
+	sqlSelectGroupHitLogsCount            = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3`
 	sqlSelectGroupHitLogsCountByVulnID    = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND "vuln_id"=$2 AND "request_time" BETWEEN $3 AND $4`
 	sqlSelectAllGroupHitLogsCount         = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2`
 	sqlSelectAllGroupHitLogsCountByVulnID = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "vuln_id"=$1 AND "request_time" BETWEEN $2 AND $3`
