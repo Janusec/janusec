@@ -172,7 +172,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = GetAccessStat(param)
 	case "get_pop_contents":
 		obj, err = GetTodayPopularContent(param)
-	case "gate_health":
+	case "get_gateway_health":
 		obj, err = GetGatewayHealth()
 	default:
 		//fmt.Println("undefined action")
