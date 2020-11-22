@@ -31,6 +31,10 @@ func InitDefaultSettings() {
 	if data.DAL.ExistsSetting("Log_Expire_Seconds") == false {
 		err = data.DAL.SaveIntSetting("Log_Expire_Seconds", 7*86400)
 	}
+	if data.DAL.ExistsSetting("init_time") == false {
+		// 0.9.13 +
+		err = data.DAL.SaveIntSetting("init_time", time.Now().Unix())
+	}
 	if err != nil {
 		utils.DebugPrintln("InitDefaultSettings error", err)
 	}
