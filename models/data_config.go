@@ -10,6 +10,8 @@ package models
 // Config is the format of config.json
 type Config struct {
 	NodeRole    string            `json:"node_role"`
+	ListenHTTP  string            `json:"listen_http"`
+	ListenHTTPS string            `json:"listen_https"`
 	PrimaryNode PrimaryNodeConfig `json:"primary_node"`
 	ReplicaNode ReplicaNodeConfig `json:"replica_node"`
 }
@@ -51,8 +53,9 @@ type DBConfig struct {
 }
 
 type EncryptedConfig struct {
-	//NodeID     int64            `json:"node_id"`
 	NodeRole    string            `json:"node_role"`
+	ListenHTTP  string            `json:"listen_http"`
+	ListenHTTPS string            `json:"listen_https"`
 	PrimaryNode PrimaryNodeConfig `json:"primary_node"`
 	ReplicaNode ReplicaNodeConfig `json:"replica_node"`
 }

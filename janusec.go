@@ -54,7 +54,7 @@ func main() {
 	if utils.Debug {
 		utils.DebugPrintln("Warning: Janusec is running in Debug mode.")
 	}
-	data.InitDAL()
+	data.InitConfig()
 	if data.IsPrimary {
 		backend.InitDatabase()
 		settings.InitDefaultSettings() // instanceKey & nodesKey
@@ -108,6 +108,7 @@ func main() {
 						utils.DebugPrintln("http.Serve adminMux error", err)
 						os.Exit(1)
 					}
+					defer listen.Close()
 				}()
 			}
 			if len(admin.ListenHTTPS) > 0 {
@@ -124,6 +125,7 @@ func main() {
 						utils.DebugPrintln("http.Serve adminMux error", err)
 						os.Exit(1)
 					}
+					defer listen.Close()
 				}()
 			}
 		} else {
@@ -151,11 +153,12 @@ func main() {
 	// Reverse Proxy
 	gateMux.HandleFunc("/", gateway.ReverseHandlerFunc)
 	ctxGateMux := AddContextHandler(gateMux)
-	go func() {
-		listen, err := net.Listen("tcp", ":80")
+	go func(listenPort string) {
+		listen, err := net.Listen("tcp", listenPort)
 		if err != nil {
-			utils.CheckError("Port 80 is occupied.", err)
-			utils.DebugPrintln("Port 80 is occupied.", err)
+			msg := "Port " + listenPort + " is occupied."
+			utils.CheckError(msg, err)
+			utils.DebugPrintln(msg, err)
 			os.Exit(1)
 		}
 		err = http.Serve(listen, ctxGateMux)
@@ -164,11 +167,13 @@ func main() {
 			utils.DebugPrintln("http.Serve error", err)
 			os.Exit(1)
 		}
-	}()
-	listen, err := tls.Listen("tcp", ":443", tlsconfig)
+		defer listen.Close()
+	}(data.CFG.ListenHTTP)
+	listen, err := tls.Listen("tcp", data.CFG.ListenHTTPS, tlsconfig)
 	if err != nil {
-		utils.CheckError("Port 443 is occupied.", err)
-		utils.DebugPrintln("Port 443 is occupied.", err)
+		msg := "Port " + data.CFG.ListenHTTPS + " is occupied."
+		utils.CheckError(msg, err)
+		utils.DebugPrintln(msg, err)
 		os.Exit(1)
 	}
 	err = http.Serve(listen, ctxGateMux)
@@ -177,6 +182,7 @@ func main() {
 		utils.DebugPrintln("http.Serve error", err)
 		os.Exit(1)
 	}
+	defer listen.Close()
 }
 
 // AddContextHandler to add context handler
