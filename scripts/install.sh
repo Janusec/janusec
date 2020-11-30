@@ -62,9 +62,11 @@ esac
 
 \cp -f ./janusec ${install_dir}/
 rm -rf ${install_dir}/static/janusec-admin
-\cp -r ./static/janusec-admin ${install_dir}/static/
+mkdir -p ${install_dir}/static/janusec-admin
+\cp -R ./static/janusec-admin ${install_dir}/static/janusec-admin -T
 if [ ! -d ${install_dir}/static/welcome ]; then
-    \cp -r ./static/welcome ${install_dir}/static/
+    mkdir -p ${install_dir}/static/welcome
+    \cp -R ./static/welcome ${install_dir}/static/welcome -T
 fi
 
 # Check OS from /etc/os-release, ID="centos" or ID=debian or ID="rhel"
