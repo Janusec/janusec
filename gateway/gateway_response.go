@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	//"net/http/httputil"
@@ -101,6 +102,24 @@ func rewriteResponse(resp *http.Response) (err error) {
 		resp.Header.Set("Content-Security-Policy", app.CSP)
 	}
 
+	// if client http and backend https, remove "; Secure" and replace https by http
+	if (r.TLS == nil) && (app.InternalScheme == "https") {
+		cookies := resp.Cookies()
+		for _, cookie := range cookies {
+			re := regexp.MustCompile(`;\s*Secure`)
+			cookieStr := re.ReplaceAllLiteralString(cookie.Raw, "")
+			resp.Header.Set("Set-Cookie", cookieStr)
+		}
+		origin := resp.Header.Get("Access-Control-Allow-Origin")
+		if len(origin) > 0 {
+			resp.Header.Set("Access-Control-Allow-Origin", strings.Replace(origin, "https", "http", 1))
+		}
+		csp := resp.Header.Get("Content-Security-Policy")
+		if len(csp) > 0 {
+			resp.Header.Set("Content-Security-Policy", strings.Replace(origin, "https", "http", -1))
+		}
+	}
+
 	// Static Cache
 	if resp.StatusCode == http.StatusOK && firewall.IsStaticResource(r) {
 		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
@@ -139,7 +158,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 		}
 		lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
 		if err != nil {
-			utils.DebugPrintln("Cache File Parse Last-Modified", targetFile, err)
+			//utils.DebugPrintln("Cache File Parse Last-Modified", targetFile, err)
 			return nil
 		}
 		err = os.Chtimes(targetFile, time.Now(), lastModified)

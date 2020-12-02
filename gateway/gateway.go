@@ -66,6 +66,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		RedirectRequest(w, r, "https://"+r.Host+r.URL.Path)
 		return
 	}
+
 	r.URL.Scheme = app.InternalScheme
 	r.URL.Host = r.Host
 
@@ -236,6 +237,14 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Modify Origin if client http and backend https
+	if (r.TLS == nil) && (app.InternalScheme == "https") {
+		origin := r.Header.Get("Origin")
+		if len(origin) > 0 {
+			r.Header.Set("Origin", "https://"+r.Host)
+		}
+	}
+
 	// Add access log and statistics
 	go utils.AccessLog(r.Host, r.Method, srcIP, r.RequestURI, r.UserAgent())
 	go IncAccessStat(app.ID, r.URL.Path)
@@ -298,17 +307,18 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				return nil, err
 			}
 			cfg := &tls.Config{
-				ServerName: r.Host,
-				NextProtos: []string{"h2", "http/1.1"},
-				MinVersion: tls.VersionTLS12,
+				ServerName:         r.Host,
+				NextProtos:         []string{"h2", "http/1.1"},
+				MinVersion:         tls.VersionTLS12,
+				InsecureSkipVerify: true,
 			}
 			tlsConn := tls.Client(conn, cfg)
 			if err := tlsConn.Handshake(); err != nil {
-				utils.DebugPrintln("tlsConn.Handshake error", err)
-				_ = conn.Close()
-				return nil, err
+				//utils.DebugPrintln("tlsConn.Handshake error", err, tlsConn)
+				//_ = conn.Close()
+				//return nil, err
 			}
-			return tlsConn, nil //net.Dial("tcp", dest)
+			return tlsConn, err //net.Dial("tcp", dest)
 		},
 	}
 	err := http2.ConfigureTransport(transport)
@@ -358,7 +368,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 								err = ioutil.WriteFile(targetFile, bodyBuf, 0600)
 								lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
 								if err != nil {
-									utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
+									//utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
 								}
 								err = os.Chtimes(targetFile, now, lastModified)
 								if err != nil {

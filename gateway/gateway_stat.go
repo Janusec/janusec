@@ -10,7 +10,6 @@ package gateway
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"janusec/backend"
 	"janusec/data"
 	"janusec/models"
@@ -74,7 +73,6 @@ func IncAmountToDB(appID int64, urlPath string, statDate string, delta int64, up
 		_ = data.DAL.IncAmount(appID, urlPath, statDate, delta, updateTime)
 	} else {
 		// Replica Node
-		fmt.Println("To Do: IncAmountToDB")
 		accessStat := &models.AccessStat{
 			AppID:      appID,
 			URLPath:    urlPath,
