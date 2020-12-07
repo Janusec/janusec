@@ -62,4 +62,5 @@ type GateHealth struct {
 	DiskTotal   uint64  `json:"disk_total"`
 	TimeZone    string  `json:"time_zone"`
 	TimeOffset  int     `json:"time_offset"`
+	ConCurrency int64   `json:"concurrency"`
 }

@@ -40,6 +40,11 @@ var (
 
 // ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
+	// inc concurrency
+	concurrency++
+	defer func() {
+		concurrency--
+	}()
 	// r.Host may has the format: domain:port, first remove port
 	index := strings.IndexByte(r.Host, ':')
 	if index > 0 {

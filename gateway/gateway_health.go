@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	startTime = time.Now().Unix()
+	startTime   = time.Now().Unix()
+	concurrency = int64(0)
 )
 
 // GetGatewayHealth show CPU MEM Storage
@@ -38,6 +39,7 @@ func GetGatewayHealth() (models.GateHealth, error) {
 		DiskTotal:   diskStat.Total,
 		TimeZone:    timeZone,
 		TimeOffset:  offset / 3600.0,
+		ConCurrency: concurrency,
 	}
 	return gateHealth, nil
 }
