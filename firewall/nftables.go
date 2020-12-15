@@ -82,14 +82,14 @@ func InitNFTables() {
 
 // AddIP2NFTables add Source IP Address to Nftables Block list
 // nft add element inet janusec blocklist { 192.168.100.1 timeout 300s }
-func AddIP2NFTables(ip string, blockSeconds time.Duration) {
+func AddIP2NFTables(ip string, blockSeconds float64) {
 	//fmt.Println("AddIP2NFTables", ip)
 	rules, err := conn.GetRule(table, chain)
 	if len(rules) == 0 {
 		InitNFTables()
 	}
 	err = conn.SetAddElements(set, []nftables.SetElement{
-		{Key: []byte(net.ParseIP(ip).To4()), Timeout: blockSeconds * time.Second},
+		{Key: []byte(net.ParseIP(ip).To4()), Timeout: time.Duration(blockSeconds) * time.Second},
 	})
 	if err != nil {
 		utils.CheckError("AddIP2NFTables SetAddElements error", err)

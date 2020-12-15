@@ -8,14 +8,12 @@
 package data
 
 import (
-	"time"
-
 	"janusec/models"
 	"janusec/utils"
 )
 
 const (
-	sqlCreateTableIfNotExistsCCPolicy = `CREATE TABLE IF NOT EXISTS "ccpolicies"("app_id" bigint primary key,"interval_milliseconds" bigint,"max_count" bigint,"block_seconds" bigint,"action" bigint,"stat_by_url" boolean,"stat_by_ua" boolean,"stat_by_cookie" boolean,"is_enabled" boolean)`
+	sqlCreateTableIfNotExistsCCPolicy = `CREATE TABLE IF NOT EXISTS "ccpolicies"("app_id" bigint primary key,"interval_milliseconds" double precision,"max_count" bigint,"block_seconds" double precision,"action" bigint,"stat_by_url" boolean,"stat_by_ua" boolean,"stat_by_cookie" boolean,"is_enabled" boolean)`
 	sqlExistsCCPolicy                 = `SELECT COALESCE((SELECT 1 FROM "ccpolicies" LIMIT 1),0)`
 	sqlExistsCCPolicyByAppID          = `SELECT COALESCE((SELECT 1 FROM "ccpolicies" WHERE "app_id"=$1 LIMIT 1),0)`
 	sqlInsertCCPolicy                 = `INSERT INTO "ccpolicies"("app_id","interval_milliseconds","max_count","block_seconds","action","stat_by_url","stat_by_ua","stat_by_cookie","is_enabled") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`
@@ -37,8 +35,7 @@ func (dal *MyDAL) DeleteCCPolicy(appID int64) error {
 	return err
 }
 
-func (dal *MyDAL) UpdateCCPolicy(IntervalMilliSeconds time.Duration, maxCount int64,
-	blockSeconds time.Duration, action models.PolicyAction,
+func (dal *MyDAL) UpdateCCPolicy(IntervalMilliSeconds float64, maxCount int64, blockSeconds float64, action models.PolicyAction,
 	statByUrl bool, statByUA bool, statByCookie bool, isEnabled bool, appID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCCPolicy)
 	defer stmt.Close()
@@ -70,7 +67,7 @@ func (dal *MyDAL) ExistsCCPolicyByAppID(appID int64) bool {
 	}
 }
 
-func (dal *MyDAL) InsertCCPolicy(appID int64, IntervalMilliSeconds time.Duration, maxCount int64, blockSeconds time.Duration,
+func (dal *MyDAL) InsertCCPolicy(appID int64, IntervalMilliSeconds float64, maxCount int64, blockSeconds float64,
 	action models.PolicyAction, statByUrl bool, statByUA bool, statByCookie bool, isEnabled bool) error {
 	_, err := dal.db.Exec(sqlInsertCCPolicy, appID, IntervalMilliSeconds, maxCount, blockSeconds,
 		action, statByUrl, statByUA, statByCookie, isEnabled)
