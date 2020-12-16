@@ -53,6 +53,7 @@ type InternalErrorInfo struct {
 type GateHealth struct {
 	StartTime   int64   `json:"start_time"`
 	CurrentTime int64   `json:"cur_time"`
+	CPUPercent  float64 `json:"cpu_percent"`
 	CPULoad1    float64 `json:"cpu_load1"`
 	CPULoad5    float64 `json:"cpu_load5"`
 	CPULoad15   float64 `json:"cpu_load15"`

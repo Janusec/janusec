@@ -43,7 +43,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// inc concurrency
 	concurrency++
 	defer func() {
-		concurrency--
+		if concurrency > 0 {
+			concurrency--
+		}
 	}()
 	// r.Host may has the format: domain:port, first remove port
 	index := strings.IndexByte(r.Host, ':')
@@ -282,9 +284,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	// var transport http.RoundTripper
 	transport := &http.Transport{
-		TLSHandshakeTimeout:   10 * time.Second,
+		TLSHandshakeTimeout:   30 * time.Second,
 		IdleConnTimeout:       30 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		ExpectContinueTimeout: 5 * time.Second,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			conn, err := net.Dial("tcp", dest.Destination)
 			dest.CheckTime = nowTimeStamp

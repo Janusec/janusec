@@ -11,6 +11,7 @@ import (
 	"janusec/models"
 	"time"
 
+	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
@@ -24,12 +25,14 @@ var (
 // GetGatewayHealth show CPU MEM Storage
 func GetGatewayHealth() (models.GateHealth, error) {
 	cpuLoad, _ := load.Avg()
+	cpuPercent, _ := cpu.Percent(1, false)
 	memStat, _ := mem.VirtualMemory()
 	diskStat, _ := disk.Usage("/")
 	timeZone, offset := time.Now().Zone()
 	gateHealth := models.GateHealth{
 		StartTime:   startTime,
 		CurrentTime: time.Now().Unix(),
+		CPUPercent:  cpuPercent[0],
 		CPULoad1:    cpuLoad.Load1,
 		CPULoad5:    cpuLoad.Load5,
 		CPULoad15:   cpuLoad.Load15,
