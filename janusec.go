@@ -63,6 +63,7 @@ func main() {
 	firewall.InitFirewall()
 	settings.LoadSettings()
 	go gateway.InitAccessStat()
+	go gateway.Counter()
 
 	tlsconfig := &tls.Config{
 		GetCertificate: func(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, error) {

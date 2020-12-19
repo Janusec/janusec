@@ -35,17 +35,29 @@ import (
 )
 
 var (
-	store = sessions.NewCookieStore([]byte("janusec"))
+	store   = sessions.NewCookieStore([]byte("janusec"))
+	incChan = make(chan int, 8)
+	decChan = make(chan int, 8)
 )
+
+// Counter stat the concurrency requests
+func Counter() {
+	for {
+		select {
+		case <-incChan:
+			concurrency++
+		case <-decChan:
+			concurrency--
+		}
+	}
+}
 
 // ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// inc concurrency
-	concurrency++
+	incChan <- 1
 	defer func() {
-		if concurrency > 0 {
-			concurrency--
-		}
+		decChan <- 1
 	}()
 	// r.Host may has the format: domain:port, first remove port
 	index := strings.IndexByte(r.Host, ':')
