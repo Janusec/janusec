@@ -1,6 +1,6 @@
 {
 	"node_role": "replica",
-	"replica_node": {
+	"primary_node": {
         "admin": {
             "listen": true,
             "listen_http": ":9080",

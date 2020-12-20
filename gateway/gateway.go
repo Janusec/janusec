@@ -35,15 +35,29 @@ import (
 )
 
 var (
-	store = sessions.NewCookieStore([]byte("janusec"))
+	store   = sessions.NewCookieStore([]byte("janusec"))
+	incChan = make(chan int, 8)
+	decChan = make(chan int, 8)
 )
+
+// Counter stat the concurrency requests
+func Counter() {
+	for {
+		select {
+		case <-incChan:
+			concurrency++
+		case <-decChan:
+			concurrency--
+		}
+	}
+}
 
 // ReverseHandlerFunc used for reverse handler
 func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// inc concurrency
-	concurrency++
+	incChan <- 1
 	defer func() {
-		concurrency--
+		decChan <- 1
 	}()
 	// r.Host may has the format: domain:port, first remove port
 	index := strings.IndexByte(r.Host, ':')
@@ -282,9 +296,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	// var transport http.RoundTripper
 	transport := &http.Transport{
-		TLSHandshakeTimeout:   10 * time.Second,
+		TLSHandshakeTimeout:   30 * time.Second,
 		IdleConnTimeout:       30 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		ExpectContinueTimeout: 5 * time.Second,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			conn, err := net.Dial("tcp", dest.Destination)
 			dest.CheckTime = nowTimeStamp

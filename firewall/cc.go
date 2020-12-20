@@ -41,7 +41,7 @@ func CCAttackTick(appID int64) {
 	}
 	ccPolicyMap, _ := ccPolicies.Load(appID)
 	ccPolicy := ccPolicyMap.(*models.CCPolicy)
-	ccTicker := time.NewTicker(ccPolicy.IntervalMilliSeconds * time.Millisecond)
+	ccTicker := time.NewTicker(time.Duration(ccPolicy.IntervalMilliSeconds) * time.Millisecond)
 
 	ccTickers.Store(appID, ccTicker)
 	for range ccTicker.C {
@@ -53,15 +53,19 @@ func CCAttackTick(appID int64) {
 			stat := value.(*models.ClientStat)
 			//fmt.Println("CCAttackTick:", appID, clientID, stat)
 			if stat.IsBadIP == true {
-				stat.RemainSeconds -= ccPolicy.IntervalMilliSeconds
+				stat.RemainSeconds -= ccPolicy.IntervalMilliSeconds / 1000.0
 				if stat.RemainSeconds <= 0 {
 					appCCCount.Delete(clientID)
 				}
-			} else if stat.Count >= ccPolicy.MaxCount {
+				return true
+			}
+			if stat.Count >= ccPolicy.MaxCount {
+				// Trigger CC
 				stat.Count = 0
 				stat.IsBadIP = true
 				stat.RemainSeconds = ccPolicy.BlockSeconds
 			} else {
+				// Not CC
 				appCCCount.Delete(clientID)
 			}
 			return true
@@ -124,7 +128,6 @@ func IsCCAttack(r *http.Request, appID int64, srcIP string) (bool, *models.CCPol
 		return true, ccPolicy, clientID, needLog
 	}
 	clientStat.Count++
-	//fmt.Println("IsCCAttack:", r.URL.Path, clientID, clientStat.Count, clientStat.IsBadIP, clientStat.RemainSeconds)
 	return false, nil, "", false
 }
 
@@ -157,9 +160,9 @@ func InitCCPolicy() {
 func UpdateCCPolicy(param map[string]interface{}) error {
 	ccPolicyMap := param["object"].(map[string]interface{})
 	appID := int64(param["id"].(float64))
-	intervalMilliSeconds := time.Duration(ccPolicyMap["interval_milliseconds"].(float64))
+	intervalMilliSeconds := ccPolicyMap["interval_milliseconds"].(float64)
 	maxCount := int64(ccPolicyMap["max_count"].(float64))
-	blockSeconds := time.Duration(ccPolicyMap["block_seconds"].(float64))
+	blockSeconds := ccPolicyMap["block_seconds"].(float64)
 	action := models.PolicyAction(ccPolicyMap["action"].(float64))
 	statByURL := ccPolicyMap["stat_by_url"].(bool)
 	statByUA := ccPolicyMap["stat_by_ua"].(bool)
