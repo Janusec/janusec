@@ -141,6 +141,8 @@ func main() {
 	gateMux.HandleFunc("/oauth/feishu", gateway.FeishuCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/code/register", gateway.ShowAuthCodeRegisterUI)
 	gateMux.HandleFunc("/oauth/code/verify", gateway.AuthCodeVerifyFunc)
+	// Add CAS2.0
+	gateMux.HandleFunc("/oauth/cas2", gateway.CAS2CallBackHandleFunc)
 	// LDAP Auth UI
 	gateMux.HandleFunc("/ldap/login", gateway.ShowLDAPLoginUI)
 	gateMux.HandleFunc("/ldap/auth", gateway.LDAPCallBackHandleFunc)

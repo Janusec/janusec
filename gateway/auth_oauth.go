@@ -34,6 +34,10 @@ func FeishuCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.FeishuCallbackWithCode(w, r)
 }
 
+func CAS2CallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
+	usermgmt.CAS2CallbackWithCode(w, r)
+}
+
 func LDAPCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.LDAPAuthFunc(w, r)
 }
@@ -78,6 +82,13 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 		entranceURL := data.CFG.PrimaryNode.OAuth.LDAP.Entrance + "?state=admin"
 		oauthInfo.UseOAuth = true
 		oauthInfo.DisplayName = data.CFG.PrimaryNode.OAuth.LDAP.DisplayName
+		oauthInfo.EntranceURL = entranceURL
+		return &oauthInfo, nil
+	case "cas2":
+		entranceURL := fmt.Sprintf("%s/login?renew=true&service=%s?state=admin",
+			data.CFG.PrimaryNode.OAuth.CAS2.Entrance, data.CFG.PrimaryNode.OAuth.CAS2.Callback)
+		oauthInfo.UseOAuth = true
+		oauthInfo.DisplayName = data.CFG.PrimaryNode.OAuth.CAS2.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	}

@@ -23,6 +23,7 @@ type OAuthConfig struct {
 	Dingtalk DingtalkConfig `json:"dingtalk"`
 	Feishu   FeishuConfig   `json:"feishu"`
 	LDAP     LDAPConfig     `json:"ldap"`
+	CAS2     CAS2Config     `json:"cas2"`
 }
 
 type PrimaryNodeConfig struct {
@@ -80,6 +81,12 @@ type FeishuConfig struct {
 	Callback    string `json:"callback"`
 	AppID       string `json:"appid"`
 	AppSecret   string `json:"appsecret"`
+}
+
+type CAS2Config struct {
+	DisplayName string `json:"display_name"`
+	Entrance    string `json:"entrance"`
+	Callback    string `json:"callback"`
 }
 
 type LDAPConfig struct {

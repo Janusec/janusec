@@ -446,6 +446,9 @@ func getOAuthEntrance(state string) (entranceURL string, err error) {
 			state)
 	case "ldap":
 		entranceURL = "/ldap/login?state=" + state
+	case "cas2":
+		entranceURL = fmt.Sprintf("%s/login?renew=true&service=%s?state=%s",
+			data.CFG.PrimaryNode.OAuth.CAS2.Entrance, data.CFG.PrimaryNode.OAuth.CAS2.Callback, state)
 	case "saml":
 		entranceURL = "/saml/login?state=" + state
 	default:
