@@ -80,18 +80,80 @@ func ClearExpiredCapthchaHitInfo() {
 	})
 }
 
-const formTemplateSrc = `<!doctype html>
+const formTemplateSrc = `<!DOCTYPE html>
+<html>
 <head>
+<meta charset="utf-8"> 
 <title>Captcha Example</title>
 </head>
 <style>
-form {
-	display: block;
-	width: 30%;
-	margin: auto;
+input[type=text] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a045;
+}
+
+a {
+  font-size: 12px;
+  margin-right: 20px;
+}
+
+div {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+  width: 50%;
+  margin: auto;
+}
+
+.captcha {
+  width: 100%;
+}
+
+#zh:target~[data-lang-cn]:after{
+    content: attr(data-lang-cn);
+}
+[data-lang-en]:after, #en:target~[data-lang-cn]:after{
+    content: attr(data-lang-en);
 }
 </style>
 <body>
+
+<div>
+<form action="/captcha/validate" method="POST">
+<span id="zh"></span>
+<span id="en"></span>
+<p for="note" data-lang-cn="访问频繁，请输入验证码:" data-lang-en="Too many requests, please type the CAPTCHA:"></p>
+<p><img id=image class="captcha" src="/captcha/png/{{.CaptchaId}}.png" alt="Captcha image"></p>
+<a href="#" onclick="reload()" data-lang-cn="刷新" data-lang-en="Reload"></a>
+<input type="hidden" name="captcha_id" value="{{.CaptchaId}}"><br>
+<input type="hidden" name="client_id" value="{{.ClientID}}">
+<input type="text" name="captcha_solution">
+<input type="submit" value="Submit">
+</form>
+<a href="#zh">中文</a>
+<a href="#en">English</a>
+<div>
+
 <script>
 function setSrcQuery(e, q) {
 	var src  = e.src;
@@ -107,15 +169,6 @@ function reload() {
 	return false;
 }
 </script>
-<form action="/captcha/validate" method="POST">
-<p>Please type the following numbers:</p>
-<p><img id=image src="/captcha/png/{{.CaptchaId}}.png" alt="Captcha image"></p>
-<a href="#" onclick="reload()">Reload</a>
-<input type="hidden" name="captcha_id" value="{{.CaptchaId}}"><br>
-<input type="hidden" name="client_id" value="{{.ClientID}}">
-<input name="captcha_solution">
-<input type="submit" value="Submit">
-</form>
 </body>
 </html>
 `

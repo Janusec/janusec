@@ -85,7 +85,7 @@ div {
   margin: auto;
 }
 
-#ch:target~[data-lang-cn]:after{
+#zh:target~[data-lang-cn]:after{
     content: attr(data-lang-cn);
 }
 [data-lang-en]:after, #en:target~[data-lang-cn]:after{
@@ -99,7 +99,7 @@ div {
 <div>
   <form action="/ldap/auth" method="POST">
 	<input type="hidden" name="state" value="{{ .State }}">
-	<span id="ch"></span>
+	<span id="zh"></span>
     <span id="en"></span>
     <label for="username" data-lang-cn="用户名" data-lang-en="Username"></label>
     <input type="text" id="username" name="username" placeholder="Your username">
@@ -112,7 +112,7 @@ div {
     {{ end }}
     <input type="submit" value="Login">
   </form>
-  <a href="#ch">中文</a>
+  <a href="#zh">中文</a>
   <a href="#en">English</a>
 </div>
 
