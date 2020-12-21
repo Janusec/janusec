@@ -44,7 +44,12 @@
                 "dn":"",
                 "using_tls": false,
                 "authenticator_enabled": false
-            }
+            },
+			"cas2": {
+				"display_name": "",
+				"entrance": "",
+				"callback": ""
+			}
         }
 	},
 	"replica_node": {
