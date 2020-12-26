@@ -8,6 +8,7 @@
 package gateway
 
 import (
+	"janusec/data"
 	"janusec/models"
 	"time"
 
@@ -32,6 +33,7 @@ func GetGatewayHealth() (models.GateHealth, error) {
 	gateHealth := models.GateHealth{
 		StartTime:   startTime,
 		CurrentTime: time.Now().Unix(),
+		Version:     data.Version,
 		CPUPercent:  cpuPercent[0],
 		CPULoad1:    cpuLoad.Load1,
 		CPULoad5:    cpuLoad.Load5,

@@ -59,15 +59,29 @@ func CCAttackTick(appID int64) {
 				}
 				return true
 			}
-			if stat.Count >= ccPolicy.MaxCount {
-				// Trigger CC
-				stat.Count = 0
+			if stat.QuickCount >= ccPolicy.MaxCount {
+				// Trigger high frequency CC
+				stat.QuickCount = 0
 				stat.IsBadIP = true
 				stat.RemainSeconds = ccPolicy.BlockSeconds
-			} else {
-				// Not CC
-				appCCCount.Delete(clientID)
+				return true
 			}
+			if stat.SlowCount >= ccPolicy.MaxCount {
+				// Trigger low frequency CC
+				stat.QuickCount = 0
+				stat.SlowCount = 0
+				stat.IsBadIP = true
+				stat.RemainSeconds = ccPolicy.BlockSeconds
+				return true
+			}
+			// Not CC
+			stat.TimeFrameCount++
+			if stat.TimeFrameCount >= 15 {
+				appCCCount.Delete(clientID)
+				return true
+			}
+			stat.SlowCount += stat.QuickCount
+			stat.QuickCount = 0
 			return true
 		})
 	}
@@ -117,17 +131,17 @@ func IsCCAttack(r *http.Request, appID int64, srcIP string) (bool, *models.CCPol
 		preHashContent += cookie
 	}
 	clientID := data.SHA256Hash(preHashContent)
-	clientIDStat, _ := appCCCount.LoadOrStore(clientID, &models.ClientStat{Count: 0, IsBadIP: false, RemainSeconds: 0})
+	clientIDStat, _ := appCCCount.LoadOrStore(clientID, &models.ClientStat{QuickCount: 0, SlowCount: 0, TimeFrameCount: 0, IsBadIP: false, RemainSeconds: 0})
 	clientStat := clientIDStat.(*models.ClientStat)
 	if clientStat.IsBadIP == true {
 		needLog := false
-		if clientStat.Count == 0 {
-			clientStat.Count++
+		if clientStat.QuickCount == 0 {
+			clientStat.QuickCount++
 			needLog = true
 		}
 		return true, ccPolicy, clientID, needLog
 	}
-	clientStat.Count++
+	clientStat.QuickCount++
 	return false, nil, "", false
 }
 

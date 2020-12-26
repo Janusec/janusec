@@ -114,9 +114,23 @@ type DBCheckItem struct {
 	GroupPolicyID int64
 }
 
+// ClientStat used for CC statistics
 type ClientStat struct {
-	Count         int64
-	IsBadIP       bool
+	// QuickCount used for high frequency CC
+	QuickCount int64
+
+	// SlowCount used for low frequency CC
+	SlowCount int64
+
+	// TimeFrameCount used for low frequency CC
+	// and how many high frequency time frames in stat
+	// Usually, a slow time frame is about 15~30 quick time frames
+	TimeFrameCount int64
+
+	// IsBadIP means CC detected
+	IsBadIP bool
+
+	// RemainSeconds used for block time frame
 	RemainSeconds float64 //time.Duration
 }
 

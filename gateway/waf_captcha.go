@@ -84,7 +84,7 @@ const formTemplateSrc = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8"> 
-<title>Captcha Example</title>
+<title>CAPTCHA</title>
 </head>
 <style>
 input[type=text] {

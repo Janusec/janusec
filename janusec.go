@@ -64,6 +64,7 @@ func main() {
 	settings.LoadSettings()
 	go gateway.InitAccessStat()
 	go gateway.Counter()
+	go gateway.DailyRoutineTasks()
 
 	tlsconfig := &tls.Config{
 		GetCertificate: func(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, error) {

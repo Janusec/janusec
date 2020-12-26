@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"os/exec"
 	"strings"
 	"syscall"
 	"time"
@@ -243,7 +244,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		}
 		// Exist username in session, Forward username to destination
 		accessToken := session.Values["access_token"].(string)
-		r.Header.Set("Authorization", "Bearer "+accessToken)
+		//r.Header.Set("Authorization", "Bearer "+accessToken)
+		// 0.9.15 change to X-Auth-Token
+		r.Header.Set("X-Auth-Token", accessToken)
 		r.Header.Set("X-Auth-User", usernameI.(string))
 	}
 
@@ -508,4 +511,22 @@ func OAuthLogout(w http.ResponseWriter, r *http.Request) {
 		utils.DebugPrintln("OAuthLogout session.Save error", err)
 	}
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+}
+
+// DailyRoutineTasks for clear expired logs
+func DailyRoutineTasks() {
+	for {
+		now := time.Now()
+		next := now.Add(time.Hour * 24)
+		next = time.Date(next.Year(), next.Month(), next.Day(), 3, 0, 0, 0, next.Location()) // AM 03:00
+		t := time.NewTimer(next.Sub(now))
+		<-t.C
+
+		// Clear expired logs under ./log/
+		cmd := exec.Command("find", "./log/", "-mtime", "+180", "-delete")
+		err := cmd.Run()
+		if err != nil {
+			utils.DebugPrintln("Delete old log files Error:", err)
+		}
+	}
 }

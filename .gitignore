@@ -1,7 +1,7 @@
 /.vscode
 /dist
 /janusec
-/janusec.exe
+/luci
 /config.json
 /log/*
 *.zip
