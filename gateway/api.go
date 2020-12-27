@@ -143,8 +143,6 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = firewall.TestRegex(param)
 	case "get_vuln_types":
 		obj, err = firewall.GetVulnTypes()
-	case "get_settings":
-		obj, err = settings.GetSettings()
 	case "login":
 		obj, err = usermgmt.Login(w, r, param)
 	case "logout":
@@ -174,6 +172,10 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = GetTodayPopularContent(param)
 	case "get_gateway_health":
 		obj, err = GetGatewayHealth()
+	case "get_global_settings":
+		obj, err = settings.GetGlobalSettings()
+	case "update_global_settings":
+		obj, err = settings.UpdateGlobalSettings(param)
 	case "get_license":
 		obj, err = nil, nil
 	default:

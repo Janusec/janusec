@@ -184,9 +184,22 @@ type TOTP struct {
 	TOTPVerified bool   `json:"totp_verified"`
 }
 
+// Setting mainly used for replica nodes
 type Setting struct {
 	Name  string      `json:"name"`
 	Value interface{} `json:"value"`
+}
+
+// GlobalSettings used for admin configuration
+type GlobalSettings struct {
+	// WAFLogDays for WAF logs
+	WAFLogDays int64 `json:"waf_log_days"`
+
+	// CCLogDays for CC logs
+	CCLogDays int64 `json:"cc_log_days"`
+
+	// AccessLogDays for log files
+	AccessLogDays int64 `json:"access_log_days"`
 }
 
 type IPMethod int64
