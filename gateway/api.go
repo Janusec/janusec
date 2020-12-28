@@ -86,7 +86,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "del_app":
 		obj = nil
 		id := int64(param["id"].(float64))
-		err = backend.DeleteApplicationByID(id)
+		err = backend.DeleteApplicationByID(id, authUser)
 	case "del_vip_app":
 		obj = nil
 		id := int64(param["id"].(float64))
@@ -116,17 +116,17 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "del_app_user":
 		id := int64(param["id"].(float64))
 		obj = nil
-		err = usermgmt.DeleteUser(id)
+		err = usermgmt.DeleteUser(id, authUser)
 	case "get_cc_policy":
 		id := int64(param["id"].(float64))
 		obj, err = firewall.GetCCPolicyRespByAppID(id)
 	case "del_cc_policy":
 		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteCCPolicyByAppID(id)
+		err = firewall.DeleteCCPolicyByAppID(id, authUser, true)
 	case "update_cc_policy":
 		obj = nil
-		err = firewall.UpdateCCPolicy(param)
+		err = firewall.UpdateCCPolicy(param, authUser)
 	case "get_group_policies":
 		appID := int64(param["id"].(float64))
 		obj, err = firewall.GetGroupPolicies(appID)
@@ -134,11 +134,11 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		id := int64(param["id"].(float64))
 		obj, err = firewall.GetGroupPolicyByID(id)
 	case "update_group_policy":
-		obj, err = firewall.UpdateGroupPolicy(r, userID)
+		obj, err = firewall.UpdateGroupPolicy(r, userID, authUser)
 	case "del_group_policy":
 		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteGroupPolicyByID(id)
+		err = firewall.DeleteGroupPolicyByID(id, authUser)
 	case "test_regex":
 		obj, err = firewall.TestRegex(param)
 	case "get_vuln_types":
@@ -173,9 +173,9 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_gateway_health":
 		obj, err = GetGatewayHealth()
 	case "get_global_settings":
-		obj, err = settings.GetGlobalSettings()
+		obj, err = settings.GetGlobalSettings(authUser)
 	case "update_global_settings":
-		obj, err = settings.UpdateGlobalSettings(param)
+		obj, err = settings.UpdateGlobalSettings(param, authUser)
 	case "get_license":
 		obj, err = nil, nil
 	default:

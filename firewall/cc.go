@@ -171,7 +171,10 @@ func InitCCPolicy() {
 }
 
 // UpdateCCPolicy update CC policy
-func UpdateCCPolicy(param map[string]interface{}) error {
+func UpdateCCPolicy(param map[string]interface{}, authUser *models.AuthUser) error {
+	if authUser.IsSuperAdmin == false {
+		return errors.New("Only super administrators can perform this operation")
+	}
 	ccPolicyMap := param["object"].(map[string]interface{})
 	appID := int64(param["id"].(float64))
 	intervalMilliSeconds := ccPolicyMap["interval_milliseconds"].(float64)
@@ -227,7 +230,10 @@ func UpdateCCPolicy(param map[string]interface{}) error {
 }
 
 // DeleteCCPolicyByAppID delete CC policy by app id
-func DeleteCCPolicyByAppID(appID int64) error {
+func DeleteCCPolicyByAppID(appID int64, authUser *models.AuthUser, adminRequired bool) error {
+	if adminRequired && authUser.IsSuperAdmin == false {
+		return errors.New("only super admin can delete CC policy")
+	}
 	if appID == 0 {
 		return errors.New("Global CC policy cannot be deleted")
 	}

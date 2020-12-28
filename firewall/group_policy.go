@@ -188,7 +188,10 @@ func GetGroupPolicyIndex(id int64) int {
 }
 
 // DeleteGroupPolicyByID ...
-func DeleteGroupPolicyByID(id int64) error {
+func DeleteGroupPolicyByID(id int64, authUser *models.AuthUser) error {
+	if authUser.IsSuperAdmin == false {
+		return errors.New("Only super administrators can perform this operation")
+	}
 	groupPolicy, err := GetGroupPolicyByID(id)
 	if err != nil {
 		return err
@@ -208,7 +211,10 @@ func DeleteGroupPolicyByID(id int64) error {
 }
 
 // UpdateGroupPolicy ...
-func UpdateGroupPolicy(r *http.Request, userID int64) (*models.GroupPolicy, error) {
+func UpdateGroupPolicy(r *http.Request, userID int64, authUser *models.AuthUser) (*models.GroupPolicy, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
 	var setGroupPolicyRequest models.RPCSetGroupPolicy
 	err := json.NewDecoder(r.Body).Decode(&setGroupPolicyRequest)
 	defer r.Body.Close()

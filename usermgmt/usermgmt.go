@@ -194,7 +194,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 	return appUser, nil
 }
 
-func DeleteUser(userID int64) error {
+func DeleteUser(userID int64, authUser *models.AuthUser) error {
+	if authUser.IsSuperAdmin == false && userID != authUser.UserID {
+		return errors.New("delete others is not permitted")
+	}
 	err := data.DAL.DeleteAppUser(userID)
 	return err
 }

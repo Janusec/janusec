@@ -396,14 +396,14 @@ func DeleteDestinationsByApp(appID int64) {
 	}
 }
 
-func DeleteApplicationByID(appID int64) error {
+func DeleteApplicationByID(appID int64, authUser *models.AuthUser) error {
 	app, err := GetApplicationByID(appID)
 	if err != nil {
 		return err
 	}
 	DeleteDomainsByApp(app)
 	DeleteDestinationsByApp(appID)
-	err = firewall.DeleteCCPolicyByAppID(appID)
+	err = firewall.DeleteCCPolicyByAppID(appID, authUser, false)
 	if err != nil {
 		utils.DebugPrintln("DeleteApplicationByID DeleteCCPolicyByAppID", err)
 	}

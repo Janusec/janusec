@@ -8,6 +8,7 @@
 package settings
 
 import (
+	"errors"
 	"time"
 
 	"janusec/data"
@@ -94,12 +95,18 @@ func GetSettings() ([]*models.Setting, error) {
 }
 
 // GetGlobalSettings for admin configuration
-func GetGlobalSettings() (*models.GlobalSettings, error) {
+func GetGlobalSettings(authUser *models.AuthUser) (*models.GlobalSettings, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
 	return globalSettings, nil
 }
 
 // UpdateGlobalSettings ...
-func UpdateGlobalSettings(param map[string]interface{}) (*models.GlobalSettings, error) {
+func UpdateGlobalSettings(param map[string]interface{}, authUser *models.AuthUser) (*models.GlobalSettings, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
 	settings := param["object"].(map[string]interface{})
 	wafLogDays := int64(settings["waf_log_days"].(float64))
 	ccLogDays := int64(settings["cc_log_days"].(float64))
