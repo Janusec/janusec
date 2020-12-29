@@ -122,12 +122,15 @@ func rewriteResponse(resp *http.Response) (err error) {
 
 	// Static Cache
 	if resp.StatusCode == http.StatusOK && firewall.IsStaticResource(r) {
+		if resp.ContentLength < 0 || resp.ContentLength > 1024*1024*10 {
+			// Not cache big files which size bigger than 10MB or unkonwn
+			return nil
+		}
 		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
 		targetFile := staticRoot + r.URL.Path
 		cacheFilePath := filepath.Dir(targetFile)
 		bodyBuf, _ := ioutil.ReadAll(resp.Body)
 		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
-
 		err := os.MkdirAll(cacheFilePath, 0666)
 		if err != nil {
 			utils.DebugPrintln("Cache Path Error", err)
@@ -142,14 +145,6 @@ func rewriteResponse(resp *http.Response) (err error) {
 				utils.DebugPrintln("Gzip decompress Error", err)
 			}
 			err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
-		/*
-			case "deflate":
-				reader := flate.NewReader(bytes.NewBuffer(bodyBuf))
-				defer reader.Close()
-				decompressedBodyBuf, err := ioutil.ReadAll(reader)
-				utils.DebugPrintln("flate decompress Error", err)
-				err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0666)
-		*/
 		default:
 			err = ioutil.WriteFile(targetFile, bodyBuf, 0600)
 		}
