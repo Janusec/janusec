@@ -5,7 +5,7 @@
  * @Last Modified: U2, 2018-07-14 16:21:19
  */
 
-package settings
+package gateway
 
 import (
 	"time"

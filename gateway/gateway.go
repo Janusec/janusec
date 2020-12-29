@@ -18,6 +18,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -523,7 +524,9 @@ func DailyRoutineTasks() {
 		<-t.C
 
 		// Clear expired logs under ./log/
-		cmd := exec.Command("find", "./log/", "-mtime", "+180", "-delete")
+		globalSettings := data.GetGlobalSettings2()
+		expiredDays := "+" + strconv.FormatInt(globalSettings.AccessLogDays, 10)
+		cmd := exec.Command("find", "./log/", "-mtime", expiredDays, "-delete")
 		err := cmd.Run()
 		if err != nil {
 			utils.DebugPrintln("Delete old log files Error:", err)

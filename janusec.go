@@ -28,7 +28,6 @@ import (
 	"janusec/firewall"
 	"janusec/gateway"
 	"janusec/models"
-	"janusec/settings"
 	"janusec/utils"
 )
 
@@ -57,11 +56,14 @@ func main() {
 	data.InitConfig()
 	if data.IsPrimary {
 		backend.InitDatabase()
-		settings.InitDefaultSettings() // instanceKey & nodesKey
+		data.InitDefaultSettings() // instanceKey & nodesKey
 	}
 	backend.LoadAppConfiguration()
 	firewall.InitFirewall()
-	settings.LoadSettings()
+	data.LoadSettings()
+	if data.IsPrimary == false {
+		go gateway.UpdateTimeTick()
+	}
 	go gateway.InitAccessStat()
 	go gateway.Counter()
 	go gateway.DailyRoutineTasks()

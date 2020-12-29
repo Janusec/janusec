@@ -20,7 +20,6 @@ import (
 	"janusec/data"
 	"janusec/firewall"
 	"janusec/models"
-	"janusec/settings"
 	"janusec/usermgmt"
 	"janusec/utils"
 )
@@ -173,9 +172,9 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_gateway_health":
 		obj, err = GetGatewayHealth()
 	case "get_global_settings":
-		obj, err = settings.GetGlobalSettings(authUser)
+		obj, err = data.GetGlobalSettings(authUser)
 	case "update_global_settings":
-		obj, err = settings.UpdateGlobalSettings(param, authUser)
+		obj, err = data.UpdateGlobalSettings(param, authUser)
 	case "get_license":
 		obj, err = nil, nil
 	default:
@@ -240,7 +239,7 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_vuln_types":
 		obj, err = firewall.GetVulnTypes()
 	case "get_settings":
-		obj, err = settings.GetSettings()
+		obj, err = data.GetSettings()
 	case "get_oauth_conf":
 		obj, err = usermgmt.GetOAuthConfig()
 	case "log_group_hit":

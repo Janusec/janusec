@@ -20,18 +20,17 @@ import (
 // RoutineCleanLogTick Clear Expired Logs
 func RoutineCleanLogTick() {
 	if data.IsPrimary {
-		logExpireSeconds, err := data.DAL.SelectIntSetting("Log_Expire_Seconds")
-		utils.CheckError("RoutineTick", err)
-		//fmt.Println("RoutineTick log_expire_seconds:", log_expire_seconds)
 		routineTicker := time.NewTicker(time.Duration(5*60) * time.Second)
 		for range routineTicker.C {
-			//fmt.Println("RoutineTick", time.Now())
-			expiredTime := time.Now().Unix() - logExpireSeconds
-			err = data.DAL.DeleteHitLogsBeforeTime(expiredTime)
+			globalSettings := data.GetGlobalSettings2()
+			timeStamp := time.Now().Unix()
+			wafLogExpiredTime := timeStamp - (globalSettings.WAFLogDays * 86400)
+			err := data.DAL.DeleteHitLogsBeforeTime(wafLogExpiredTime)
 			if err != nil {
 				utils.DebugPrintln("DeleteHitLogsBeforeTime error", err)
 			}
-			err = data.DAL.DeleteCCLogsBeforeTime(expiredTime)
+			ccLogExpiredTime := timeStamp - (globalSettings.CCLogDays * 86400)
+			err = data.DAL.DeleteCCLogsBeforeTime(ccLogExpiredTime)
 			if err != nil {
 				utils.DebugPrintln("DeleteCCLogsBeforeTime error", err)
 			}
