@@ -62,16 +62,18 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		decChan <- 1
 	}()
 	// r.Host may has the format: domain:port, first remove port
+	domainStr := r.Host
 	index := strings.IndexByte(r.Host, ':')
 	if index > 0 {
-		r.Host = r.Host[0:index]
+		//r.Host = r.Host[0:index]
+		domainStr = r.Host[0:index]
 	}
-	domain := backend.GetDomainByName(r.Host)
+	domain := backend.GetDomainByName(domainStr)
 	if domain != nil && domain.Redirect == true {
 		RedirectRequest(w, r, domain.Location)
 		return
 	}
-	app := backend.GetApplicationByDomain(r.Host)
+	app := backend.GetApplicationByDomain(domainStr)
 	if app == nil {
 		// Static Web site
 		staticHandler := http.FileServer(http.Dir("./static/welcome"))
@@ -84,7 +86,11 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if (r.TLS == nil) && (app.RedirectHTTPS == true) {
-		RedirectRequest(w, r, "https://"+r.Host+r.URL.Path)
+		if data.CFG.ListenHTTPS == ":443" {
+			RedirectRequest(w, r, "https://"+domainStr+r.URL.Path)
+		} else {
+			RedirectRequest(w, r, "https://"+domainStr+data.CFG.ListenHTTPS+r.URL.Path)
+		}
 		return
 	}
 
@@ -170,7 +176,11 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		usernameI := session.Values["userid"]
 		var url string
 		if r.TLS != nil {
-			url = "https://" + r.Host + r.URL.Path
+			if data.CFG.ListenHTTPS == ":443" {
+				url = "https://" + domainStr + r.URL.Path
+			} else {
+				url = "https://" + domainStr + data.CFG.ListenHTTPS + r.URL.Path
+			}
 		} else {
 			url = r.URL.String()
 		}
@@ -264,7 +274,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	if (r.TLS == nil) && (app.InternalScheme == "https") {
 		origin := r.Header.Get("Origin")
 		if len(origin) > 0 {
-			r.Header.Set("Origin", "https://"+r.Host)
+			r.Header.Set("Origin", "https://"+domainStr)
 		}
 	}
 
@@ -330,7 +340,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				return nil, err
 			}
 			cfg := &tls.Config{
-				ServerName:         r.Host,
+				ServerName:         domainStr,
 				NextProtos:         []string{"h2", "http/1.1"},
 				MinVersion:         tls.VersionTLS12,
 				InsecureSkipVerify: true,
@@ -372,7 +382,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 						utils.DebugPrintln("Check Update NewRequest", err)
 					}
 					if err == nil {
-						req.Header.Set("Host", r.Host)
+						req.Header.Set("Host", domainStr)
 						modTimeGMT := fi.ModTime().UTC().Format(http.TimeFormat)
 						//If-Modified-Since: Sun, 14 Jun 2020 13:54:20 GMT
 						req.Header.Set("If-Modified-Since", modTimeGMT)
@@ -426,6 +436,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		//utils.CheckError("ReverseHandlerFunc DumpRequest", err)
 		//fmt.Println(string(dump))
 	}
+	r.Host = domainStr
 	proxy.ServeHTTP(w, r)
 }
 
