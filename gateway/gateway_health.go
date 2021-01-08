@@ -26,7 +26,10 @@ var (
 // GetGatewayHealth show CPU MEM Storage
 func GetGatewayHealth() (models.GateHealth, error) {
 	cpuLoad, _ := load.Avg()
-	cpuPercent, _ := cpu.Percent(1*time.Second, false)
+	cpuPercent, err := cpu.Percent(1*time.Second, false)
+	if err != nil {
+		cpuPercent = []float64{0.0}
+	}
 	memStat, _ := mem.VirtualMemory()
 	diskStat, _ := disk.Usage("/")
 	timeZone, offset := time.Now().Zone()

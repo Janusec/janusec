@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"janusec/backend"
+	"janusec/data"
 	"janusec/firewall"
 	"janusec/models"
 	"janusec/utils"
@@ -32,20 +33,33 @@ func rewriteResponse(resp *http.Response) (err error) {
 	app := backend.GetApplicationByDomain(r.Host)
 	locationURL, err := resp.Location()
 	if locationURL != nil {
+		host := locationURL.Hostname()
 		port := locationURL.Port()
-		if (port != "80") && (port != "443") {
-			host := locationURL.Hostname()
-			//app := backend.GetApplicationByDomain(host)
-			if app != nil {
-				newLocation := strings.Replace(locationURL.String(), host+":"+port, host, -1)
-				userScheme := "http"
-				if resp.Request.TLS != nil {
-					userScheme = "https"
-				}
-				newLocation = strings.Replace(newLocation, locationURL.Scheme, userScheme, 1)
-				resp.Header.Set("Location", newLocation)
+		var oldHost, newHost string
+		if (port == "80") || (port == "443") {
+			oldHost = host
+		} else {
+			oldHost = host + ":" + port
+		}
+		var userScheme string
+		if resp.Request.TLS != nil {
+			userScheme = "https"
+			if data.CFG.ListenHTTPS == ":443" {
+				newHost = host
+			} else {
+				newHost = host + data.CFG.ListenHTTPS
+			}
+		} else {
+			userScheme = "http"
+			if data.CFG.ListenHTTP == ":80" {
+				newHost = host
+			} else {
+				newHost = host + data.CFG.ListenHTTP
 			}
 		}
+		newLocation := strings.Replace(locationURL.String(), oldHost, newHost, -1)
+		newLocation = strings.Replace(newLocation, locationURL.Scheme, userScheme, 1)
+		resp.Header.Set("Location", newLocation)
 	}
 
 	// Hide X-Powered-By
