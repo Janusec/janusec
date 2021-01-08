@@ -152,13 +152,15 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 
 	} else if strings.HasPrefix(mediaType, "application/json") {
 		var params interface{}
-		err := json.Unmarshal(bodyBuf, &params)
-		if err != nil {
-			utils.DebugPrintln("IsRequestHitPolicy Unmarshal", err)
-		}
-		matched, policy := IsJSONValueHitPolicy(ctxMap, appID, params)
-		if matched == true {
-			return matched, policy
+		if len(bodyBuf) > 0 {
+			err := json.Unmarshal(bodyBuf, &params)
+			if err != nil {
+				utils.DebugPrintln("IsRequestHitPolicy Unmarshal", err)
+			}
+			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, params)
+			if matched == true {
+				return matched, policy
+			}
 		}
 	} else {
 		err := r.ParseForm()

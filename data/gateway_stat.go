@@ -22,6 +22,9 @@ func (dal *MyDAL) CreateTableIfNotExistsAccessStats() error {
 // IncAmount update access statistics
 func (dal *MyDAL) IncAmount(appID int64, urlPath string, statDate string, delta int64, updateTime int64) error {
 	var id, amount int64
+	if len(urlPath) > 255 {
+		urlPath = urlPath[0:255]
+	}
 	const sql = `select "id","amount" from "access_stats" where "app_id"=$1 and "url_path"=$2 and "stat_date"=$3 LIMIT 1`
 	err := dal.db.QueryRow(sql, appID, urlPath, statDate).Scan(&id, &amount)
 	if err != nil {
