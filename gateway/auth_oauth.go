@@ -16,37 +16,45 @@ import (
 	"janusec/usermgmt"
 )
 
+// OAuthInfo OAuth Information
 type OAuthInfo struct {
 	UseOAuth    bool   `json:"use_oauth"`
 	DisplayName string `json:"display_name"`
 	EntranceURL string `json:"entrance_url"`
 }
 
+// WxworkCallBackHandleFunc for Wxwork CallBack
 func WxworkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.WxworkCallbackWithCode(w, r)
 }
 
+// DingtalkCallBackHandleFunc for Dingtalk CallBack
 func DingtalkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.DingtalkCallbackWithCode(w, r)
 }
 
+// FeishuCallBackHandleFunc for Feishu CallBack
 func FeishuCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.FeishuCallbackWithCode(w, r)
 }
 
+// CAS2CallBackHandleFunc for CAS2 CallBack
 func CAS2CallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.CAS2CallbackWithCode(w, r)
 }
 
+// LDAPCallBackHandleFunc for LDAP CallBack
 func LDAPCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.LDAPAuthFunc(w, r)
 }
 
+// OAuthGetHandleFunc Get OAuth Information and Response
 func OAuthGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 	obj, err := GetOAuthInfo()
 	GenResponseByObject(w, obj, err)
 }
 
+// GetOAuthInfo Get OAuth Information
 func GetOAuthInfo() (*OAuthInfo, error) {
 	oauthInfo := OAuthInfo{}
 	if data.CFG.PrimaryNode.OAuth.Enabled == false {

@@ -24,6 +24,7 @@ var (
 	authCodeUITemplate = template.Must(template.New("authcode").Parse(authcodeTemplate))
 )
 
+// AuthCodeContext authenticator code context
 type AuthCodeContext struct {
 	UID       string
 	TOTPKey   string

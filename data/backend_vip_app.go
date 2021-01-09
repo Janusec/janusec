@@ -60,6 +60,7 @@ func (dal *MyDAL) UpdateVipAppByID(vipAppName string, listenPort int64, isTCP bo
 	return err
 }
 
+// DeleteVipAppByID ...
 func (dal *MyDAL) DeleteVipAppByID(id int64) error {
 	const sqlDeleteVipAppByID = `DELETE FROM "vip_apps" WHERE "id"=$1`
 	_, err := dal.db.Exec(sqlDeleteVipAppByID, id)

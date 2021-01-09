@@ -15,6 +15,7 @@ import (
 	"janusec/utils"
 )
 
+// RPCSelectDomains ...
 func RPCSelectDomains() (dbDomains []*models.DBDomain) {
 	rpcRequest := &models.RPCRequest{
 		Action: "get_domains", Object: nil}

@@ -27,6 +27,7 @@ var (
 	nodesMap = sync.Map{} //map[ip string]*models.Node
 )
 
+// LoadNodes ...
 func LoadNodes() {
 	dbNodes = data.DAL.SelectAllNodes()
 	for _, dbNode := range dbNodes {
@@ -35,33 +36,36 @@ func LoadNodes() {
 	}
 }
 
+// GetNodes ...
 func GetNodes() ([]*models.DBNode, error) {
 	return dbNodes, nil
 }
 
+// GetDBNodeByID ...
 func GetDBNodeByID(id int64) (*models.DBNode, error) {
 	for _, dbNode := range dbNodes {
 		if dbNode.ID == id {
 			return dbNode, nil
 		}
 	}
-	return nil, errors.New("Not found.")
+	return nil, errors.New("not found")
 }
 
+// GetNodeByIP ...
 func GetNodeByIP(ip string, nodeVersion string) *models.Node {
 	if node, ok := nodesMap.Load(ip); ok {
 		return node.(*models.Node)
-	} else {
-		curTime := time.Now().Unix()
-		newID := data.DAL.InsertNode(nodeVersion, ip, curTime)
-		node := &models.Node{ID: newID, Version: nodeVersion, LastIP: ip, LastRequestTime: curTime}
-		dbNode := &models.DBNode{ID: newID, Version: nodeVersion, LastIP: ip, LastRequestTime: curTime}
-		nodesMap.Store(ip, node)
-		dbNodes = append(dbNodes, dbNode)
-		return node
 	}
+	curTime := time.Now().Unix()
+	newID := data.DAL.InsertNode(nodeVersion, ip, curTime)
+	node := &models.Node{ID: newID, Version: nodeVersion, LastIP: ip, LastRequestTime: curTime}
+	dbNode := &models.DBNode{ID: newID, Version: nodeVersion, LastIP: ip, LastRequestTime: curTime}
+	nodesMap.Store(ip, node)
+	dbNodes = append(dbNodes, dbNode)
+	return node
 }
 
+// GetDBNodeIndex ...
 func GetDBNodeIndex(nodeID int64) int {
 	for i := 0; i < len(dbNodes); i++ {
 		if dbNodes[i].ID == nodeID {
@@ -71,6 +75,7 @@ func GetDBNodeIndex(nodeID int64) int {
 	return -1
 }
 
+// DeleteNodeByID ...
 func DeleteNodeByID(id int64) error {
 	dbNode, err := GetDBNodeByID(id)
 	nodesMap.Delete(dbNode.LastIP)
@@ -108,6 +113,7 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 }
 */
 
+// IsValidAuthKey ...
 func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 	authKey := param["auth_key"].(string)
 	authBytes, err := hex.DecodeString(authKey)

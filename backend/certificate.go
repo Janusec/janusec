@@ -17,8 +17,10 @@ import (
 	"janusec/utils"
 )
 
+// Certs list
 var Certs = []*models.CertItem{}
 
+// LoadCerts ...
 func LoadCerts() {
 	//fmt.Println("LoadCerts")
 	if data.IsPrimary {
@@ -54,38 +56,38 @@ func LoadCerts() {
 	}
 }
 
+// GetCertificateByDomain ...
 func GetCertificateByDomain(domain string) (*tls.Certificate, error) {
-	if domain_relation, ok := DomainsMap.Load(domain); ok == true {
-		certItem := domain_relation.(models.DomainRelation).Cert
+	if domainRelation, ok := DomainsMap.Load(domain); ok == true {
+		certItem := domainRelation.(models.DomainRelation).Cert
 		if certItem == nil {
 			return nil, errors.New("GetCertificateByDomain Null CertItem: " + domain)
 		}
 		cert := &(certItem.TlsCert)
 		return cert, nil
-	} else {
-		return nil, errors.New("Unknown Host: " + domain)
 	}
+	return nil, errors.New("Unknown Host: " + domain)
 }
 
+// GetCertificates ...
 func GetCertificates(authUser *models.AuthUser) ([]*models.CertItem, error) {
 	if authUser.IsCertAdmin == true {
 		return Certs, nil
-	} else {
-		// Remove private key
-		var simpleCerts = []*models.CertItem{}
-		for _, cert := range Certs {
-			simpleCert := &models.CertItem{
-				ID:             cert.ID,
-				CommonName:     cert.CommonName,
-				CertContent:    "",
-				PrivKeyContent: "You have no privilege to view the private key.",
-				ExpireTime:     cert.ExpireTime,
-				Description:    cert.Description,
-			}
-			simpleCerts = append(simpleCerts, simpleCert)
-		}
-		return simpleCerts, nil
 	}
+	// Remove private key
+	var simpleCerts = []*models.CertItem{}
+	for _, cert := range Certs {
+		simpleCert := &models.CertItem{
+			ID:             cert.ID,
+			CommonName:     cert.CommonName,
+			CertContent:    "",
+			PrivKeyContent: "You have no privilege to view the private key.",
+			ExpireTime:     cert.ExpireTime,
+			Description:    cert.Description,
+		}
+		simpleCerts = append(simpleCerts, simpleCert)
+	}
+	return simpleCerts, nil
 }
 
 // SysCallGetCertByID ... Use for internal call, not for UI
@@ -98,6 +100,7 @@ func SysCallGetCertByID(certID int64) (*models.CertItem, error) {
 	return nil, errors.New("Certificate not found")
 }
 
+// GetCertificateByID ...
 func GetCertificateByID(certID int64, authUser *models.AuthUser) (*models.CertItem, error) {
 	for _, cert := range Certs {
 		if cert.ID == certID {
@@ -115,9 +118,10 @@ func GetCertificateByID(certID int64, authUser *models.AuthUser) (*models.CertIt
 			return simpleCert, nil
 		}
 	}
-	return nil, errors.New("Certificate id error.")
+	return nil, errors.New("certificate id error")
 }
 
+// GetCertificateByCommonName ...
 func GetCertificateByCommonName(commonName string) *models.CertItem {
 	for _, cert := range Certs {
 		if cert.CommonName == commonName {
@@ -128,6 +132,7 @@ func GetCertificateByCommonName(commonName string) *models.CertItem {
 	return nil
 }
 
+// UpdateCertificate ...
 func UpdateCertificate(param map[string]interface{}, authUser *models.AuthUser) (*models.CertItem, error) {
 	certificate := param["object"].(map[string]interface{})
 	id := int64(certificate["id"].(float64))
@@ -173,6 +178,7 @@ func UpdateCertificate(param map[string]interface{}, authUser *models.AuthUser) 
 	return certItem, nil
 }
 
+// GetCertificateIndex ...
 func GetCertificateIndex(certID int64) int {
 	for i := 0; i < len(Certs); i++ {
 		if Certs[i].ID == certID {
@@ -182,18 +188,18 @@ func GetCertificateIndex(certID int64) int {
 	return -1
 }
 
+// DeleteCertificateByID ...
 func DeleteCertificateByID(certID int64) error {
 	certDomainsCount := data.DAL.SelectDomainsCountByCertID(certID)
 	if certDomainsCount > 0 {
-		return errors.New("This certificate is in use, please delete relevant applications at first.")
-	} else {
-		err := data.DAL.DeleteCertificate(certID)
-		if err != nil {
-			return err
-		}
-		i := GetCertificateIndex(certID)
-		Certs = append(Certs[:i], Certs[i+1:]...)
+		return errors.New("this certificate is in use, please delete relevant applications at first")
 	}
+	err := data.DAL.DeleteCertificate(certID)
+	if err != nil {
+		return err
+	}
+	i := GetCertificateIndex(certID)
+	Certs = append(Certs[:i], Certs[i+1:]...)
 	data.UpdateBackendLastModified()
 	return nil
 }

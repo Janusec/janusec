@@ -23,11 +23,13 @@ const (
 	sqlDeleteCertificate                  = `DELETE FROM "certificates" WHERE "id"=$1`
 )
 
+// CreateTableIfNotExistsCertificates ...
 func (dal *MyDAL) CreateTableIfNotExistsCertificates() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsCertificates)
 	return err
 }
 
+// SelectCertificates ...
 func (dal *MyDAL) SelectCertificates() []*models.DBCertItem {
 	rows, err := dal.db.Query(sqlSelectCertificates)
 	utils.CheckError("SelectCertificates", err)
@@ -43,12 +45,14 @@ func (dal *MyDAL) SelectCertificates() []*models.DBCertItem {
 	return dbCerts
 }
 
-func (dal *MyDAL) InsertCertificate(commonName string, certContent string, encryptedPrivKey []byte, expireTime int64, description string) (new_id int64) {
-	err := dal.db.QueryRow(sqlInsertCertificate, commonName, certContent, encryptedPrivKey, expireTime, description).Scan(&new_id)
+// InsertCertificate ...
+func (dal *MyDAL) InsertCertificate(commonName string, certContent string, encryptedPrivKey []byte, expireTime int64, description string) (newID int64) {
+	err := dal.db.QueryRow(sqlInsertCertificate, commonName, certContent, encryptedPrivKey, expireTime, description).Scan(&newID)
 	utils.CheckError("InsertCertificate", err)
-	return new_id
+	return newID
 }
 
+// UpdateCertificate ...
 func (dal *MyDAL) UpdateCertificate(commonName string, certContent string, encryptedPrivKey []byte, expireTime int64, description string, id int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCertificate)
 	defer stmt.Close()
@@ -57,6 +61,7 @@ func (dal *MyDAL) UpdateCertificate(commonName string, certContent string, encry
 	return err
 }
 
+// DeleteCertificate by id
 func (dal *MyDAL) DeleteCertificate(certID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteCertificate)
 	defer stmt.Close()
@@ -65,6 +70,7 @@ func (dal *MyDAL) DeleteCertificate(certID int64) error {
 	return err
 }
 
+// GetCertificateExpiryTime ...
 func GetCertificateExpiryTime(certPem string) int64 {
 	block, _ := pem.Decode([]byte(certPem))
 	if block == nil {

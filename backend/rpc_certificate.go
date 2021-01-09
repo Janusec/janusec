@@ -16,6 +16,7 @@ import (
 	"janusec/utils"
 )
 
+// RPCSelectCertificates ...
 func RPCSelectCertificates() []*models.CertItem {
 	certs := []*models.CertItem{}
 	rpcRequest := &models.RPCRequest{

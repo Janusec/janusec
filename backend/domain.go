@@ -16,10 +16,14 @@ import (
 )
 
 var (
-	Domains    = []*models.Domain{}
-	DomainsMap = sync.Map{} //DomainsMap (string, models.DomainRelation)
+	// Domains for all domains
+	Domains = []*models.Domain{}
+
+	// DomainsMap (string, models.DomainRelation)
+	DomainsMap = sync.Map{}
 )
 
+// LoadDomains ...
 func LoadDomains() {
 	Domains = Domains[0:0]
 	DomainsMap.Range(func(key, value interface{}) bool {
@@ -49,6 +53,7 @@ func LoadDomains() {
 	}
 }
 
+// GetDomainByID ...
 func GetDomainByID(id int64) *models.Domain {
 	for _, domain := range Domains {
 		if domain.ID == id {
@@ -58,15 +63,17 @@ func GetDomainByID(id int64) *models.Domain {
 	return nil
 }
 
-func GetDomainByName(domain_name string) *models.Domain {
+// GetDomainByName ...
+func GetDomainByName(domainName string) *models.Domain {
 	for _, domain := range Domains {
-		if domain.Name == domain_name {
+		if domain.Name == domainName {
 			return domain
 		}
 	}
 	return nil
 }
 
+// UpdateDomain ...
 func UpdateDomain(app *models.Application, domainMapInterface interface{}) *models.Domain {
 	var domainMap = domainMapInterface.(map[string]interface{})
 	domainID := int64(domainMap["id"].(float64))
@@ -99,6 +106,7 @@ func UpdateDomain(app *models.Application, domainMapInterface interface{}) *mode
 	return domain
 }
 
+// GetDomainIndex ...
 func GetDomainIndex(domain *models.Domain) int {
 	for i := 0; i < len(Domains); i++ {
 		if Domains[i].ID == domain.ID {
@@ -108,11 +116,13 @@ func GetDomainIndex(domain *models.Domain) int {
 	return -1
 }
 
+// DeleteDomain ...
 func DeleteDomain(domain *models.Domain) {
 	i := GetDomainIndex(domain)
 	Domains = append(Domains[:i], Domains[i+1:]...)
 }
 
+// DeleteDomainsByApp ...
 func DeleteDomainsByApp(app *models.Application) {
 	for _, domain := range app.Domains {
 		DeleteDomain(domain)
@@ -124,11 +134,12 @@ func DeleteDomainsByApp(app *models.Application) {
 	}
 }
 
-func InterfaceContainsDomainID(domains []interface{}, domain_id int64) bool {
+// InterfaceContainsDomainID ...
+func InterfaceContainsDomainID(domains []interface{}, domainID int64) bool {
 	for _, domain := range domains {
 		destMap := domain.(map[string]interface{})
 		id := int64(destMap["id"].(float64))
-		if id == domain_id {
+		if id == domainID {
 			return true
 		}
 	}

@@ -16,6 +16,7 @@ import (
 	"janusec/models"
 	"janusec/utils"
 
+	// PostgreSQL
 	_ "github.com/lib/pq"
 )
 
@@ -89,11 +90,13 @@ func InitConfig() {
 	}
 }
 
+// ExecSQL Exec SQL Directly
 func (dal *MyDAL) ExecSQL(sql string) error {
 	_, err := dal.db.Exec(sql)
 	return err
 }
 
+// ExistColumnInTable ...
 func (dal *MyDAL) ExistColumnInTable(tableName string, columnName string) bool {
 	var count int64
 	const sql = `select count(1) from information_schema.columns where table_name=$1 and column_name=$2`

@@ -104,15 +104,17 @@ func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) 
 	return dest
 }
 
+// GetApplicationByID ...
 func GetApplicationByID(appID int64) (*models.Application, error) {
 	for _, app := range Apps {
 		if app.ID == appID {
 			return app, nil
 		}
 	}
-	return nil, errors.New("Not found.")
+	return nil, errors.New("not found")
 }
 
+// GetWildDomainName ...
 func GetWildDomainName(domain string) string {
 	index := strings.Index(domain, ".")
 	if index > 0 {
@@ -122,6 +124,7 @@ func GetWildDomainName(domain string) string {
 	return ""
 }
 
+// GetApplicationByDomain ...
 func GetApplicationByDomain(domain string) *models.Application {
 	if domainRelation, ok := DomainsMap.Load(domain); ok {
 		app := domainRelation.(models.DomainRelation).App //DomainsMap[domain].App
@@ -137,6 +140,7 @@ func GetApplicationByDomain(domain string) *models.Application {
 	return nil
 }
 
+// LoadApps ...
 func LoadApps() {
 	Apps = Apps[0:0]
 	if data.IsPrimary {
@@ -169,6 +173,7 @@ func LoadApps() {
 	}
 }
 
+// LoadDestinations ...
 func LoadDestinations() {
 	for _, app := range Apps {
 		app.Destinations = data.DAL.SelectDestinationsByAppID(app.ID)
@@ -184,6 +189,7 @@ func LoadDestinations() {
 	}
 }
 
+// LoadRoute ...
 func LoadRoute() {
 	for _, app := range Apps {
 		for _, dest := range app.Destinations {
@@ -198,6 +204,7 @@ func LoadRoute() {
 	}
 }
 
+// LoadAppDomainNames ...
 func LoadAppDomainNames() {
 	for _, app := range Apps {
 		for _, domain := range Domains {
@@ -208,6 +215,7 @@ func LoadAppDomainNames() {
 	}
 }
 
+// GetApplications ...
 func GetApplications(authUser *models.AuthUser) ([]*models.Application, error) {
 	if authUser.IsAppAdmin {
 		return Apps, nil
@@ -221,6 +229,7 @@ func GetApplications(authUser *models.AuthUser) ([]*models.Application, error) {
 	return myApps, nil
 }
 
+// UpdateDestinations ...
 func UpdateDestinations(app *models.Application, destinations []interface{}) {
 	//fmt.Println("ToDo UpdateDestinations")
 	for _, dest := range app.Destinations {
@@ -286,6 +295,7 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 	}
 }
 
+// UpdateAppDomains ...
 func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
 	newAppDomains := []*models.Domain{}
 	newDomainNames := []string{}
@@ -306,12 +316,13 @@ func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
 	app.Domains = newAppDomains
 }
 
+// UpdateApplication ...
 func UpdateApplication(param map[string]interface{}) (*models.Application, error) {
 	application := param["object"].(map[string]interface{})
 	appID := int64(application["id"].(float64))
 	appName := application["name"].(string)
 	internalScheme := application["internal_scheme"].(string)
-	redirectHttps := application["redirect_https"].(bool)
+	redirectHTTPS := application["redirect_https"].(bool)
 	hstsEnabled := application["hsts_enabled"].(bool)
 	wafEnabled := application["waf_enabled"].(bool)
 	ipMethod := models.IPMethod(application["ip_method"].(float64))
@@ -331,14 +342,14 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 	var app *models.Application
 	if appID == 0 {
 		// new application
-		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp)
+		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp)
 		app = &models.Application{
 			ID: newID, Name: appName,
 			InternalScheme: internalScheme,
 			//Destinations:   []*models.Destination{},
 			Route:          sync.Map{},
 			Domains:        []*models.Domain{},
-			RedirectHTTPS:  redirectHttps,
+			RedirectHTTPS:  redirectHTTPS,
 			HSTSEnabled:    hstsEnabled,
 			WAFEnabled:     wafEnabled,
 			ClientIPMethod: ipMethod,
@@ -352,13 +363,13 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 	} else {
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
-			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHttps, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
+			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
 			if err != nil {
 				utils.DebugPrintln("UpdateApplication", err)
 			}
 			app.Name = appName
 			app.InternalScheme = internalScheme
-			app.RedirectHTTPS = redirectHttps
+			app.RedirectHTTPS = redirectHTTPS
 			app.HSTSEnabled = hstsEnabled
 			app.WAFEnabled = wafEnabled
 			app.ClientIPMethod = ipMethod
@@ -380,6 +391,7 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 	return app, nil
 }
 
+// GetApplicationIndex ...
 func GetApplicationIndex(appID int64) int {
 	for i := 0; i < len(Apps); i++ {
 		if Apps[i].ID == appID {
@@ -389,6 +401,7 @@ func GetApplicationIndex(appID int64) int {
 	return -1
 }
 
+// DeleteDestinationsByApp ...
 func DeleteDestinationsByApp(appID int64) {
 	err := data.DAL.DeleteDestinationsByAppID(appID)
 	if err != nil {
@@ -396,6 +409,7 @@ func DeleteDestinationsByApp(appID int64) {
 	}
 }
 
+// DeleteApplicationByID ...
 func DeleteApplicationByID(appID int64, authUser *models.AuthUser) error {
 	app, err := GetApplicationByID(appID)
 	if err != nil {

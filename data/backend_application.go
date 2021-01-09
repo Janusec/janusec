@@ -12,12 +12,14 @@ import (
 	"janusec/utils"
 )
 
+// CreateTableIfNotExistsApplications ...
 func (dal *MyDAL) CreateTableIfNotExistsApplications() error {
 	const sqlCreateTableIfNotExistsApplications = `CREATE TABLE IF NOT EXISTS "applications"("id" bigserial PRIMARY KEY,"name" VARCHAR(128) NOT NULL,"internal_scheme" VARCHAR(8) NOT NULL,"redirect_https" boolean,"hsts_enabled" boolean,"waf_enabled" boolean,"ip_method" bigint,"description" VARCHAR(256) NOT NULL,"oauth_required" boolean,"session_seconds" bigint default 7200,"owner" VARCHAR(128) NOT NULL,"csp_enabled" boolean default false,"csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self''')`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsApplications)
 	return err
 }
 
+// SelectApplications ...
 func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 	const sqlSelectApplications = `SELECT "id","name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp" FROM "applications"`
 	rows, err := dal.db.Query(sqlSelectApplications)

@@ -20,11 +20,13 @@ const (
 	sqlDeleteNodeByID              = `DELETE FROM "nodes" WHERE "id"=$1`
 )
 
+// DeleteNodeByID ...
 func (dal *MyDAL) DeleteNodeByID(id int64) error {
 	_, err := dal.db.Exec(sqlDeleteNodeByID, id)
 	return err
 }
 
+// SelectAllNodes ...
 func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
 	rows, err := dal.db.Query(sqlSelectAllNodes)
 	utils.CheckError("SelectAllNodes", err)
@@ -38,17 +40,20 @@ func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
 	return dbNodes
 }
 
+// CreateTableIfNotExistsNodes ...
 func (dal *MyDAL) CreateTableIfNotExistsNodes() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsNodes)
 	return err
 }
 
+// InsertNode ...
 func (dal *MyDAL) InsertNode(version string, lastIP string, lastReqTime int64) (newID int64) {
 	err := dal.db.QueryRow(sqlInsertNode, version, lastIP, lastReqTime).Scan(&newID)
 	utils.CheckError("InsertNode", err)
 	return newID
 }
 
+// UpdateNodeLastInfo ...
 func (dal *MyDAL) UpdateNodeLastInfo(version string, lastIP string, lastReqTime int64, id int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateNodeLastInfo)
 	defer stmt.Close()

@@ -19,22 +19,24 @@ const (
 	sqlSelectVulnTypes                = `SELECT "id","name" FROM "vulntypes"`
 )
 
+// CreateTableIfNotExistsVulnType ...
 func (dal *MyDAL) CreateTableIfNotExistsVulnType() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsVulnType)
 	return err
 }
 
+// ExistsVulnType ...
 func (dal *MyDAL) ExistsVulnType() bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsVulnType).Scan(&exist)
 	utils.CheckError("ExistsVulnType", err)
 	if exist == 0 {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
+// SelectVulnTypes ...
 func (dal *MyDAL) SelectVulnTypes() ([]*models.VulnType, error) {
 	vulnTypes := []*models.VulnType{}
 	rows, err := dal.db.Query(sqlSelectVulnTypes)
@@ -52,6 +54,7 @@ func (dal *MyDAL) SelectVulnTypes() ([]*models.VulnType, error) {
 	return vulnTypes, err
 }
 
+// InsertVulnType ...
 func (dal *MyDAL) InsertVulnType(id int64, name string) (err error) {
 	_, err = dal.db.Exec(sqlInsertVulnType, id, name)
 	utils.CheckError("InsertVulnType", err)

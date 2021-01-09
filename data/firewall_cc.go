@@ -22,11 +22,13 @@ const (
 	sqlDeleteCCPolicy                 = `DELETE FROM "ccpolicies" WHERE "app_id"=$1`
 )
 
+// CreateTableIfNotExistsCCPolicy ...
 func (dal *MyDAL) CreateTableIfNotExistsCCPolicy() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsCCPolicy)
 	return err
 }
 
+// DeleteCCPolicy ...
 func (dal *MyDAL) DeleteCCPolicy(appID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteCCPolicy)
 	defer stmt.Close()
@@ -35,46 +37,49 @@ func (dal *MyDAL) DeleteCCPolicy(appID int64) error {
 	return err
 }
 
+// UpdateCCPolicy ...
 func (dal *MyDAL) UpdateCCPolicy(IntervalMilliSeconds float64, maxCount int64, blockSeconds float64, action models.PolicyAction,
-	statByUrl bool, statByUA bool, statByCookie bool, isEnabled bool, appID int64) error {
+	statByURL bool, statByUA bool, statByCookie bool, isEnabled bool, appID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCCPolicy)
 	defer stmt.Close()
 	_, err = stmt.Exec(IntervalMilliSeconds, maxCount, blockSeconds, action,
-		statByUrl, statByUA, statByCookie, isEnabled, appID)
+		statByURL, statByUA, statByCookie, isEnabled, appID)
 	utils.CheckError("UpdateCCPolicy", err)
 	return err
 }
 
+// ExistsCCPolicy ...
 func (dal *MyDAL) ExistsCCPolicy() bool {
 	var existCCPolicy int
 	err := dal.db.QueryRow(sqlExistsCCPolicy).Scan(&existCCPolicy)
 	utils.CheckError("ExistsCCPolicy", err)
 	if existCCPolicy == 0 {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
+// ExistsCCPolicyByAppID ...
 func (dal *MyDAL) ExistsCCPolicyByAppID(appID int64) bool {
 	var existCCPolicy int
 	err := dal.db.QueryRow(sqlExistsCCPolicyByAppID, appID).Scan(&existCCPolicy)
 	utils.CheckError("ExistsCCPolicyByAppID", err)
 	if existCCPolicy == 0 {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
+// InsertCCPolicy ...
 func (dal *MyDAL) InsertCCPolicy(appID int64, IntervalMilliSeconds float64, maxCount int64, blockSeconds float64,
-	action models.PolicyAction, statByUrl bool, statByUA bool, statByCookie bool, isEnabled bool) error {
+	action models.PolicyAction, statByURL bool, statByUA bool, statByCookie bool, isEnabled bool) error {
 	_, err := dal.db.Exec(sqlInsertCCPolicy, appID, IntervalMilliSeconds, maxCount, blockSeconds,
-		action, statByUrl, statByUA, statByCookie, isEnabled)
+		action, statByURL, statByUA, statByCookie, isEnabled)
 	utils.CheckError("InsertCCPolicy", err)
 	return err
 }
 
+// SelectCCPolicies ...
 func (dal *MyDAL) SelectCCPolicies() []*models.CCPolicy {
 	ccPolicies := []*models.CCPolicy{}
 	rows, err := dal.db.Query(sqlSelectCCPolicies)

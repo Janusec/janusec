@@ -15,6 +15,7 @@ import (
 	"janusec/utils"
 )
 
+// RPCSelectApplications ...
 func RPCSelectApplications() []*models.Application {
 	rpcRequest := &models.RPCRequest{Action: "get_apps", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)

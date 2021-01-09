@@ -18,12 +18,14 @@ var (
 	ldapLoginTemplate = template.Must(template.New("ldap").Parse(ldapTemplate))
 )
 
+// LDAPContext LDAP Context
 type LDAPContext struct {
 	DisplayName     string
 	State           string
 	AuthCodeEnabled bool
 }
 
+// ShowLDAPLoginUI Show LDAP Login UI
 func ShowLDAPLoginUI(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	ldapContext := LDAPContext{

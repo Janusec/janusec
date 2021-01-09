@@ -22,18 +22,21 @@ const (
 	sqlDeleteGroupPolicyByID             = `DELETE FROM "group_policies" WHERE "id"=$1`
 )
 
+// CreateTableIfNotExistsGroupPolicy ...
 func (dal *MyDAL) CreateTableIfNotExistsGroupPolicy() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsGroupPolicy)
 	utils.CheckError("CreateTableIfNotExistsGroupPolicy", err)
 	return err
 }
 
+// DeleteGroupPolicyByID ...
 func (dal *MyDAL) DeleteGroupPolicyByID(id int64) error {
 	_, err := dal.db.Exec(sqlDeleteGroupPolicyByID, id)
 	utils.CheckError("DeleteGroupPolicyByID", err)
 	return err
 }
 
+// UpdateGroupPolicy ...
 func (dal *MyDAL) UpdateGroupPolicy(description string, appID int64, vulnID int64, hitValue int64, action models.PolicyAction, isEnabled bool, userID int64, updateTime int64, id int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateGroupPolicy)
 	defer stmt.Close()
@@ -42,6 +45,7 @@ func (dal *MyDAL) UpdateGroupPolicy(description string, appID int64, vulnID int6
 	return err
 }
 
+// SelectGroupPolicies ...
 func (dal *MyDAL) SelectGroupPolicies() []*models.GroupPolicy {
 	groupPolicies := []*models.GroupPolicy{}
 	rows, err := dal.db.Query(sqlSelectGroupPolicies)
@@ -57,6 +61,7 @@ func (dal *MyDAL) SelectGroupPolicies() []*models.GroupPolicy {
 	return groupPolicies
 }
 
+// SelectGroupPoliciesByAppID ...
 func (dal *MyDAL) SelectGroupPoliciesByAppID(appID int64) ([]*models.GroupPolicy, error) {
 	groupPolicies := []*models.GroupPolicy{}
 	rows, err := dal.db.Query(sqlSelectGroupPoliciesByAppID, appID)
@@ -76,6 +81,7 @@ func (dal *MyDAL) SelectGroupPoliciesByAppID(appID int64) ([]*models.GroupPolicy
 	return groupPolicies, err
 }
 
+// InsertGroupPolicy ...
 func (dal *MyDAL) InsertGroupPolicy(description string, appID int64, vulnID int64, hitValue int64, action models.PolicyAction, isEnabled bool, userID int64, updateTime int64) (newID int64, err error) {
 	stmt, err := dal.db.Prepare(sqlInsertGroupPolicy)
 	utils.CheckError("InsertGroupPolicy Prepare", err)
@@ -85,13 +91,13 @@ func (dal *MyDAL) InsertGroupPolicy(description string, appID int64, vulnID int6
 	return newID, err
 }
 
+// ExistsGroupPolicy ...
 func (dal *MyDAL) ExistsGroupPolicy() bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsGroupPolicy).Scan(&exist)
 	utils.CheckError("ExistsGroupPolicy", err)
 	if exist == 0 {
 		return false
-	} else {
-		return true
 	}
+	return true
 }

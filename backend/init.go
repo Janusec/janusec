@@ -11,6 +11,7 @@ import (
 	"janusec/data"
 	"janusec/utils"
 
+	// PostgreSQL
 	_ "github.com/lib/pq"
 )
 
@@ -122,6 +123,7 @@ func InitDatabase() {
 	}
 }
 
+// LoadAppConfiguration ...
 func LoadAppConfiguration() {
 	LoadCerts()
 	LoadApps()

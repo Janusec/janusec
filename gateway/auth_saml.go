@@ -12,6 +12,7 @@ import (
 	"net/http"
 )
 
+// SAMLLogin SAML2.0 Login
 func SAMLLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SAMLLogin ToDo")
 	/*

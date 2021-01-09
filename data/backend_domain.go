@@ -22,11 +22,13 @@ const (
 	sqlDeleteDomainByAppID           = `DELETE FROM "domains" WHERE "app_id"=$1`
 )
 
+// CreateTableIfNotExistsDomains ...
 func (dal *MyDAL) CreateTableIfNotExistsDomains() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsDomains)
 	return err
 }
 
+// SelectDomains ...
 func (dal *MyDAL) SelectDomains() []*models.DBDomain {
 	rows, err := dal.db.Query(sqlSelectDomains)
 	utils.CheckError("SelectDomains", err)
@@ -40,6 +42,7 @@ func (dal *MyDAL) SelectDomains() []*models.DBDomain {
 	return dbDomains
 }
 
+// SelectDomainsCountByCertID ...
 func (dal *MyDAL) SelectDomainsCountByCertID(certID int64) int64 {
 	var certDomainsCount int64
 	err := dal.db.QueryRow(sqlSelectDomainsCountByCertID, certID).Scan(&certDomainsCount)
@@ -47,21 +50,21 @@ func (dal *MyDAL) SelectDomainsCountByCertID(certID int64) int64 {
 	return certDomainsCount
 }
 
+// InsertDomain ...
 func (dal *MyDAL) InsertDomain(name string, appID int64, certID int64, redirect bool, location string) (newID int64) {
 	err := dal.db.QueryRow(sqlInsertDomain, name, appID, certID, redirect, location).Scan(&newID)
 	utils.CheckError("InsertDomain", err)
 	return newID
 }
 
+// UpdateDomain ...
 func (dal *MyDAL) UpdateDomain(name string, appID int64, certID int64, redirect bool, location string, domainID int64) error {
 	_, err := dal.db.Exec(sqlUpdateDomain, name, appID, certID, redirect, location, domainID)
-	//stmt, err := dal.db.Prepare(sqlUpdateDomain)
-	//defer stmt.Close()
-	//_, err = stmt.Exec(name, appID, certID, domainID, redirect, location)
 	utils.CheckError("UpdateDomain", err)
 	return err
 }
 
+// DeleteDomainByDomainID ...
 func (dal *MyDAL) DeleteDomainByDomainID(domainID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteDomainByDomainID)
 	defer stmt.Close()
@@ -70,6 +73,7 @@ func (dal *MyDAL) DeleteDomainByDomainID(domainID int64) error {
 	return err
 }
 
+// DeleteDomainByAppID ...
 func (dal *MyDAL) DeleteDomainByAppID(appID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteDomainByAppID)
 	defer stmt.Close()

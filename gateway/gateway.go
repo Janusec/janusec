@@ -514,6 +514,7 @@ func GetClientIP(r *http.Request, app *models.Application) (clientIP string) {
 	return clientIP
 }
 
+// OAuthLogout Clear OAuth Information
 func OAuthLogout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "janusec-token")
 	session.Options = &sessions.Options{Path: "/", MaxAge: -1}

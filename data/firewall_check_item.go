@@ -20,12 +20,14 @@ const (
 	sqlUpdateCheckItemByID             = `UPDATE "check_items" SET "check_point"=$1,"operation"=$2,"key_name"=$3,"regex_policy"=$4,"group_policy_id"=$5 WHERE "id"=$6`
 )
 
+// CreateTableIfNotExistCheckItems ...
 func (dal *MyDAL) CreateTableIfNotExistCheckItems() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistCheckItems)
 	utils.CheckError("CreateTableIfNotExistCheckItems", err)
 	return err
 }
 
+// InsertCheckItem ...
 func (dal *MyDAL) InsertCheckItem(checkPoint models.ChkPoint, operation models.Operation, keyName string, regexPolicy string, groupPolicyID int64) (newID int64, err error) {
 	stmt, err := dal.db.Prepare(sqlInsertCheckItem)
 	utils.CheckError("sqlInsertCheckItem Prepare", err)
@@ -35,6 +37,7 @@ func (dal *MyDAL) InsertCheckItem(checkPoint models.ChkPoint, operation models.O
 	return newID, err
 }
 
+// SelectCheckItemsByGroupID ...
 func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) ([]*models.DBCheckItem, error) {
 	checkItems := []*models.DBCheckItem{}
 	rows, err := dal.db.Query(sqlSelectCheckItemsByGroupID, groupPolicyID)
@@ -52,12 +55,14 @@ func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) ([]*models.DBCh
 	return checkItems, nil
 }
 
+// DeleteCheckItemByID ...
 func (dal *MyDAL) DeleteCheckItemByID(id int64) error {
 	_, err := dal.db.Exec(sqlDeleteCheckItemByID, id)
 	utils.CheckError("DeleteCheckItemByID", err)
 	return err
 }
 
+// UpdateCheckItemByID ...
 func (dal *MyDAL) UpdateCheckItemByID(checkPoint models.ChkPoint, operation models.Operation, keyName string, regexPolicy string, groupPolicyID int64, checkItemID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCheckItemByID)
 	utils.CheckError("UpdateCheckItemByID Prepare", err)

@@ -19,6 +19,7 @@ import (
 	"janusec/utils"
 )
 
+// GenAuthKey for authentication between replica nodes and primary node
 func GenAuthKey() string {
 	nodeAuth := models.NodeAuth{CurTime: time.Now().Unix()}
 	nodeAuthBytes, err := json.Marshal(nodeAuth)
@@ -27,6 +28,7 @@ func GenAuthKey() string {
 	return hex.EncodeToString(encryptedAuthBytes)
 }
 
+// GetRPCResponse ...
 func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	rpcReq.NodeVersion = Version
 	rpcReq.AuthKey = GenAuthKey()

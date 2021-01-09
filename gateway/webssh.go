@@ -25,6 +25,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// HostInfo : the information of remote Host
 type HostInfo struct {
 	IP       string `json:"ip"`
 	Port     string `json:"port"`
@@ -65,6 +66,7 @@ func SSH(sshInput *io.WriteCloser, sshOutput *io.Reader, host *HostInfo, errChan
 	errChan <- err
 }
 
+// RoutineOutput update the console display
 func RoutineOutput(outputTicker *time.Ticker, wsConn *websocket.Conn, sshOutput *io.Reader) {
 	for range outputTicker.C {
 		cmdOutput := make([]byte, 1024*10)
@@ -82,11 +84,12 @@ func RoutineOutput(outputTicker *time.Ticker, wsConn *websocket.Conn, sshOutput 
 	}
 }
 
+// WebSSHHandlerFunc Handle Web SSH
 func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	var isLogin bool
 	isLogin, _ = usermgmt.IsLogIn(w, r)
 	if isLogin == false {
-		GenResponseByObject(w, nil, errors.New("Please login!"))
+		GenResponseByObject(w, nil, errors.New("please login"))
 		return
 	}
 	username := usermgmt.GetLoginUsername(r)
@@ -159,6 +162,7 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CmdLog write to log files
 func CmdLog(logBuf *bytes.Buffer, username string, host *HostInfo, cmdChars *[]byte) {
 	for i := 0; i < len(*cmdChars); i++ {
 		cmdChar := (*cmdChars)[i]
@@ -169,7 +173,6 @@ func CmdLog(logBuf *bytes.Buffer, username string, host *HostInfo, cmdChars *[]b
 			utils.DebugPrintln("WebSSH User:", username, hostInfo, "Command:", cmdStr)
 			logBuf.Reset()
 		default:
-			//fmt.Println("Char:", cmdChar)
 			logBuf.WriteByte(cmdChar)
 		}
 	}

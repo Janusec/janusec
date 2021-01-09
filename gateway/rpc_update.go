@@ -19,31 +19,32 @@ var (
 	updateTicker *time.Ticker
 )
 
+// UpdateTimeTick Get Settings from Primary Node
 func UpdateTimeTick() {
-	updateTicker = time.NewTicker(data.Sync_Seconds * time.Second)
+	updateTicker = time.NewTicker(data.SyncSeconds * time.Second)
 	for range updateTicker.C {
 		//fmt.Println("UpdateTimeTick:", time.Now())
 		settingItems := data.RPCGetSettings()
 		for _, settingItem := range settingItems {
 			switch settingItem.Name {
-			case "Backend_Last_Modified":
+			case "backend_last_modified":
 				newBackendLastModified := int64(settingItem.Value.(float64))
-				if data.Backend_Last_Modified < newBackendLastModified {
-					data.Backend_Last_Modified = newBackendLastModified
+				if data.BackendLastModified < newBackendLastModified {
+					data.BackendLastModified = newBackendLastModified
 					go backend.LoadAppConfiguration()
 				}
-			case "Firewall_Last_Modified":
+			case "firewall_last_modified":
 				newFirewallLastModified := int64(settingItem.Value.(float64))
-				if data.Firewall_Last_Modified < newFirewallLastModified {
-					data.Firewall_Last_Modified = newFirewallLastModified
+				if data.FirewallLastModified < newFirewallLastModified {
+					data.FirewallLastModified = newFirewallLastModified
 					go firewall.InitFirewall()
 				}
-			case "Sync_Seconds":
+			case "sync_seconds":
 				newSyncSeconds := time.Duration(settingItem.Value.(float64))
-				if data.Sync_Seconds != newSyncSeconds {
-					data.Sync_Seconds = newSyncSeconds
+				if data.SyncSeconds != newSyncSeconds {
+					data.SyncSeconds = newSyncSeconds
 					updateTicker.Stop()
-					updateTicker = time.NewTicker(data.Sync_Seconds * time.Second)
+					updateTicker = time.NewTicker(data.SyncSeconds * time.Second)
 				}
 			}
 		}

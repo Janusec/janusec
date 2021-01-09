@@ -15,6 +15,7 @@ const (
 	sqlSetIDSeqStartWith = `SELECT setval($1,$2,false)`
 )
 
+// SetIDSeqStartWith modify the id sequence
 func (dal *MyDAL) SetIDSeqStartWith(tableName string, seq int64) error {
 	tableIDSeq := tableName + `_id_seq`
 	_, err := dal.db.Exec(sqlSetIDSeqStartWith, tableIDSeq, seq)

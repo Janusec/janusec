@@ -22,24 +22,28 @@ const (
 	sqlDeleteCCLogsBeforeTime      = `DELETE FROM "cc_logs" WHERE "request_time"<$1`
 )
 
+// DeleteCCLogsBeforeTime ...
 func (dal *MyDAL) DeleteCCLogsBeforeTime(expiredTime int64) error {
 	_, err := dal.db.Exec(sqlDeleteCCLogsBeforeTime, expiredTime)
 	utils.CheckError("DeleteCCLogsBeforeTime", err)
 	return err
 }
 
+// CreateTableIfNotExistsCCLog ...
 func (dal *MyDAL) CreateTableIfNotExistsCCLog() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsCCLog)
 	utils.CheckError("CreateTableIfNotExistsCCLog", err)
 	return err
 }
 
+// InsertCCLog ...
 func (dal *MyDAL) InsertCCLog(requestTime int64, clientIP string, host string, method string, urlPath string, urlQuery string, contentType string, userAgent string, cookies string, rawRequest string, action int64, appID int64) error {
 	_, err := dal.db.Exec(sqlInsertCCLog, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, appID)
 	utils.CheckError("InsertCCLog Exec", err)
 	return err
 }
 
+// SelectCCLogsCount ...
 func (dal *MyDAL) SelectCCLogsCount(appID int64, startTime int64, endTime int64) (int64, error) {
 	var count int64
 	err := dal.db.QueryRow(sqlSelectCCLogsCount, appID, startTime, endTime).Scan(&count)
@@ -47,6 +51,7 @@ func (dal *MyDAL) SelectCCLogsCount(appID int64, startTime int64, endTime int64)
 	return count, err
 }
 
+// SelectAllCCLogsCount ...
 func (dal *MyDAL) SelectAllCCLogsCount(startTime int64, endTime int64) (int64, error) {
 	stmt, err := dal.db.Prepare(sqlSelectAllCCLogsCount)
 	utils.CheckError("SelectAllCCLogsCount Prepare", err)
@@ -57,31 +62,33 @@ func (dal *MyDAL) SelectAllCCLogsCount(startTime int64, endTime int64) (int64, e
 	return count, err
 }
 
+// SelectCCLogByID ...
 func (dal *MyDAL) SelectCCLogByID(id int64) (*models.CCLog, error) {
 	stmt, err := dal.db.Prepare(sqlSelectCCLogByID)
 	utils.CheckError("SelectCCLogByID Prepare", err)
 	defer stmt.Close()
-	cc_log := &models.CCLog{}
-	err = stmt.QueryRow(id).Scan(&cc_log.ID,
-		&cc_log.RequestTime,
-		&cc_log.ClientIP,
-		&cc_log.Host,
-		&cc_log.Method,
-		&cc_log.UrlPath,
-		&cc_log.UrlQuery,
-		&cc_log.ContentType,
-		&cc_log.UserAgent,
-		&cc_log.Cookies,
-		&cc_log.RawRequest,
-		&cc_log.Action,
-		&cc_log.AppID)
+	ccLog := &models.CCLog{}
+	err = stmt.QueryRow(id).Scan(&ccLog.ID,
+		&ccLog.RequestTime,
+		&ccLog.ClientIP,
+		&ccLog.Host,
+		&ccLog.Method,
+		&ccLog.UrlPath,
+		&ccLog.UrlQuery,
+		&ccLog.ContentType,
+		&ccLog.UserAgent,
+		&ccLog.Cookies,
+		&ccLog.RawRequest,
+		&ccLog.Action,
+		&ccLog.AppID)
 	utils.CheckError("SelectCCLogByID QueryRow", err)
-	return cc_log, err
+	return ccLog, err
 }
 
-func (dal *MyDAL) SelectCCLogs(appID int64, startTime int64, endTime int64, request_count int64, offset int64) []*models.SimpleCCLog {
+// SelectCCLogs ...
+func (dal *MyDAL) SelectCCLogs(appID int64, startTime int64, endTime int64, requestCount int64, offset int64) []*models.SimpleCCLog {
 	simpleCCLogs := []*models.SimpleCCLog{}
-	rows, err := dal.db.Query(sqlSelectSimpleCCLogs, appID, startTime, endTime, request_count, offset)
+	rows, err := dal.db.Query(sqlSelectSimpleCCLogs, appID, startTime, endTime, requestCount, offset)
 	if err != nil {
 		utils.DebugPrintln("SelectCCLogs Query", err)
 	}

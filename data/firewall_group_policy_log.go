@@ -26,24 +26,28 @@ const (
 	sqlDeleteHitLogsBeforeTime            = `DELETE FROM "group_hit_logs" where "request_time"<$1`
 )
 
+// DeleteHitLogsBeforeTime ...
 func (dal *MyDAL) DeleteHitLogsBeforeTime(expiredTime int64) error {
 	_, err := dal.db.Exec(sqlDeleteHitLogsBeforeTime, expiredTime)
 	utils.CheckError("DeleteHitLogsBeforeTime", err)
 	return err
 }
 
+// CreateTableIfNotExistsGroupHitLog ...
 func (dal *MyDAL) CreateTableIfNotExistsGroupHitLog() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsGroupHitLog)
 	utils.CheckError("CreateTableIfNotExistsGroupHitLog", err)
 	return err
 }
 
+// InsertGroupHitLog ...
 func (dal *MyDAL) InsertGroupHitLog(requestTime int64, clientIP string, host string, method string, urlPath string, urlQuery string, contentType string, userAgent string, cookies string, rawRequest string, action int64, policyID int64, vulnID int64, appID int64) error {
 	_, err := dal.db.Exec(sqlInsertGroupHitLog, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, policyID, vulnID, appID)
 	utils.CheckError("InsertGroupHitLog Exec", err)
 	return err
 }
 
+// SelectGroupHitLogsCount ...
 func (dal *MyDAL) SelectGroupHitLogsCount(appID int64, startTime int64, endTime int64) (int64, error) {
 	stmt, err := dal.db.Prepare(sqlSelectGroupHitLogsCount)
 	utils.CheckError("SelectGroupHitLogsCount Prepare", err)
@@ -54,6 +58,7 @@ func (dal *MyDAL) SelectGroupHitLogsCount(appID int64, startTime int64, endTime 
 	return count, err
 }
 
+// SelectGroupHitLogsCountByVulnID ...
 func (dal *MyDAL) SelectGroupHitLogsCountByVulnID(appID int64, vulnID int64, startTime int64, endTime int64) (int64, error) {
 	stmt, err := dal.db.Prepare(sqlSelectGroupHitLogsCountByVulnID)
 	utils.CheckError("SelectGroupHitLogsCountByVulnID Prepare", err)
@@ -64,6 +69,7 @@ func (dal *MyDAL) SelectGroupHitLogsCountByVulnID(appID int64, vulnID int64, sta
 	return count, err
 }
 
+// SelectAllGroupHitLogsCount ...
 func (dal *MyDAL) SelectAllGroupHitLogsCount(startTime int64, endTime int64) (int64, error) {
 	stmt, err := dal.db.Prepare(sqlSelectAllGroupHitLogsCount)
 	utils.CheckError("SelectAllGroupHitLogsCount Prepare", err)
@@ -74,6 +80,7 @@ func (dal *MyDAL) SelectAllGroupHitLogsCount(startTime int64, endTime int64) (in
 	return count, err
 }
 
+// SelectAllGroupHitLogsCountByVulnID ...
 func (dal *MyDAL) SelectAllGroupHitLogsCountByVulnID(vulnID int64, startTime int64, endTime int64) (int64, error) {
 	stmt, err := dal.db.Prepare(sqlSelectAllGroupHitLogsCountByVulnID)
 	utils.CheckError("SelectAllGroupHitLogsCountByVulnID Prepare", err)
@@ -84,6 +91,7 @@ func (dal *MyDAL) SelectAllGroupHitLogsCountByVulnID(vulnID int64, startTime int
 	return count, err
 }
 
+// SelectGroupHitLogByID ...
 func (dal *MyDAL) SelectGroupHitLogByID(id int64) (*models.GroupHitLog, error) {
 	stmt, err := dal.db.Prepare(sqlSelectGroupHitLogByID)
 	utils.CheckError("SelectGroupHitLogByID Prepare", err)
@@ -108,14 +116,15 @@ func (dal *MyDAL) SelectGroupHitLogByID(id int64) (*models.GroupHitLog, error) {
 	return groupHitLog, err
 }
 
-func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64, request_count int64, offset int64) []*models.SimpleGroupHitLog {
+// SelectGroupHitLogs ...
+func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64, requestCount int64, offset int64) []*models.SimpleGroupHitLog {
 	simpleGroupHitLogs := []*models.SimpleGroupHitLog{}
 	stmt, err := dal.db.Prepare(sqlSelectSimpleGroupHitLogs)
 	if err != nil {
 		utils.DebugPrintln("SelectGroupHitLogs Prepare", err)
 	}
 	defer stmt.Close()
-	rows, err := stmt.Query(appID, startTime, endTime, request_count, offset)
+	rows, err := stmt.Query(appID, startTime, endTime, requestCount, offset)
 	if err != nil {
 		utils.DebugPrintln("SelectGroupHitLogs Query", err)
 	}
@@ -131,6 +140,7 @@ func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64
 	return simpleGroupHitLogs
 }
 
+// SelectVulnStatByAppID ...
 func (dal *MyDAL) SelectVulnStatByAppID(appID int64, startTime int64, endTime int64) ([]*models.VulnStat, error) {
 	vulnStat := []*models.VulnStat{}
 	stmt, err := dal.db.Prepare(sqlSelectVulnStatByAppID)
@@ -149,6 +159,7 @@ func (dal *MyDAL) SelectVulnStatByAppID(appID int64, startTime int64, endTime in
 	return vulnStat, err
 }
 
+// SelectAllVulnStat ...
 func (dal *MyDAL) SelectAllVulnStat(startTime int64, endTime int64) ([]*models.VulnStat, error) {
 	vulnStat := []*models.VulnStat{}
 	stmt, err := dal.db.Prepare(sqlSelectAllVulnStat)

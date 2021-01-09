@@ -18,6 +18,7 @@ import (
 	//"fmt"
 )
 
+// NewConfig ...
 func NewConfig(filename string) (*models.Config, error) {
 	config := &models.Config{}
 	configBytes, err := ioutil.ReadFile(filename)

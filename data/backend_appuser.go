@@ -23,12 +23,14 @@ const (
 	sqlDeleteAppUser        = `DELETE FROM "appusers" WHERE "id"=$1`
 )
 
+// CreateTableIfNotExistsAppUsers ...
 func (dal *MyDAL) CreateTableIfNotExistsAppUsers() error {
 	const sqlCreateTableIfNotExistsAppUsers = `CREATE TABLE IF NOT EXISTS "appusers"("id" bigserial PRIMARY KEY, "username" VARCHAR(128) NOT NULL, "hashpwd" VARCHAR(256) NOT NULL DEFAULT '', "salt" VARCHAR(32) NOT NULL DEFAULT '', "email" VARCHAR(128) NOT NULL DEFAULT '', "is_super_admin" boolean, "is_cert_admin" boolean, "is_app_admin" boolean, "need_modify_pwd" boolean)`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsAppUsers)
 	return err
 }
 
+// IsExistsAppUser ...
 func (dal *MyDAL) IsExistsAppUser(username string) bool {
 	var existAdmin int
 	err := dal.db.QueryRow(sqlIsExistUser, username).Scan(&existAdmin)
@@ -37,17 +39,18 @@ func (dal *MyDAL) IsExistsAppUser(username string) bool {
 	}
 	if existAdmin == 0 {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
+// GetAppUserIDByName ...
 func (dal *MyDAL) GetAppUserIDByName(username string) (id int64, err error) {
 	sqlSelectID := `SELECT "id" FROM "appusers" WHERE "username"=$1`
 	err = dal.db.QueryRow(sqlSelectID, username).Scan(&id)
 	return id, err
 }
 
+// InsertIfNotExistsAppUser ...
 func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, needModifyPwd bool) (id int64, err error) {
 	id, err = dal.GetAppUserIDByName(username)
 	if err == nil {
@@ -57,12 +60,14 @@ func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt
 	return id, err
 }
 
+// SelectHashPwdAndSalt by username
 func (dal *MyDAL) SelectHashPwdAndSalt(username string) (userID int64, hashpwd string, salt string, needModifyPwd bool) {
 	err := dal.db.QueryRow(sqlSelectHashPwdAndSalt, username).Scan(&userID, &hashpwd, &salt, &needModifyPwd)
 	utils.CheckError("SelectHashPwdAndSalt", err)
 	return userID, hashpwd, salt, needModifyPwd
 }
 
+// SelectAppUserByName ...
 func (dal *MyDAL) SelectAppUserByName(username string) *models.AppUser {
 	appUser := &models.AppUser{}
 	const sqlSelectAppUserByName = `SELECT "id","username","hashpwd","salt","email","is_super_admin","is_cert_admin","is_app_admin","need_modify_pwd" FROM "appusers" WHERE "username"=$1`
@@ -80,6 +85,7 @@ func (dal *MyDAL) SelectAppUserByName(username string) *models.AppUser {
 	return appUser
 }
 
+// SelectAppUsers ...
 func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
 	rows, err := dal.db.Query(sqlSelectAppUsers)
 	utils.CheckError("SelectAppUsers", err)
@@ -93,6 +99,7 @@ func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
 	return queryUsers
 }
 
+// SelectAppUserByID ...
 func (dal *MyDAL) SelectAppUserByID(userID int64) *models.QueryAppUser {
 	queryUser := &models.QueryAppUser{}
 	queryUser.ID = userID
@@ -102,6 +109,7 @@ func (dal *MyDAL) SelectAppUserByID(userID int64) *models.QueryAppUser {
 	return queryUser
 }
 
+// UpdateAppUserWithPwd ...
 func (dal *MyDAL) UpdateAppUserWithPwd(username string, hashpwd string, salt string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, needModifyPwd bool, userID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateAppUserWithPwd)
 	defer stmt.Close()
@@ -110,6 +118,7 @@ func (dal *MyDAL) UpdateAppUserWithPwd(username string, hashpwd string, salt str
 	return err
 }
 
+// UpdateAppUserNoPwd ...
 func (dal *MyDAL) UpdateAppUserNoPwd(username string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, userID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateAppUserNoPwd)
 	defer stmt.Close()
@@ -118,6 +127,7 @@ func (dal *MyDAL) UpdateAppUserNoPwd(username string, email string, isSuperAdmin
 	return err
 }
 
+// DeleteAppUser ...
 func (dal *MyDAL) DeleteAppUser(userID int64) error {
 	stmt, err := dal.db.Prepare(sqlDeleteAppUser)
 	defer stmt.Close()

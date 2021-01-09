@@ -29,37 +29,42 @@ const (
 	sqlExistsSetting                  = `SELECT COALESCE((SELECT 1 FROM "settings" WHERE "name"=$1 limit 1),0)`
 )
 
+// ExistsSetting ...
 func (dal *MyDAL) ExistsSetting(name string) bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsSetting, name).Scan(&exist)
 	utils.CheckError("ExistsSetting", err)
 	if exist == 0 {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
+// SelectBoolSetting ...
 func (dal *MyDAL) SelectBoolSetting(name string) (value bool, err error) {
 	err = dal.db.QueryRow(sqlSelectBoolSetting, name).Scan(&value)
 	return value, err
 }
 
+// SelectIntSetting ...
 func (dal *MyDAL) SelectIntSetting(name string) (value int64, err error) {
 	err = dal.db.QueryRow(sqlSelectIntSetting, name).Scan(&value)
 	return value, err
 }
 
+// SelectFloatSetting ...
 func (dal *MyDAL) SelectFloatSetting(name string) (value float64, err error) {
 	err = dal.db.QueryRow(sqlSelectFloatSetting, name).Scan(&value)
 	return value, err
 }
 
+// SelectStringSetting ...
 func (dal *MyDAL) SelectStringSetting(name string) (value string, err error) {
 	err = dal.db.QueryRow(sqlSelectStringSetting, name).Scan(&value)
 	return value, err
 }
 
+// SaveBoolSetting ...
 func (dal *MyDAL) SaveBoolSetting(name string, value bool) (err error) {
 	if dal.ExistsSetting(name) == true {
 		_, err = dal.db.Exec(sqlUpdateBoolSetting, value, name)
@@ -69,6 +74,7 @@ func (dal *MyDAL) SaveBoolSetting(name string, value bool) (err error) {
 	return err
 }
 
+// SaveIntSetting ...
 func (dal *MyDAL) SaveIntSetting(name string, value int64) (err error) {
 	if dal.ExistsSetting(name) == true {
 		_, err = dal.db.Exec(sqlUpdateIntSetting, value, name)
@@ -79,6 +85,7 @@ func (dal *MyDAL) SaveIntSetting(name string, value int64) (err error) {
 	return err
 }
 
+// SaveFloatSetting ...
 func (dal *MyDAL) SaveFloatSetting(name string, value float64) (err error) {
 	if dal.ExistsSetting(name) == true {
 		_, err = dal.db.Exec(sqlUpdateFloatSetting, value, name)
@@ -88,6 +95,7 @@ func (dal *MyDAL) SaveFloatSetting(name string, value float64) (err error) {
 	return err
 }
 
+// SaveStringSetting ...
 func (dal *MyDAL) SaveStringSetting(name string, value string) (err error) {
 	if dal.ExistsSetting(name) == true {
 		_, err = dal.db.Exec(sqlUpdateStringSetting, value, name)
@@ -97,11 +105,13 @@ func (dal *MyDAL) SaveStringSetting(name string, value string) (err error) {
 	return err
 }
 
+// CreateTableIfNotExistsSettings ...
 func (dal *MyDAL) CreateTableIfNotExistsSettings() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsSettings)
 	return err
 }
 
+// CountSettings ...
 func (dal *MyDAL) CountSettings() int64 {
 	var settingsCount int64
 	err := dal.db.QueryRow(sqlCountSettings).Scan(&settingsCount)

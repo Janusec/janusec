@@ -21,12 +21,16 @@ import (
 )
 
 var (
-	RootKey, _           = hex.DecodeString("58309a83b94a93313a8de8f3ca815f709f4ea52066417b2ae592f2dbfd1c69ab")
-	instanceKey          []byte
-	NodesKey             []byte
+	// RootKey : root key for encryption
+	RootKey, _  = hex.DecodeString("58309a83b94a93313a8de8f3ca815f709f4ea52066417b2ae592f2dbfd1c69ab")
+	instanceKey []byte
+	// NodesKey for replica nodes
+	NodesKey []byte
+	// HexEncryptedNodesKey for replica nodes
 	HexEncryptedNodesKey string
 )
 
+// LoadInstanceKey ...
 func (dal *MyDAL) LoadInstanceKey() {
 	if dal.ExistsSetting("instance_key") == false {
 		instanceKey = GenRandomAES256Key()
@@ -45,6 +49,7 @@ func (dal *MyDAL) LoadInstanceKey() {
 	}
 }
 
+// LoadNodesKey ...
 func (dal *MyDAL) LoadNodesKey() {
 	if dal.ExistsSetting("nodes_key") == false {
 		NodesKey = GenRandomAES256Key()
@@ -64,11 +69,13 @@ func (dal *MyDAL) LoadNodesKey() {
 	}
 }
 
+// GetHexEncryptedNodesKey ...
 func GetHexEncryptedNodesKey() *models.NodesKey {
 	nodesKey := &models.NodesKey{HexEncryptedKey: HexEncryptedNodesKey}
 	return nodesKey
 }
 
+// GenRandomAES256Key ...
 func GenRandomAES256Key() []byte {
 	key := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, key); err != nil {
@@ -77,6 +84,7 @@ func GenRandomAES256Key() []byte {
 	return key
 }
 
+// EncryptWithKey ...
 func EncryptWithKey(plaintext []byte, key []byte) []byte {
 	block, err := aes.NewCipher(key)
 	utils.CheckError("EncryptWithKey NewCipher", err)
@@ -89,6 +97,7 @@ func EncryptWithKey(plaintext []byte, key []byte) []byte {
 	return ciphertext
 }
 
+// AES256Encrypt ...
 func AES256Encrypt(plaintext []byte, useRootkey bool) []byte {
 	key := instanceKey
 	if useRootkey == true {
@@ -98,6 +107,7 @@ func AES256Encrypt(plaintext []byte, useRootkey bool) []byte {
 	return ciphertext
 }
 
+// DecryptWithKey ...
 func DecryptWithKey(ciphertext []byte, key []byte) ([]byte, error) {
 	var block cipher.Block
 	var err error
@@ -120,6 +130,7 @@ func DecryptWithKey(ciphertext []byte, key []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
+// AES256Decrypt ...
 func AES256Decrypt(ciphertext []byte, useRootkey bool) ([]byte, error) {
 	key := instanceKey
 	if useRootkey == true {
@@ -129,6 +140,7 @@ func AES256Decrypt(ciphertext []byte, useRootkey bool) ([]byte, error) {
 	return plaintext, err
 }
 
+// GetRandomSaltString ...
 func GetRandomSaltString() string {
 	salt := make([]byte, 16)
 	_, err := io.ReadFull(rand.Reader, salt)
@@ -137,6 +149,7 @@ func GetRandomSaltString() string {
 	return saltStr
 }
 
+// SHA256Hash ...
 func SHA256Hash(plaintext string) string {
 	hash := sha256.New()
 	_, err := hash.Write([]byte(plaintext))
@@ -147,6 +160,7 @@ func SHA256Hash(plaintext string) string {
 	return result
 }
 
+// NodeHexKeyToCryptKey ...
 func NodeHexKeyToCryptKey(hexKey string) []byte {
 	encrptedKey, err := hex.DecodeString(hexKey)
 	utils.CheckError("NodeHexKeyToCryptKey DecodeString", err)
@@ -155,6 +169,7 @@ func NodeHexKeyToCryptKey(hexKey string) []byte {
 	return key
 }
 
+// CryptKeyToNodeHexKey ...
 func CryptKeyToNodeHexKey(keyBytes []byte) string {
 	encryptedKey := AES256Encrypt(keyBytes, true)
 	hexKey := hex.EncodeToString(encryptedKey)

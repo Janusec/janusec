@@ -17,34 +17,45 @@ import (
 )
 
 var (
-	Settings                             = []*models.Setting{}
-	Backend_Last_Modified  int64         = 0 // seconds since 1970.01.01
-	Firewall_Last_Modified int64         = 0
-	Sync_Seconds           time.Duration = (120 * time.Second)
+	// Settings for replica nodes
+	Settings = []*models.Setting{}
 
+	// BackendLastModified seconds since 1970.01.01
+	BackendLastModified int64
+
+	// FirewallLastModified seconds since 1970.01.01
+	FirewallLastModified int64
+
+	// SyncSeconds for update
+	SyncSeconds time.Duration = (120 * time.Second)
+
+	// globalSettings include logs retention etc.
 	globalSettings *models.GlobalSettings
 )
 
+// UpdateBackendLastModified ...
 func UpdateBackendLastModified() {
-	Backend_Last_Modified = time.Now().Unix()
-	err := DAL.SaveIntSetting("Backend_Last_Modified", Backend_Last_Modified)
+	BackendLastModified = time.Now().Unix()
+	err := DAL.SaveIntSetting("backend_last_modified", BackendLastModified)
 	if err != nil {
 		utils.DebugPrintln("UpdateBackendLastModified SaveIntSetting", err)
 	}
-	setting := GetSettingByName("Backend_Last_Modified")
-	setting.Value = Backend_Last_Modified
+	setting := GetSettingByName("backend_last_modified")
+	setting.Value = BackendLastModified
 }
 
+// UpdateFirewallLastModified ...
 func UpdateFirewallLastModified() {
-	Firewall_Last_Modified = time.Now().Unix()
-	err := DAL.SaveIntSetting("Firewall_Last_Modified", Firewall_Last_Modified)
+	FirewallLastModified = time.Now().Unix()
+	err := DAL.SaveIntSetting("firewall_last_modified", FirewallLastModified)
 	if err != nil {
 		utils.DebugPrintln("UpdateFirewallLastModified SaveIntSetting", err)
 	}
-	setting := GetSettingByName("Firewall_Last_Modified")
-	setting.Value = Backend_Last_Modified
+	setting := GetSettingByName("firewall_last_modified")
+	setting.Value = BackendLastModified
 }
 
+// GetSettingByName ...
 func GetSettingByName(name string) *models.Setting {
 	for _, setting := range Settings {
 		if setting.Name == name {
@@ -54,18 +65,19 @@ func GetSettingByName(name string) *models.Setting {
 	return nil
 }
 
+// InitDefaultSettings ...
 func InitDefaultSettings() {
 	DAL.LoadInstanceKey()
 	DAL.LoadNodesKey()
 	var err error
-	if DAL.ExistsSetting("Backend_Last_Modified") == false {
-		err = DAL.SaveIntSetting("Backend_Last_Modified", 0)
+	if DAL.ExistsSetting("backend_last_modified") == false {
+		err = DAL.SaveIntSetting("backend_last_modified", 0)
 	}
-	if DAL.ExistsSetting("Firewall_Last_Modified") == false {
-		err = DAL.SaveIntSetting("Firewall_Last_Modified", 0)
+	if DAL.ExistsSetting("firewall_last_modified") == false {
+		err = DAL.SaveIntSetting("firewall_last_modified", 0)
 	}
-	if DAL.ExistsSetting("Sync_Seconds") == false {
-		err = DAL.SaveIntSetting("Sync_Seconds", 600)
+	if DAL.ExistsSetting("sync_seconds") == false {
+		err = DAL.SaveIntSetting("sync_seconds", 600)
 	}
 	if DAL.ExistsSetting("waf_log_days") == false {
 		err = DAL.SaveIntSetting("waf_log_days", 7)
@@ -85,15 +97,16 @@ func InitDefaultSettings() {
 	}
 }
 
+// LoadSettings ...
 func LoadSettings() {
 	if IsPrimary {
-		Backend_Last_Modified, _ = DAL.SelectIntSetting("Backend_Last_Modified")
-		Firewall_Last_Modified, _ = DAL.SelectIntSetting("Firewall_Last_Modified")
-		SyncSecondsInt64, _ := DAL.SelectIntSetting("Sync_Seconds")
-		Sync_Seconds = time.Duration(SyncSecondsInt64)
-		Settings = append(Settings, &models.Setting{Name: "Backend_Last_Modified", Value: Backend_Last_Modified})
-		Settings = append(Settings, &models.Setting{Name: "Firewall_Last_Modified", Value: Firewall_Last_Modified})
-		Settings = append(Settings, &models.Setting{Name: "Sync_Seconds", Value: Sync_Seconds})
+		BackendLastModified, _ = DAL.SelectIntSetting("backend_last_modified")
+		FirewallLastModified, _ = DAL.SelectIntSetting("firewall_last_modified")
+		SyncSecondsInt64, _ := DAL.SelectIntSetting("sync_seconds")
+		SyncSeconds = time.Duration(SyncSecondsInt64)
+		Settings = append(Settings, &models.Setting{Name: "backend_last_modified", Value: BackendLastModified})
+		Settings = append(Settings, &models.Setting{Name: "firewall_last_modified", Value: FirewallLastModified})
+		Settings = append(Settings, &models.Setting{Name: "sync_seconds", Value: SyncSeconds})
 
 		// 0.9.15 add
 		wafLogDays, _ := DAL.SelectIntSetting("waf_log_days")
@@ -111,15 +124,14 @@ func LoadSettings() {
 		settingItems := RPCGetSettings()
 		for _, settingItem := range settingItems {
 			switch settingItem.Name {
-			case "Backend_Last_Modified":
-				Backend_Last_Modified = int64(settingItem.Value.(float64))
-			case "Firewall_Last_Modified":
-				Firewall_Last_Modified = int64(settingItem.Value.(float64))
-			case "Sync_Seconds":
-				Sync_Seconds = time.Duration(settingItem.Value.(float64))
+			case "backend_last_modified":
+				BackendLastModified = int64(settingItem.Value.(float64))
+			case "firewall_last_modified":
+				FirewallLastModified = int64(settingItem.Value.(float64))
+			case "sync_seconds":
+				SyncSeconds = time.Duration(settingItem.Value.(float64))
 			}
 		}
-		//go UpdateTimeTick()
 	}
 }
 
@@ -159,6 +171,7 @@ func UpdateGlobalSettings(param map[string]interface{}, authUser *models.AuthUse
 	return globalSettings, nil
 }
 
+// RPCGetSettings ...
 func RPCGetSettings() []*models.Setting {
 	rpcRequest := &models.RPCRequest{
 		Action: "get_settings", Object: nil}
@@ -171,6 +184,7 @@ func RPCGetSettings() []*models.Setting {
 	return rpcSettings.Object
 }
 
+// RPCGetOAuthConfig ...
 func RPCGetOAuthConfig() *models.OAuthConfig {
 	rpcRequest := &models.RPCRequest{
 		Action: "get_oauth_conf", Object: nil}
