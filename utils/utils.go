@@ -17,15 +17,19 @@ import (
 
 var (
 	logger *log.Logger
-	Debug  = false
+
+	// Debug , if it is true, more output
+	Debug = false
 )
 
+// CheckError output to standard console
 func CheckError(msg string, err error) {
 	if err != nil {
 		log.Println(msg, err)
 	}
 }
 
+// InitLogger for write to log file
 func InitLogger() {
 	logFilename := "./log/janusec" + time.Now().Format("20060102") + ".log"
 	logFile, err := os.OpenFile(logFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
@@ -36,6 +40,7 @@ func InitLogger() {
 	logger = log.New(logFile, "[Janusec] ", log.LstdFlags)
 }
 
+// GetDirAll ...
 func GetDirAll(path string) string {
 	i := strings.LastIndex(path, "/")
 	dirAll := path[:i]
@@ -52,9 +57,9 @@ func GetRoutePath(path string) string {
 // DebugPrintln used for log of error
 func DebugPrintln(a ...interface{}) {
 	if Debug {
-		log.Println(a)
+		log.Println(a...)
 	} else {
-		logger.Println(a)
+		logger.Println(a...)
 	}
 }
 

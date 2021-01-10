@@ -214,3 +214,18 @@ type VulnStat struct {
 	VulnID int64 `json:"vuln_id"`
 	Count  int64 `json:"count"`
 }
+
+// IPPolicy is element in table "allow_list"
+type IPPolicy struct {
+	ID     int64  `json:"id"`
+	IPAddr string `json:"ip_addr"`
+
+	// IsAllow true for AllowList, and false for BlockList
+	IsAllow bool `json:"is_allow"`
+
+	// ApplyToWAF allow WAF not block
+	ApplyToWAF bool `json:"apply_to_waf"`
+
+	// ApplyToCC allow CC not block
+	ApplyToCC bool `json:"apply_to_cc"`
+}

@@ -107,16 +107,35 @@ func GetCCPolicyRespByAppID(appID int64) (*models.CCPolicy, error) {
 	return ccPolicy, nil
 }
 
-// IsCCAttack to judge a request is CC attack
-func IsCCAttack(r *http.Request, appID int64, srcIP string) (bool, *models.CCPolicy, string, bool) {
-	ccPolicy := GetCCPolicyByAppID(appID)
+// IsCCAttack to judge a request is CC attack, return IsCC, CCPolicy, ClientID, NeedLog
+func IsCCAttack(r *http.Request, app *models.Application, srcIP string) (bool, *models.CCPolicy, string, bool) {
+	isCC := false
+	if app.ClientIPMethod == models.IPMethod_REMOTE_ADDR {
+		// First check whether it has IP Policy
+		ipPolicy := GetIPPolicyByIPAddr(srcIP)
+		if ipPolicy != nil {
+			if ipPolicy.ApplyToCC {
+				if ipPolicy.IsAllow {
+					// Allow list, legal security testing
+					return false, nil, "", false
+				}
+				isCC = true
+			}
+		}
+	}
+	ccPolicy := GetCCPolicyByAppID(app.ID)
 	if ccPolicy.IsEnabled == false {
 		return false, nil, "", false
 	}
-	if ccPolicy.AppID == 0 {
-		appID = 0 // Important: stat within general policy
+	if isCC {
+		clientID := data.SHA256Hash(srcIP)
+		return isCC, ccPolicy, clientID, false
 	}
-	ccCount, _ := ccCounts.LoadOrStore(appID, &sync.Map{})
+	ccAppID := app.ID
+	if ccPolicy.AppID == 0 {
+		ccAppID = 0 // Important: stat within general policy
+	}
+	ccCount, _ := ccCounts.LoadOrStore(ccAppID, &sync.Map{})
 	appCCCount := ccCount.(*sync.Map)
 	preHashContent := srcIP
 	if ccPolicy.StatByURL == true {

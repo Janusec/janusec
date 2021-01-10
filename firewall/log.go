@@ -44,6 +44,9 @@ func LogCCRequest(r *http.Request, appID int64, clientIP string, policy *models.
 	if maxRawSize > 16384 {
 		maxRawSize = 16384
 	}
+	if len(cookies) > 1024 {
+		cookies = cookies[:1024]
+	}
 	rawRequest := string(rawRequestBytes[:maxRawSize])
 	if data.IsPrimary {
 		err = data.DAL.InsertCCLog(requestTime, clientIP, r.Host, r.Method, r.URL.Path, r.URL.RawQuery, contentType, r.UserAgent(), cookies, rawRequest, int64(policy.Action), appID)

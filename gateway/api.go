@@ -134,6 +134,14 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = firewall.GetGroupPolicyByID(id)
 	case "update_group_policy":
 		obj, err = firewall.UpdateGroupPolicy(r, userID, authUser)
+	case "get_ip_policies":
+		obj, err = firewall.GetIPPolicies()
+	case "update_ip_policy":
+		obj, err = firewall.UpdateIPPolicy(param, authUser)
+	case "del_ip_policy":
+		id := int64(param["id"].(float64))
+		obj = nil
+		err = firewall.DeleteIPPolicyByID(id, authUser)
 	case "del_group_policy":
 		id := int64(param["id"].(float64))
 		obj = nil

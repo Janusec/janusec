@@ -18,11 +18,13 @@ import (
 	"time"
 )
 
+// SelfSignedCertificate in Application Management
 type SelfSignedCertificate struct {
 	CertContent    string `json:"cert_content"`
 	PrivKeyContent string `json:"priv_key_content"`
 }
 
+// GenerateRSACertificate in Application Management
 func GenerateRSACertificate(param map[string]interface{}) (selfSignedCert *SelfSignedCertificate, err error) {
 	reqObj := param["object"].(map[string]interface{})
 	commonName := reqObj["common_name"].(string)

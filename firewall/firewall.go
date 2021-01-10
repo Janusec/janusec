@@ -73,7 +73,34 @@ func UnEscapeRawValue(rawQuery string) string {
 
 // IsRequestHitPolicy ...
 func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *models.GroupPolicy) {
-	//fmt.Println("IsForbiddenRequest")
+	// First Check IP Policy
+	ipPolicy := GetIPPolicyByIPAddr(srcIP)
+	if ipPolicy != nil {
+		if ipPolicy.ApplyToWAF {
+			var action models.PolicyAction
+			if ipPolicy.IsAllow {
+				// Allow list, legal security testing
+				action = models.Action_Pass_400
+			} else {
+				// Block list
+				action = models.Action_Block_100
+			}
+			groupPolicy := &models.GroupPolicy{
+				ID:          0,
+				Description: "IP Policy",
+				AppID:       appID,
+				VulnID:      vulnTypes[0].ID, // None
+				CheckItems:  nil,
+				HitValue:    0,
+				Action:      action,
+				IsEnabled:   true,
+			}
+			return true, groupPolicy
+		}
+	}
+
+	// Has not IP Policy, Continue
+
 	ctxMap := r.Context().Value("groupPolicyHitValue").(*sync.Map)
 
 	// ChkPoint_Host

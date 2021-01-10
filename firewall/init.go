@@ -24,6 +24,7 @@ func InitFirewall() {
 	})
 	InitVulnType()
 	InitGroupPolicy()
+	InitIPPolicies()
 	LoadCheckItems()
 	InitHitLog()
 	InitNFTables()

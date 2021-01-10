@@ -100,45 +100,48 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	nowTimeStamp := time.Now().Unix()
 	// dynamic
 	srcIP := GetClientIP(r, app)
-	isStatic := firewall.IsStaticResource(r)
-	if app.WAFEnabled && !isStatic {
-		if isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app.ID, srcIP); isCC == true {
-			targetURL := r.URL.Path
-			if len(r.URL.RawQuery) > 0 {
-				targetURL += "?" + r.URL.RawQuery
-			}
-			hitInfo := &models.HitInfo{TypeID: 1,
-				PolicyID:  ccPolicy.AppID,
-				VulnName:  "CC",
-				Action:    ccPolicy.Action,
-				ClientID:  clientID,
-				TargetURL: targetURL,
-				BlockTime: nowTimeStamp}
-			switch ccPolicy.Action {
-			case models.Action_Block_100:
-				if needLog {
-					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
-				}
-				if app.ClientIPMethod == models.IPMethod_REMOTE_ADDR {
-					go firewall.AddIP2NFTables(srcIP, ccPolicy.BlockSeconds)
-				}
-				GenerateBlockPage(w, hitInfo)
-				return
-			case models.Action_BypassAndLog_200:
-				if needLog {
-					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
-				}
-			case models.Action_CAPTCHA_300:
-				if needLog {
-					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
-				}
-				captchaHitInfo.Store(hitInfo.ClientID, hitInfo)
-				captchaURL := CaptchaEntrance + "?id=" + hitInfo.ClientID
-				http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
-				return
-			}
-		}
 
+	// Check CC
+	isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app, srcIP)
+	if isCC == true {
+		targetURL := r.URL.Path
+		if len(r.URL.RawQuery) > 0 {
+			targetURL += "?" + r.URL.RawQuery
+		}
+		hitInfo := &models.HitInfo{TypeID: 1,
+			PolicyID:  ccPolicy.AppID,
+			VulnName:  "CC",
+			Action:    ccPolicy.Action,
+			ClientID:  clientID,
+			TargetURL: targetURL,
+			BlockTime: nowTimeStamp}
+		switch ccPolicy.Action {
+		case models.Action_Block_100:
+			if needLog {
+				go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+			}
+			if app.ClientIPMethod == models.IPMethod_REMOTE_ADDR {
+				go firewall.AddIP2NFTables(srcIP, ccPolicy.BlockSeconds)
+			}
+			GenerateBlockPage(w, hitInfo)
+			return
+		case models.Action_BypassAndLog_200:
+			if needLog {
+				go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+			}
+		case models.Action_CAPTCHA_300:
+			if needLog {
+				go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+			}
+			captchaHitInfo.Store(hitInfo.ClientID, hitInfo)
+			captchaURL := CaptchaEntrance + "?id=" + hitInfo.ClientID
+			http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
+			return
+		}
+	}
+
+	// WAF Check
+	if app.WAFEnabled {
 		if isHit, policy := firewall.IsRequestHitPolicy(r, app.ID, srcIP); isHit == true {
 			switch policy.Action {
 			case models.Action_Block_100:
@@ -360,6 +363,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check static cache
+	isStatic := firewall.IsStaticResource(r)
 	if isStatic {
 		// First check Header Range, not cache for range
 		rangeValue := r.Header.Get("Range")
