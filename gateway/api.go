@@ -244,6 +244,8 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_group_policies":
 		appID := int64(param["id"].(float64))
 		obj, err = firewall.GetGroupPolicies(appID)
+	case "get_ip_policies":
+		obj, err = firewall.GetIPPolicies()
 	case "get_vuln_types":
 		obj, err = firewall.GetVulnTypes()
 	case "get_settings":

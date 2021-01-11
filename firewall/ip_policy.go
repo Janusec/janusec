@@ -8,9 +8,11 @@
 package firewall
 
 import (
+	"encoding/json"
 	"errors"
 	"janusec/data"
 	"janusec/models"
+	"janusec/utils"
 	"strings"
 )
 
@@ -18,8 +20,13 @@ var globalIPPolicies []*models.IPPolicy
 
 // InitIPPolicies load IP Policies to memory
 func InitIPPolicies() {
-	data.DAL.CreateTableIfNotExistsIPPolicies()
-	globalIPPolicies = data.DAL.LoadIPPolicies()
+	if data.IsPrimary {
+		data.DAL.CreateTableIfNotExistsIPPolicies()
+		globalIPPolicies = data.DAL.LoadIPPolicies()
+		return
+	}
+	// Replica nodes
+	globalIPPolicies = RPCLoadIPPolicies()
 }
 
 // GetIPPolicies return Allow List and Block List
@@ -50,6 +57,7 @@ func UpdateIPPolicy(param map[string]interface{}, authUser *models.AuthUser) (*m
 			ApplyToCC:  applyToCC,
 		}
 		globalIPPolicies = append(globalIPPolicies, ipPolicy)
+		data.UpdateFirewallLastModified()
 		return ipPolicy, nil
 	}
 	// Update
@@ -65,6 +73,7 @@ func UpdateIPPolicy(param map[string]interface{}, authUser *models.AuthUser) (*m
 	if err != nil {
 		return nil, err
 	}
+	data.UpdateFirewallLastModified()
 	return ipPolicy, nil
 }
 
@@ -80,6 +89,7 @@ func DeleteIPPolicyByID(id int64, authUser *models.AuthUser) error {
 		}
 	}
 	err := data.DAL.DeleteIPPolicyByID(id)
+	data.UpdateFirewallLastModified()
 	return err
 }
 
@@ -101,4 +111,22 @@ func GetIPPolicyByIPAddr(srcIP string) *models.IPPolicy {
 		}
 	}
 	return nil
+}
+
+// RPCLoadIPPolicies for replica nodes get IP Policies
+func RPCLoadIPPolicies() []*models.IPPolicy {
+	rpcRequest := &models.RPCRequest{
+		Action: "get_ip_policies", Object: nil}
+	resp, err := data.GetRPCResponse(rpcRequest)
+	if err != nil {
+		utils.CheckError("RPCLoadIPPolicies GetResponse", err)
+		return nil
+	}
+	rpcIPPolicies := &models.RPCIPPolicies{}
+	if err := json.Unmarshal(resp, rpcIPPolicies); err != nil {
+		utils.CheckError("RPCLoadIPPolicies Unmarshal", err)
+		return nil
+	}
+	ipPolicies := rpcIPPolicies.Object
+	return ipPolicies
 }

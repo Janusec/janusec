@@ -106,6 +106,7 @@ func main() {
 						utils.DebugPrintln("Admin Port occupied.", err)
 						os.Exit(1)
 					}
+					utils.DebugPrintln("Admin Listen HTTP ", admin.ListenHTTP)
 					err = http.Serve(listen, adminMux)
 					if err != nil {
 						utils.CheckError("http.Serve adminMux error", err)
@@ -123,6 +124,7 @@ func main() {
 						utils.DebugPrintln("Admin Port occupied.", err)
 						os.Exit(1)
 					}
+					utils.DebugPrintln("Admin Listen HTTPS", admin.ListenHTTPS)
 					err = http.Serve(listen, adminMux)
 					if err != nil {
 						utils.CheckError("http.Serve adminMux error", err)
@@ -167,6 +169,7 @@ func main() {
 			utils.DebugPrintln(msg, err)
 			os.Exit(1)
 		}
+		utils.DebugPrintln("Listen HTTP ", listenPort)
 		err = http.Serve(listen, ctxGateMux)
 		if err != nil {
 			utils.CheckError("http.Serve error", err)
@@ -182,6 +185,7 @@ func main() {
 		utils.DebugPrintln(msg, err)
 		os.Exit(1)
 	}
+	utils.DebugPrintln("Listen HTTPS", data.CFG.ListenHTTPS)
 	err = http.Serve(listen, ctxGateMux)
 	if err != nil {
 		utils.CheckError("http.Serve error", err)

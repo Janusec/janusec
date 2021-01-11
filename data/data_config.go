@@ -50,5 +50,12 @@ func NewConfig(filename string) (*models.Config, error) {
 		}
 	}
 	//fmt.Println("NewConfig config.Database.Password=",config.Database.Password)
+	// Init default listen port
+	if len(config.ListenHTTP) == 0 {
+		config.ListenHTTP = ":80"
+	}
+	if len(config.ListenHTTPS) == 0 {
+		config.ListenHTTPS = ":443"
+	}
 	return config, nil
 }

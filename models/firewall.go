@@ -229,3 +229,9 @@ type IPPolicy struct {
 	// ApplyToCC allow CC not block
 	ApplyToCC bool `json:"apply_to_cc"`
 }
+
+// RPCIPPolicies for replica nodes
+type RPCIPPolicies struct {
+	Error  *string     `json:"err"`
+	Object []*IPPolicy `json:"object"`
+}

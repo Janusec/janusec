@@ -41,6 +41,7 @@ func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	resp, err := client.Do(request)
 	utils.CheckError("GetRPCResponse Do", err)
 	if err != nil {
+		utils.DebugPrintln("GetRPCResponse Do", err)
 		return nil, err
 	}
 	defer resp.Body.Close()

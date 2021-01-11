@@ -52,7 +52,7 @@ func UpdateFirewallLastModified() {
 		utils.DebugPrintln("UpdateFirewallLastModified SaveIntSetting", err)
 	}
 	setting := GetSettingByName("firewall_last_modified")
-	setting.Value = BackendLastModified
+	setting.Value = FirewallLastModified
 }
 
 // GetSettingByName ...

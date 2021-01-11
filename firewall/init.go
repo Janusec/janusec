@@ -9,10 +9,12 @@ package firewall
 
 import (
 	"janusec/models"
+	"janusec/utils"
 )
 
 // InitFirewall ...
 func InitFirewall() {
+	utils.DebugPrintln("InitFirewall")
 	InitCCPolicy()
 	ccPolicies.Range(func(key, value interface{}) bool {
 		appID := key.(int64)

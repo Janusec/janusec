@@ -43,8 +43,8 @@ func InitConfig() {
 	DAL = &MyDAL{}
 	var err error
 	CFG, err = NewConfig("./config.json")
-	utils.CheckError("InitConfig", err)
 	if err != nil {
+		utils.DebugPrintln("InitConfig", err)
 		os.Exit(1)
 	}
 	nodeRole := strings.ToLower(CFG.NodeRole)
@@ -62,13 +62,12 @@ func InitConfig() {
 			CFG.PrimaryNode.Database.Password,
 			CFG.PrimaryNode.Database.DBName)
 		DAL.db, err = sql.Open("postgres", conn)
-		utils.CheckError("InitConfig sql.Open:", err)
 		if err != nil {
+			utils.DebugPrintln("InitConfig sql.Open:", err)
 			os.Exit(1)
 		}
 		// Check if the User and Password are Correct
 		_, err = DAL.db.Query("select 1")
-		utils.CheckError("InitConfig Failed, Error:", err)
 		if err != nil {
 			utils.DebugPrintln("InitConfig Failed, Please check the database user and password. Error:", err)
 			os.Exit(1)
@@ -76,14 +75,6 @@ func InitConfig() {
 
 		// Database user and password OK
 		DAL.db.SetMaxOpenConns(99)
-
-		// Init default listen port
-		if len(CFG.ListenHTTP) == 0 {
-			CFG.ListenHTTP = ":80"
-		}
-		if len(CFG.ListenHTTPS) == 0 {
-			CFG.ListenHTTPS = ":443"
-		}
 	} else {
 		// Init Node Key (Share with primary node)
 		NodeKey = NodeHexKeyToCryptKey(CFG.ReplicaNode.NodeKey)

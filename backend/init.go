@@ -125,6 +125,7 @@ func InitDatabase() {
 
 // LoadAppConfiguration ...
 func LoadAppConfiguration() {
+	utils.DebugPrintln("LoadAppConfiguration")
 	LoadCerts()
 	LoadApps()
 	LoadVipApps()
