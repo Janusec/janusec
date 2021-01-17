@@ -31,8 +31,10 @@ import (
 func rewriteResponse(resp *http.Response) (err error) {
 	r := resp.Request
 	app := backend.GetApplicationByDomain(r.Host)
-	locationURL, err := resp.Location()
-	if locationURL != nil {
+	locationStr := resp.Header.Get("Location")
+	indexHTTP := strings.Index(locationStr, "http")
+	if indexHTTP == 0 {
+		locationURL, _ := resp.Location()
 		host := locationURL.Hostname()
 		port := locationURL.Port()
 		var oldHost, newHost string

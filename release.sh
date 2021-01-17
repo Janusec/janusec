@@ -3,6 +3,7 @@ printf "Checklist:\n"
 printf "* Angular Admin Version Check. \n"
 printf "* Janusec Version Check. \n"
 version=`./janusec --version`
+printf "Version: ${version} \n"
 dist_dir="./dist/janusec-${version}/"
 mkdir -p ${dist_dir}
 \cp -f ./janusec ${dist_dir}

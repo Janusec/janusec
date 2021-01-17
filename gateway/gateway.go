@@ -293,7 +293,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, targetFile)
 			return
 		}
-		staticHandler.ServeHTTP(w, r)
+		http.StripPrefix(dest.RequestRoute, staticHandler).ServeHTTP(w, r)
 		return
 	} else if dest.RouteType == models.FastCGIRoute {
 		// FastCGI
