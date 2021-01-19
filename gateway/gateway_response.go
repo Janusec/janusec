@@ -37,31 +37,33 @@ func rewriteResponse(resp *http.Response) (err error) {
 		locationURL, _ := resp.Location()
 		host := locationURL.Hostname()
 		port := locationURL.Port()
-		var oldHost, newHost string
-		if (port == "80") || (port == "443") {
-			oldHost = host
-		} else {
-			oldHost = host + ":" + port
-		}
-		var userScheme string
-		if resp.Request.TLS != nil {
-			userScheme = "https"
-			if data.CFG.ListenHTTPS == ":443" {
-				newHost = host
+		if host == r.Host {
+			var oldHost, newHost string
+			if (port == "") || (port == "80") || (port == "443") {
+				oldHost = host
 			} else {
-				newHost = host + data.CFG.ListenHTTPS
+				oldHost = host + ":" + port
 			}
-		} else {
-			userScheme = "http"
-			if data.CFG.ListenHTTP == ":80" {
-				newHost = host
+			var userScheme string
+			if resp.Request.TLS != nil {
+				userScheme = "https"
+				if data.CFG.ListenHTTPS == ":443" {
+					newHost = host
+				} else {
+					newHost = host + data.CFG.ListenHTTPS
+				}
 			} else {
-				newHost = host + data.CFG.ListenHTTP
+				userScheme = "http"
+				if data.CFG.ListenHTTP == ":80" {
+					newHost = host
+				} else {
+					newHost = host + data.CFG.ListenHTTP
+				}
 			}
+			newLocation := strings.Replace(locationURL.String(), oldHost, newHost, -1)
+			newLocation = strings.Replace(newLocation, locationURL.Scheme, userScheme, 1)
+			resp.Header.Set("Location", newLocation)
 		}
-		newLocation := strings.Replace(locationURL.String(), oldHost, newHost, -1)
-		newLocation = strings.Replace(newLocation, locationURL.Scheme, userScheme, 1)
-		resp.Header.Set("Location", newLocation)
 	}
 
 	// Hide X-Powered-By

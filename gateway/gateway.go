@@ -377,7 +377,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				now := time.Now()
 				fiStat := fi.Sys().(*syscall.Stat_t)
 				// Use ctime fiStat.Ctim.Sec to mark the last check time
-				pastSeconds := now.Unix() - fiStat.Ctim.Sec
+				pastSeconds := now.Unix() - int64(fiStat.Ctim.Sec)
 				if pastSeconds > 1800 {
 					// check update
 					backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, dest.Destination, r.RequestURI)

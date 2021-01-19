@@ -60,7 +60,7 @@ func ClearExpiredFiles(path string, now time.Time) {
 			if fi, err := os.Stat(targetFile); err == nil {
 				fiStat := fi.Sys().(*syscall.Stat_t)
 				// Use ctime fiStat.Ctim.Sec to mark the last check time
-				pastSeconds := now.Unix() - fiStat.Ctim.Sec
+				pastSeconds := now.Unix() - int64(fiStat.Ctim.Sec)
 				if pastSeconds >= 86400*7 {
 					err = os.Remove(targetFile)
 					if err != nil {
