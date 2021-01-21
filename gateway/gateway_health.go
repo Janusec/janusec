@@ -10,6 +10,7 @@ package gateway
 import (
 	"janusec/data"
 	"janusec/models"
+	"janusec/utils"
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -26,9 +27,10 @@ var (
 // GetGatewayHealth show CPU MEM Storage
 func GetGatewayHealth() (models.GateHealth, error) {
 	cpuLoad, _ := load.Avg()
-	cpuPercent, err := cpu.Percent(1*time.Second, false)
-	if err != nil {
+	cpuPercent, _ := cpu.Percent(1*time.Second, false)
+	if len(cpuPercent) == 0 {
 		cpuPercent = []float64{0.0}
+		utils.DebugPrintln("GetGatewayHealth cpu.Percent []")
 	}
 	memStat, _ := mem.VirtualMemory()
 	diskStat, _ := disk.Usage("/")
