@@ -305,7 +305,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		}
 		fastCGIHandler := gofast.NewHandler(
 			gofast.NewFileEndpoint(dest.BackendRoute+newPath)(gofast.BasicSession),
-			gofast.SimpleClientFactory(connFactory, 0),
+			gofast.SimpleClientFactory(connFactory),
 		)
 		fastCGIHandler.ServeHTTP(w, r)
 		return
