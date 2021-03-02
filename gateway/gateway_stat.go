@@ -10,11 +10,13 @@ package gateway
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"janusec/backend"
 	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 )
@@ -24,6 +26,26 @@ var (
 	// key: app_id
 	// value: * sync.map[url_path][count]
 	statMap = sync.Map{}
+
+	// refererMap format: sync.Map[refererDomain][*sync.Map]
+	// sync.Map[refererDomain][path][clientID][count]
+	// key: refererDomain, such as: www.janusec.com
+	// value: * sync.map[referer_url_path][count]
+	// Table:
+	// referer           path     clientID    pv      statDate (DB Only)
+	// www.janusec.com   /data    SHA(IP+UA)  5       xxx
+	// www.janusec.com   /privacy SHA(IP+UA)  3       yyy
+	// www.google.com    /        SHA(IP+UA)  10      zzz
+	/* Example:
+	   { "www.janusec.com": {
+	        "/data": {
+				"HASH01": 99,
+				"HASH02": 10
+			},
+	       }
+	   }
+	*/
+	refererMap = sync.Map{}
 )
 
 // InitAccessStat init table
@@ -31,7 +53,13 @@ func InitAccessStat() {
 	if data.IsPrimary {
 		err := data.DAL.CreateTableIfNotExistsAccessStats()
 		if err != nil {
-			utils.DebugPrintln("InitAccessStat", err)
+			utils.DebugPrintln("InitAccessStat AccessStats", err)
+			return
+		}
+
+		err = data.DAL.CreateTableIfNotExistsRefererStats()
+		if err != nil {
+			utils.DebugPrintln("InitAccessStat RefererStats", err)
 			return
 		}
 	}
@@ -56,6 +84,31 @@ func InitAccessStat() {
 				go IncAmountToDB(appID, urlPath, statDate, delta, now.Unix())
 				// Clear
 				pathMap.Delete(urlPath)
+				return true
+			})
+			return true
+		})
+
+		refererMap.Range(func(key, value interface{}) bool {
+			refererDomain := key.(string)
+			pathMap := value.(*sync.Map)
+			pathMap.Range(func(key, value interface{}) bool {
+				refererPath := key.(string)
+				clientMap := value.(*sync.Map)
+				clientMap.Range(func(key, value interface{}) bool {
+					clientID := key.(string)
+					count := value.(int64)
+					fmt.Println("Referer:", refererDomain, refererPath, clientID, count)
+					// Add to database
+
+					// Clear
+
+					return true
+				})
+
+				// Clear
+				//pathMap.Delete(refererPath)
+
 				return true
 			})
 			return true
@@ -133,4 +186,16 @@ func GetTodayPopularContent(param map[string]interface{}) (topPaths []*models.Po
 	statDate := time.Now().Format("20060102")
 	topPaths, err = data.DAL.GetPopularContent(appID, statDate)
 	return topPaths, err
+}
+
+// IncRefererStat increase referer statistics
+func IncRefererStat(referer string, srcIP string, userAgent string) {
+	refererURL, _ := url.Parse(referer)
+	pathMapI, _ := refererMap.LoadOrStore(refererURL.Host, &sync.Map{})
+	clientMapI, _ := pathMapI.(*sync.Map).LoadOrStore(refererURL.Path, &sync.Map{})
+	clientID := data.SHA256Hash(srcIP + userAgent)
+	clientMap := clientMapI.(*sync.Map)
+	countI, _ := clientMap.LoadOrStore(clientID, int64(0))
+	count := countI.(int64) + 1
+	clientMap.Store(clientID, count)
 }

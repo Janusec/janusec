@@ -284,6 +284,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// Add access log and statistics
 	go utils.AccessLog(r.Host, r.Method, srcIP, r.RequestURI, r.UserAgent())
 	go IncAccessStat(app.ID, r.URL.Path)
+	referer := r.Referer()
+	if len(referer) > 0 {
+		go IncRefererStat(referer, srcIP, r.UserAgent())
+	}
 
 	if dest.RouteType == models.StaticRoute {
 		// Static Web site
