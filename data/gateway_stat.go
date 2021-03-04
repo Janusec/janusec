@@ -94,5 +94,16 @@ func (dal *MyDAL) GetPopularContent(appID int64, statDate string) ([]*models.Pop
 func (dal *MyDAL) CreateTableIfNotExistsRefererStats() error {
 	const sqlCreateTableIfNotExistsStats = `CREATE TABLE IF NOT EXISTS "referer_stats"("id" bigserial PRIMARY KEY, "host" VARCHAR(256) NOT NULL, "path" VARCHAR(256) NOT NULL, "client_id" VARCHAR(128) NOT NULL, "count" bigint, "date_timestamp" bigint)`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsStats)
+	const sqlConstraint = `ALTER TABLE "referer_stats" ADD CONSTRAINT "refer_id" unique("host", "path", "client_id", "date_timestamp")`
+	_, err = dal.db.Exec(sqlConstraint)
+	return err
+}
+
+// UpdateRefererStat ...
+func (dal *MyDAL) UpdateRefererStat(host string, path string, clientID string, deltaCount int64, dateTimestamp int64) error {
+	const sqlUpdateReferStat = `INSERT INTO "referer_stats"("host", "path", "client_id", "count", "date_timestamp") VALUES($1, $2, $3, $4, $5) ON CONFLICT ("host", "path", "client_id", "date_timestamp") DO UPDATE SET "count"="referer_stats"."count"+$4`
+	//now := time.Now()
+	//dateTimestamp := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
+	_, err := dal.db.Exec(sqlUpdateReferStat, host, path, clientID, deltaCount, dateTimestamp)
 	return err
 }
