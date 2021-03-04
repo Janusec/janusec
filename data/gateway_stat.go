@@ -90,6 +90,8 @@ func (dal *MyDAL) GetPopularContent(appID int64, statDate string) ([]*models.Pop
 	return topPaths, nil
 }
 
+// The following is for Referer Statistics
+
 // CreateTableIfNotExistsRefererStats ...
 func (dal *MyDAL) CreateTableIfNotExistsRefererStats() error {
 	const sqlCreateTableIfNotExistsStats = `CREATE TABLE IF NOT EXISTS "referer_stats"("id" bigserial PRIMARY KEY, "host" VARCHAR(256) NOT NULL, "path" VARCHAR(256) NOT NULL, "client_id" VARCHAR(128) NOT NULL, "count" bigint, "date_timestamp" bigint)`
@@ -106,4 +108,9 @@ func (dal *MyDAL) UpdateRefererStat(host string, path string, clientID string, d
 	//dateTimestamp := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
 	_, err := dal.db.Exec(sqlUpdateReferStat, host, path, clientID, deltaCount, dateTimestamp)
 	return err
+}
+
+// GetCountByRefererHost ...
+func (dal *MyDAL) GetCountByRefererHost(host string) int64 {
+
 }
