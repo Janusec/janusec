@@ -286,7 +286,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	go IncAccessStat(app.ID, r.URL.Path)
 	referer := r.Referer()
 	if len(referer) > 0 {
-		go IncRefererStat(referer, srcIP, r.UserAgent())
+		go IncRefererStat(app.ID, referer, srcIP, r.UserAgent())
 	}
 
 	if dest.RouteType == models.StaticRoute {
@@ -541,6 +541,14 @@ func DailyRoutineTasks() {
 		next = time.Date(next.Year(), next.Month(), next.Day(), 3, 0, 0, 0, next.Location()) // AM 03:00
 		t := time.NewTimer(next.Sub(now))
 		<-t.C
+
+		if data.IsPrimary {
+			expiredTime := next.Unix() - 86400*14
+			// Clear expired access statistics
+			go data.DAL.ClearExpiredAccessStats(expiredTime)
+			// Clear expired referer stats
+			go data.DAL.ClearExpiredReferStat(expiredTime)
+		}
 
 		// Clear expired logs under ./log/
 		globalSettings := data.GetGlobalSettings2()

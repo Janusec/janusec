@@ -175,6 +175,8 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = firewall.GetWeekStat(param)
 	case "get_access_stat":
 		obj, err = GetAccessStat(param)
+	case "get_referer_stat":
+		obj, err = GetRefererStat(param)
 	case "get_pop_contents":
 		obj, err = GetTodayPopularContent(param)
 	case "get_gateway_health":

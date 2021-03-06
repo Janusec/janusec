@@ -66,3 +66,10 @@ type GateHealth struct {
 	TimeOffset  int     `json:"time_offset"`
 	ConCurrency int64   `json:"concurrency"`
 }
+
+// RefererStatByHost ...
+type RefererStatByHost struct {
+	Host string
+	PV   int64
+	UV   int64
+}

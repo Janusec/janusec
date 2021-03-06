@@ -27,22 +27,15 @@ var (
 	// value: * sync.map[url_path][count]
 	statMap = sync.Map{}
 
-	// refererMap format: sync.Map[refererDomain][*sync.Map]
-	// sync.Map[refererDomain][path][clientID][count]
-	// key: refererDomain, such as: www.janusec.com
-	// value: * sync.map[referer_url_path][count]
+	// refererMap format: sync.Map[refererHost][*sync.Map]
+	// sync.Map[appID][refererHost][path][clientID][count]
+	// key: refererHost, such as: www.janusec.com
 	// Table:
-	// referer           path     clientID    pv      statDate (DB Only)
-	// www.janusec.com   /data    SHA(IP+UA)  5       xxx
-	// www.janusec.com   /privacy SHA(IP+UA)  3       yyy
-	// www.google.com    /        SHA(IP+UA)  10      zzz
-	/* Example:
-	   { "www.janusec.com": {
-	        "/data": {
-				"HASH01": 99,
-				"HASH02": 10
-			},
-	       }
+	// appID   referer_host      referer_path     clientID    pv      statDate (DB Only)
+	// 1       www.janusec.com   /data            SHA(IP+UA)  5       xxx
+	// 2       www.google.com    /                SHA(IP+UA)  10      zzz
+	/* Example: {
+		"1": {"www.janusec.com": {"/data": {"HASH01": 99,	"HASH02": 10} } }
 	   }
 	*/
 	refererMap = sync.Map{}
@@ -69,11 +62,6 @@ func InitAccessStat() {
 	for range statTicker.C {
 		now := time.Now()
 		statDate := now.Format("20060102")
-		expiredTime := now.Unix() - 86400*14
-		if data.IsPrimary {
-			// Clear expired access statistics
-			go data.DAL.ClearExpiredAccessStats(expiredTime)
-		}
 		statMap.Range(func(key, value interface{}) bool {
 			appID := key.(int64)
 			pathMap := value.(*sync.Map)
@@ -90,27 +78,32 @@ func InitAccessStat() {
 		})
 
 		refererMap.Range(func(key, value interface{}) bool {
-			refererDomain := key.(string)
-			pathMap := value.(*sync.Map)
-			pathMap.Range(func(key, value interface{}) bool {
-				refererPath := key.(string)
-				clientMap := value.(*sync.Map)
-				clientMap.Range(func(key, value interface{}) bool {
-					clientID := key.(string)
-					count := value.(int64)
-					fmt.Println("Referer:", refererDomain, refererPath, clientID, count)
-					// Add to database
-
+			appID := key.(int64)
+			hostMap := value.(*sync.Map)
+			hostMap.Range(func(key, value interface{}) bool {
+				refererHost := key.(string)
+				pathMap := value.(*sync.Map)
+				pathMap.Range(func(key, value interface{}) bool {
+					refererPath := key.(string)
+					clientMap := value.(*sync.Map)
+					clientMap.Range(func(key, value interface{}) bool {
+						clientID := key.(string)
+						count := value.(int64)
+						//fmt.Println("Referer:", appID, refererHost, refererPath, clientID, count)
+						// Add to database
+						go IncRefererStatToDB(appID, refererHost, refererPath, clientID, count)
+						// Clear
+						clientMap.Delete(clientID)
+						return true
+					})
 					// Clear
-
+					pathMap.Delete(refererPath)
 					return true
 				})
-
-				// Clear
-				//pathMap.Delete(refererPath)
-
+				hostMap.Delete(refererHost)
 				return true
 			})
+			refererMap.Delete(appID)
 			return true
 		})
 
@@ -189,13 +182,38 @@ func GetTodayPopularContent(param map[string]interface{}) (topPaths []*models.Po
 }
 
 // IncRefererStat increase referer statistics
-func IncRefererStat(referer string, srcIP string, userAgent string) {
+func IncRefererStat(appID int64, referer string, srcIP string, userAgent string) {
+	hostMapI, _ := refererMap.LoadOrStore(appID, &sync.Map{})
 	refererURL, _ := url.Parse(referer)
-	pathMapI, _ := refererMap.LoadOrStore(refererURL.Host, &sync.Map{})
+	pathMapI, _ := hostMapI.(*sync.Map).LoadOrStore(refererURL.Host, &sync.Map{})
 	clientMapI, _ := pathMapI.(*sync.Map).LoadOrStore(refererURL.Path, &sync.Map{})
 	clientID := data.SHA256Hash(srcIP + userAgent)
 	clientMap := clientMapI.(*sync.Map)
 	countI, _ := clientMap.LoadOrStore(clientID, int64(0))
 	count := countI.(int64) + 1
 	clientMap.Store(clientID, count)
+}
+
+// IncRefererStatToDB increase referer statistics to database
+func IncRefererStatToDB(appID int64, host string, path string, clientID string, deltaCount int64) {
+	now := time.Now()
+	dateTimestamp := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
+	if data.IsPrimary {
+		err := data.DAL.UpdateRefererStat(appID, host, path, clientID, deltaCount, dateTimestamp)
+		if err != nil {
+			utils.DebugPrintln("IncRefererStatToDB", err)
+		}
+		return
+	}
+	// Replica node
+	fmt.Println("IncRefererStatToDB Replica node ToDo")
+}
+
+// GetRefererStat ...
+func GetRefererStat(param map[string]interface{}) (topReferers []*models.RefererStatByHost, err error) {
+	appID := int64(param["app_id"].(float64))
+	now := time.Now()
+	statTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix() - 86400*14
+	topReferers, err = data.DAL.GetRefererStatsByHost(appID, statTime)
+	return topReferers, err
 }

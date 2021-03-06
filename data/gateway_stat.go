@@ -94,23 +94,47 @@ func (dal *MyDAL) GetPopularContent(appID int64, statDate string) ([]*models.Pop
 
 // CreateTableIfNotExistsRefererStats ...
 func (dal *MyDAL) CreateTableIfNotExistsRefererStats() error {
-	const sqlCreateTableIfNotExistsStats = `CREATE TABLE IF NOT EXISTS "referer_stats"("id" bigserial PRIMARY KEY, "host" VARCHAR(256) NOT NULL, "path" VARCHAR(256) NOT NULL, "client_id" VARCHAR(128) NOT NULL, "count" bigint, "date_timestamp" bigint)`
+	const sqlCreateTableIfNotExistsStats = `CREATE TABLE IF NOT EXISTS "referer_stats"("id" bigserial PRIMARY KEY, "app_id" bigint, "host" VARCHAR(256) NOT NULL, "path" VARCHAR(256) NOT NULL, "client_id" VARCHAR(128) NOT NULL, "count" bigint, "date_timestamp" bigint, CONSTRAINT "refer_id" unique("app_id", "host", "path", "client_id", "date_timestamp"))`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsStats)
-	const sqlConstraint = `ALTER TABLE "referer_stats" ADD CONSTRAINT "refer_id" unique("host", "path", "client_id", "date_timestamp")`
-	_, err = dal.db.Exec(sqlConstraint)
 	return err
 }
 
 // UpdateRefererStat ...
-func (dal *MyDAL) UpdateRefererStat(host string, path string, clientID string, deltaCount int64, dateTimestamp int64) error {
-	const sqlUpdateReferStat = `INSERT INTO "referer_stats"("host", "path", "client_id", "count", "date_timestamp") VALUES($1, $2, $3, $4, $5) ON CONFLICT ("host", "path", "client_id", "date_timestamp") DO UPDATE SET "count"="referer_stats"."count"+$4`
-	//now := time.Now()
-	//dateTimestamp := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
-	_, err := dal.db.Exec(sqlUpdateReferStat, host, path, clientID, deltaCount, dateTimestamp)
+func (dal *MyDAL) UpdateRefererStat(appID int64, host string, path string, clientID string, deltaCount int64, dateTimestamp int64) error {
+	const sqlUpdateReferStat = `INSERT INTO "referer_stats"("app_id", "host", "path", "client_id", "count", "date_timestamp") VALUES($1, $2, $3, $4, $5, $6) ON CONFLICT ("app_id", "host", "path", "client_id", "date_timestamp") DO UPDATE SET "count"="referer_stats"."count"+$5`
+	_, err := dal.db.Exec(sqlUpdateReferStat, appID, host, path, clientID, deltaCount, dateTimestamp)
 	return err
 }
 
-// GetCountByRefererHost ...
-func (dal *MyDAL) GetCountByRefererHost(host string) int64 {
+// ClearExpiredReferStat clear expired stats
+func (dal *MyDAL) ClearExpiredReferStat(expiredTime int64) error {
+	const sqlClearRefererStat = `DELETE FROM "referer_stats" WHERE "date_timestamp"<$1`
+	_, err := dal.db.Exec(sqlClearRefererStat, expiredTime)
+	if err != nil {
+		utils.DebugPrintln("ClearExpiredReferStat", err)
+	}
+	return err
+}
 
+// GetRefererStatsByHost ...
+func (dal *MyDAL) GetRefererStatsByHost(appID int64, statTime int64) (topReferers []*models.RefererStatByHost, err error) {
+	if appID == 0 {
+		const sqlStatAll = `SELECT "host",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "date_timestamp">$1 GROUP BY "host" ORDER BY "total_pv" DESC`
+		rows, _ := dal.db.Query(sqlStatAll, statTime)
+		for rows.Next() {
+			var refererStatByHost = &models.RefererStatByHost{}
+			_ = rows.Scan(&refererStatByHost.Host, &refererStatByHost.PV, &refererStatByHost.UV)
+			topReferers = append(topReferers, refererStatByHost)
+		}
+		return topReferers, nil
+	}
+	// appID not 0
+	const sqlStatByAPPID = `SELECT "host",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "app_id"=$1 AND "date_timestamp">$2 GROUP BY "host" ORDER BY "total_pv" DESC`
+	rows, _ := dal.db.Query(sqlStatByAPPID, appID, statTime)
+	for rows.Next() {
+		var refererStatByHost = &models.RefererStatByHost{}
+		_ = rows.Scan(&refererStatByHost.Host, &refererStatByHost.PV, &refererStatByHost.UV)
+		topReferers = append(topReferers, refererStatByHost)
+	}
+	return topReferers, nil
 }
