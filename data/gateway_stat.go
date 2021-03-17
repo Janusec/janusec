@@ -119,7 +119,7 @@ func (dal *MyDAL) ClearExpiredReferStat(expiredTime int64) error {
 // GetRefererStatsByHost ...
 func (dal *MyDAL) GetRefererStatsByHost(appID int64, statTime int64) (topReferers []*models.RefererStatByHost, err error) {
 	if appID == 0 {
-		const sqlStatAll = `SELECT "host",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "date_timestamp">$1 GROUP BY "host" ORDER BY "total_pv" DESC`
+		const sqlStatAll = `SELECT "host",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "date_timestamp">$1 GROUP BY "host" ORDER BY "total_pv" DESC LIMIT 100`
 		rows, _ := dal.db.Query(sqlStatAll, statTime)
 		for rows.Next() {
 			var refererStatByHost = &models.RefererStatByHost{}
@@ -129,7 +129,7 @@ func (dal *MyDAL) GetRefererStatsByHost(appID int64, statTime int64) (topReferer
 		return topReferers, nil
 	}
 	// appID not 0
-	const sqlStatByAPPID = `SELECT "host",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "app_id"=$1 AND "date_timestamp">$2 GROUP BY "host" ORDER BY "total_pv" DESC`
+	const sqlStatByAPPID = `SELECT "host",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "app_id"=$1 AND "date_timestamp">$2 GROUP BY "host" ORDER BY "total_pv" DESC LIMIT 100`
 	rows, _ := dal.db.Query(sqlStatByAPPID, appID, statTime)
 	for rows.Next() {
 		var refererStatByHost = &models.RefererStatByHost{}
