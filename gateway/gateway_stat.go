@@ -28,10 +28,10 @@ var (
 	statMap = sync.Map{}
 
 	// refererMap format: sync.Map[refererHost][*sync.Map]
-	// sync.Map[appID][refererHost][path][clientID][count]
+	// sync.Map[appID][refererHost][url][clientID][count]
 	// key: refererHost, such as: www.janusec.com
 	// Table:
-	// appID   referer_host      referer_path     clientID    pv      statDate (DB Only)
+	// appID   referer_host      referer_url      clientID    pv      statDate (DB Only)
 	// 1       www.janusec.com   /data            SHA(IP+UA)  5       xxx
 	// 2       www.google.com    /                SHA(IP+UA)  10      zzz
 	/* Example: {
@@ -186,7 +186,7 @@ func IncRefererStat(appID int64, referer string, srcIP string, userAgent string)
 	hostMapI, _ := refererMap.LoadOrStore(appID, &sync.Map{})
 	refererURL, _ := url.Parse(referer)
 	pathMapI, _ := hostMapI.(*sync.Map).LoadOrStore(refererURL.Host, &sync.Map{})
-	clientMapI, _ := pathMapI.(*sync.Map).LoadOrStore(refererURL.Path, &sync.Map{})
+	clientMapI, _ := pathMapI.(*sync.Map).LoadOrStore(referer, &sync.Map{})
 	clientID := data.SHA256Hash(srcIP + userAgent)
 	clientMap := clientMapI.(*sync.Map)
 	countI, _ := clientMap.LoadOrStore(clientID, int64(0))
@@ -209,11 +209,21 @@ func IncRefererStatToDB(appID int64, host string, path string, clientID string, 
 	fmt.Println("IncRefererStatToDB Replica node ToDo")
 }
 
-// GetRefererStat ...
-func GetRefererStat(param map[string]interface{}) (topReferers []*models.RefererStatByHost, err error) {
+// GetRefererHosts ...
+func GetRefererHosts(param map[string]interface{}) (topReferers []*models.RefererHost, err error) {
 	appID := int64(param["app_id"].(float64))
 	now := time.Now()
 	statTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix() - 86400*14
-	topReferers, err = data.DAL.GetRefererStatsByHost(appID, statTime)
+	topReferers, err = data.DAL.GetRefererHosts(appID, statTime)
 	return topReferers, err
+}
+
+// GetRefererURLs ...
+func GetRefererURLs(param map[string]interface{}) (topRefererURLs []*models.RefererURL, err error) {
+	appID := int64(param["app_id"].(float64))
+	host := param["host"].(string)
+	now := time.Now()
+	statTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix() - 86400*14
+	topRefererURLs, err = data.DAL.GetRefererURLs(appID, host, statTime)
+	return topRefererURLs, err
 }

@@ -67,9 +67,16 @@ type GateHealth struct {
 	ConCurrency int64   `json:"concurrency"`
 }
 
-// RefererStatByHost ...
-type RefererStatByHost struct {
-	Host string
-	PV   int64
-	UV   int64
+// RefererHost ...
+type RefererHost struct {
+	Host string `json:"host"`
+	PV   int64  `json:"PV"`
+	UV   int64  `json:"UV"`
+}
+
+// RefererURL ...
+type RefererURL struct {
+	URL string `json:"url"`
+	PV   int64 `json:"PV"`
+	UV   int64 `json:"UV"`
 }

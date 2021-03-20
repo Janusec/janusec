@@ -94,14 +94,14 @@ func (dal *MyDAL) GetPopularContent(appID int64, statDate string) ([]*models.Pop
 
 // CreateTableIfNotExistsRefererStats ...
 func (dal *MyDAL) CreateTableIfNotExistsRefererStats() error {
-	const sqlCreateTableIfNotExistsStats = `CREATE TABLE IF NOT EXISTS "referer_stats"("id" bigserial PRIMARY KEY, "app_id" bigint, "host" VARCHAR(256) NOT NULL, "path" VARCHAR(256) NOT NULL, "client_id" VARCHAR(128) NOT NULL, "count" bigint, "date_timestamp" bigint, CONSTRAINT "refer_id" unique("app_id", "host", "path", "client_id", "date_timestamp"))`
+	const sqlCreateTableIfNotExistsStats = `CREATE TABLE IF NOT EXISTS "referer_stats"("id" bigserial PRIMARY KEY, "app_id" bigint, "host" VARCHAR(256) NOT NULL, "url" VARCHAR(256) NOT NULL, "client_id" VARCHAR(128) NOT NULL, "count" bigint, "date_timestamp" bigint, CONSTRAINT "refer_id" unique("app_id", "host", "url", "client_id", "date_timestamp"))`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsStats)
 	return err
 }
 
 // UpdateRefererStat ...
 func (dal *MyDAL) UpdateRefererStat(appID int64, host string, path string, clientID string, deltaCount int64, dateTimestamp int64) error {
-	const sqlUpdateReferStat = `INSERT INTO "referer_stats"("app_id", "host", "path", "client_id", "count", "date_timestamp") VALUES($1, $2, $3, $4, $5, $6) ON CONFLICT ("app_id", "host", "path", "client_id", "date_timestamp") DO UPDATE SET "count"="referer_stats"."count"+$5`
+	const sqlUpdateReferStat = `INSERT INTO "referer_stats"("app_id", "host", "url", "client_id", "count", "date_timestamp") VALUES($1, $2, $3, $4, $5, $6) ON CONFLICT ("app_id", "host", "url", "client_id", "date_timestamp") DO UPDATE SET "count"="referer_stats"."count"+$5`
 	_, err := dal.db.Exec(sqlUpdateReferStat, appID, host, path, clientID, deltaCount, dateTimestamp)
 	return err
 }
@@ -116,15 +116,15 @@ func (dal *MyDAL) ClearExpiredReferStat(expiredTime int64) error {
 	return err
 }
 
-// GetRefererStatsByHost ...
-func (dal *MyDAL) GetRefererStatsByHost(appID int64, statTime int64) (topReferers []*models.RefererStatByHost, err error) {
+// GetRefererHosts ...
+func (dal *MyDAL) GetRefererHosts(appID int64, statTime int64) (topReferers []*models.RefererHost, err error) {
 	if appID == 0 {
 		const sqlStatAll = `SELECT "host",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "date_timestamp">$1 GROUP BY "host" ORDER BY "total_pv" DESC LIMIT 100`
 		rows, _ := dal.db.Query(sqlStatAll, statTime)
 		for rows.Next() {
-			var refererStatByHost = &models.RefererStatByHost{}
-			_ = rows.Scan(&refererStatByHost.Host, &refererStatByHost.PV, &refererStatByHost.UV)
-			topReferers = append(topReferers, refererStatByHost)
+			var RefererHost = &models.RefererHost{}
+			_ = rows.Scan(&RefererHost.Host, &RefererHost.PV, &RefererHost.UV)
+			topReferers = append(topReferers, RefererHost)
 		}
 		return topReferers, nil
 	}
@@ -132,9 +132,32 @@ func (dal *MyDAL) GetRefererStatsByHost(appID int64, statTime int64) (topReferer
 	const sqlStatByAPPID = `SELECT "host",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "app_id"=$1 AND "date_timestamp">$2 GROUP BY "host" ORDER BY "total_pv" DESC LIMIT 100`
 	rows, _ := dal.db.Query(sqlStatByAPPID, appID, statTime)
 	for rows.Next() {
-		var refererStatByHost = &models.RefererStatByHost{}
-		_ = rows.Scan(&refererStatByHost.Host, &refererStatByHost.PV, &refererStatByHost.UV)
-		topReferers = append(topReferers, refererStatByHost)
+		var RefererHost = &models.RefererHost{}
+		_ = rows.Scan(&RefererHost.Host, &RefererHost.PV, &RefererHost.UV)
+		topReferers = append(topReferers, RefererHost)
 	}
 	return topReferers, nil
+}
+
+// GetRefererURLs ...
+func (dal *MyDAL) GetRefererURLs(appID int64, host string, statTime int64) (topRefererURLs []*models.RefererURL, err error) {
+	if appID == 0 {
+		const sqlStatAll = `SELECT "url",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "host"=$1 and "date_timestamp">$2 GROUP BY "url" ORDER BY "total_pv" DESC LIMIT 100`
+		rows, _ := dal.db.Query(sqlStatAll, host, statTime)
+		for rows.Next() {
+			var RefererURL = &models.RefererURL{}
+			_ = rows.Scan(&RefererURL.URL, &RefererURL.PV, &RefererURL.UV)
+			topRefererURLs = append(topRefererURLs, RefererURL)
+		}
+		return topRefererURLs, nil
+	}
+	// appID not 0
+	const sqlStatByAPPID = `SELECT "url",SUM("count") AS "total_pv",COUNT(DISTINCT "client_id") FROM "referer_stats" WHERE "app_id"=$1 AND "host"=$2 AND "date_timestamp">$3 GROUP BY "url" ORDER BY "total_pv" DESC LIMIT 100`
+	rows, _ := dal.db.Query(sqlStatByAPPID, appID, host, statTime)
+	for rows.Next() {
+		var RefererURL = &models.RefererURL{}
+			_ = rows.Scan(&RefererURL.URL, &RefererURL.PV, &RefererURL.UV)
+			topRefererURLs = append(topRefererURLs, RefererURL)
+	}
+	return topRefererURLs, nil
 }
