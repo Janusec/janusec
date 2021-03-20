@@ -27,7 +27,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.4 // indirect
 	github.com/yookoala/gofast v0.6.0
 	github.com/yuin/goldmark v1.2.1 // indirect
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670
 	golang.org/x/mod v0.3.0 // indirect
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
