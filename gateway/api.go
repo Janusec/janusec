@@ -271,6 +271,11 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "inc_stat":
 		obj = nil
 		err = ReplicaIncAccessStat(r)
+	case "update_referer_stat":
+		obj = nil
+		mapReferer := param["object"].(map[int64]map[string]map[string]map[string]int64)
+		fmt.Println("API mapReferer", mapReferer)
+		err = UpdateRefererStat(&mapReferer)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

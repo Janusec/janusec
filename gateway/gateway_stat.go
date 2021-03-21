@@ -77,35 +77,56 @@ func InitAccessStat() {
 			return true
 		})
 
+		// Declare a nested map for replica nodes
+		// map[appID int64][host string][path string][clientID string](count int64)
+		mapReferer := map[int64]map[string]map[string]map[string]int64{}
 		refererMap.Range(func(key, value interface{}) bool {
 			appID := key.(int64)
 			hostMap := value.(*sync.Map)
+			// map[host string][path string][clientID string](count int64)
+			mapHost := map[string]map[string]map[string]int64{}
 			hostMap.Range(func(key, value interface{}) bool {
 				refererHost := key.(string)
 				pathMap := value.(*sync.Map)
+				// map[path string][clientID string](count int64)
+				mapPath := map[string]map[string]int64{}
 				pathMap.Range(func(key, value interface{}) bool {
 					refererPath := key.(string)
 					clientMap := value.(*sync.Map)
+					// map[clientID string](count int64)
+					mapClient := map[string]int64{}
 					clientMap.Range(func(key, value interface{}) bool {
 						clientID := key.(string)
 						count := value.(int64)
-						//fmt.Println("Referer:", appID, refererHost, refererPath, clientID, count)
-						// Add to database
-						go IncRefererStatToDB(appID, refererHost, refererPath, clientID, count)
+						mapClient[clientID] = count
 						// Clear
 						clientMap.Delete(clientID)
 						return true
 					})
+					mapPath[refererPath] = mapClient
 					// Clear
 					pathMap.Delete(refererPath)
 					return true
 				})
+				mapHost[refererHost] = mapPath
 				hostMap.Delete(refererHost)
 				return true
 			})
+			mapReferer[appID] = mapHost
 			refererMap.Delete(appID)
 			return true
 		})
+
+		if data.IsPrimary {
+			go UpdateRefererStat(&mapReferer)
+		} else {
+			// Replica
+			rpcRequest := &models.RPCRequest{Action: "update_referer_stat", Object: mapReferer}
+			_, err := data.GetRPCResponse(rpcRequest)
+			if err != nil {
+				utils.DebugPrintln("RPC update_referer_stat", err)
+			}
+		}
 
 		// check offline destinations
 		backend.CheckOfflineDestinations(now.Unix())
@@ -183,6 +204,7 @@ func GetTodayPopularContent(param map[string]interface{}) (topPaths []*models.Po
 
 // IncRefererStat increase referer statistics
 func IncRefererStat(appID int64, referer string, srcIP string, userAgent string) {
+	fmt.Println("IncRefererStat", referer)
 	hostMapI, _ := refererMap.LoadOrStore(appID, &sync.Map{})
 	refererURL, _ := url.Parse(referer)
 	pathMapI, _ := hostMapI.(*sync.Map).LoadOrStore(refererURL.Host, &sync.Map{})
@@ -194,7 +216,28 @@ func IncRefererStat(appID int64, referer string, srcIP string, userAgent string)
 	clientMap.Store(clientID, count)
 }
 
+// UpdateRefererStat ...
+func UpdateRefererStat(mapReferer *map[int64]map[string]map[string]map[string]int64) error {
+	fmt.Println("UpdateRefererStat", mapReferer)
+	now := time.Now()
+	dateTimestamp := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
+	for appID, mapHost := range *mapReferer {
+		for host, mapPath := range mapHost {
+			for path, mapClientID := range mapPath {
+				for clientID, count := range mapClientID {
+					err := data.DAL.UpdateRefererStat(appID, host, path, clientID, count, dateTimestamp)
+					if err != nil {
+						utils.DebugPrintln("IncRefererStatToDB", err)
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // IncRefererStatToDB increase referer statistics to database
+/*
 func IncRefererStatToDB(appID int64, host string, path string, clientID string, deltaCount int64) {
 	now := time.Now()
 	dateTimestamp := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
@@ -208,6 +251,7 @@ func IncRefererStatToDB(appID int64, host string, path string, clientID string, 
 	// Replica node
 	fmt.Println("IncRefererStatToDB Replica node ToDo")
 }
+*/
 
 // GetRefererHosts ...
 func GetRefererHosts(param map[string]interface{}) (topReferers []*models.RefererHost, err error) {

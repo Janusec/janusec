@@ -133,7 +133,7 @@ func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 	}
 	curTime := time.Now().Unix()
 	secondsDiff := math.Abs(float64(curTime - nodeAuth.CurTime))
-	if secondsDiff > 180.0 {
+	if secondsDiff > 1800.0 {
 		return false
 	}
 	srcIP, _, _ := net.SplitHostPort(r.RemoteAddr)
