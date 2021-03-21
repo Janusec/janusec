@@ -268,14 +268,13 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "update_totp":
 		id := int64(param["id"].(float64))
 		obj, err = usermgmt.UpdateTOTPVerified(id)
-	case "inc_stat":
+	case "update_access_stat":
 		obj = nil
-		err = ReplicaIncAccessStat(r)
+		err = RPCIncAccessStat(r)
 	case "update_referer_stat":
 		obj = nil
-		mapReferer := param["object"].(map[int64]map[string]map[string]map[string]int64)
-		fmt.Println("API mapReferer", mapReferer)
-		err = UpdateRefererStat(&mapReferer)
+		//mapReferer := param["object"]
+		err = RPCUpdateRefererStat(r)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

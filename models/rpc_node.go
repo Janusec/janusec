@@ -87,9 +87,17 @@ type RPCTOTP struct {
 }
 
 type RPCStatRequest struct {
-	Action   string      `json:"action"`
-	ObjectID int64       `json:"id"`
-	NodeID   int64       `json:"node_id"`
-	AuthKey  string      `json:"auth_key"`
-	Object   *AccessStat `json:"object"`
+	Action   string        `json:"action"`
+	ObjectID int64         `json:"id"`
+	NodeID   int64         `json:"node_id"`
+	AuthKey  string        `json:"auth_key"`
+	Object   []*AccessStat `json:"object"`
+}
+
+type RPCRefererRequest struct {
+	Action   string                                            `json:"action"`
+	ObjectID int64                                             `json:"id"`
+	NodeID   int64                                             `json:"node_id"`
+	AuthKey  string                                            `json:"auth_key"`
+	Object   *map[int64]map[string]map[string]map[string]int64 `json:"object"`
 }

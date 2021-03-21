@@ -10,7 +10,6 @@ package gateway
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"janusec/backend"
 	"janusec/data"
 	"janusec/models"
@@ -62,6 +61,7 @@ func InitAccessStat() {
 	for range statTicker.C {
 		now := time.Now()
 		statDate := now.Format("20060102")
+		accessStats := []*models.AccessStat{}
 		statMap.Range(func(key, value interface{}) bool {
 			appID := key.(int64)
 			pathMap := value.(*sync.Map)
@@ -69,13 +69,31 @@ func InitAccessStat() {
 				urlPath := key.(string)
 				delta := value.(int64)
 				// Add to database
-				go IncAmountToDB(appID, urlPath, statDate, delta, now.Unix())
+				// go IncAmountToDB(appID, urlPath, statDate, delta, now.Unix())
+				accessStat := &models.AccessStat{
+					AppID:      appID,
+					URLPath:    urlPath,
+					StatDate:   statDate,
+					Delta:      delta,
+					UpdateTime: now.Unix(),
+				}
+				accessStats = append(accessStats, accessStat)
 				// Clear
 				pathMap.Delete(urlPath)
 				return true
 			})
 			return true
 		})
+		if data.IsPrimary {
+			go UpdateAccessStat(accessStats)
+		} else if len(accessStats) > 0 {
+			// Replica
+			rpcRequest := &models.RPCRequest{Action: "update_access_stat", Object: accessStats}
+			_, err := data.GetRPCResponse(rpcRequest)
+			if err != nil {
+				utils.DebugPrintln("RPC update_access_stat", err)
+			}
+		}
 
 		// Declare a nested map for replica nodes
 		// map[appID int64][host string][path string][clientID string](count int64)
@@ -119,7 +137,7 @@ func InitAccessStat() {
 
 		if data.IsPrimary {
 			go UpdateRefererStat(&mapReferer)
-		} else {
+		} else if len(mapReferer) > 0 {
 			// Replica
 			rpcRequest := &models.RPCRequest{Action: "update_referer_stat", Object: mapReferer}
 			_, err := data.GetRPCResponse(rpcRequest)
@@ -134,7 +152,31 @@ func InitAccessStat() {
 	}
 }
 
+// UpdateAccessStat ...
+func UpdateAccessStat(accessStats []*models.AccessStat) {
+	for _, accessStat := range accessStats {
+		_ = data.DAL.IncAmount(accessStat.AppID, accessStat.URLPath, accessStat.StatDate, accessStat.Delta, accessStat.UpdateTime)
+	}
+}
+
+// RPCIncAccessStat receive RPC request and update to database
+func RPCIncAccessStat(r *http.Request) error {
+	var statReq models.RPCStatRequest
+	err := json.NewDecoder(r.Body).Decode(&statReq)
+	if err != nil {
+		utils.DebugPrintln("ReplicaIncAccessStat Decode", err)
+	}
+	defer r.Body.Close()
+	accessStats := statReq.Object
+	if accessStats == nil {
+		return errors.New("RPCIncAccessStat parse body null")
+	}
+	UpdateAccessStat(accessStats)
+	return nil
+}
+
 // IncAmountToDB sync to database
+/*
 func IncAmountToDB(appID int64, urlPath string, statDate string, delta int64, updateTime int64) {
 	if data.IsPrimary {
 		_ = data.DAL.IncAmount(appID, urlPath, statDate, delta, updateTime)
@@ -156,22 +198,7 @@ func IncAmountToDB(appID int64, urlPath string, statDate string, delta int64, up
 		}
 	}
 }
-
-// ReplicaIncAccessStat receive RPC request and update to database
-func ReplicaIncAccessStat(r *http.Request) error {
-	var statReq models.RPCStatRequest
-	err := json.NewDecoder(r.Body).Decode(&statReq)
-	if err != nil {
-		utils.DebugPrintln("ReplicaIncAccessStat Decode", err)
-	}
-	defer r.Body.Close()
-
-	accessStat := statReq.Object
-	if accessStat == nil {
-		return errors.New("ReplicaIncAccessStat parse body null")
-	}
-	return data.DAL.IncAmount(accessStat.AppID, accessStat.URLPath, accessStat.StatDate, accessStat.Delta, accessStat.UpdateTime)
-}
+*/
 
 // IncAccessStat increase stat count in statMap
 func IncAccessStat(appID int64, urlPath string) {
@@ -204,7 +231,6 @@ func GetTodayPopularContent(param map[string]interface{}) (topPaths []*models.Po
 
 // IncRefererStat increase referer statistics
 func IncRefererStat(appID int64, referer string, srcIP string, userAgent string) {
-	fmt.Println("IncRefererStat", referer)
 	hostMapI, _ := refererMap.LoadOrStore(appID, &sync.Map{})
 	refererURL, _ := url.Parse(referer)
 	pathMapI, _ := hostMapI.(*sync.Map).LoadOrStore(refererURL.Host, &sync.Map{})
@@ -218,7 +244,6 @@ func IncRefererStat(appID int64, referer string, srcIP string, userAgent string)
 
 // UpdateRefererStat ...
 func UpdateRefererStat(mapReferer *map[int64]map[string]map[string]map[string]int64) error {
-	fmt.Println("UpdateRefererStat", mapReferer)
 	now := time.Now()
 	dateTimestamp := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
 	for appID, mapHost := range *mapReferer {
@@ -227,7 +252,7 @@ func UpdateRefererStat(mapReferer *map[int64]map[string]map[string]map[string]in
 				for clientID, count := range mapClientID {
 					err := data.DAL.UpdateRefererStat(appID, host, path, clientID, count, dateTimestamp)
 					if err != nil {
-						utils.DebugPrintln("IncRefererStatToDB", err)
+						utils.DebugPrintln("UpdateRefererStat", err)
 					}
 				}
 			}
@@ -236,22 +261,18 @@ func UpdateRefererStat(mapReferer *map[int64]map[string]map[string]map[string]in
 	return nil
 }
 
-// IncRefererStatToDB increase referer statistics to database
-/*
-func IncRefererStatToDB(appID int64, host string, path string, clientID string, deltaCount int64) {
-	now := time.Now()
-	dateTimestamp := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
-	if data.IsPrimary {
-		err := data.DAL.UpdateRefererStat(appID, host, path, clientID, deltaCount, dateTimestamp)
-		if err != nil {
-			utils.DebugPrintln("IncRefererStatToDB", err)
-		}
-		return
+// RPCUpdateRefererStat for replica nodes
+func RPCUpdateRefererStat(r *http.Request) error {
+	var refererReq models.RPCRefererRequest
+	err := json.NewDecoder(r.Body).Decode(&refererReq)
+	if err != nil {
+		utils.DebugPrintln("RPCUpdateRefererStat Decode", err)
 	}
-	// Replica node
-	fmt.Println("IncRefererStatToDB Replica node ToDo")
+	defer r.Body.Close()
+	refererStat := refererReq.Object
+	UpdateRefererStat(refererStat)
+	return nil
 }
-*/
 
 // GetRefererHosts ...
 func GetRefererHosts(param map[string]interface{}) (topReferers []*models.RefererHost, err error) {

@@ -37,6 +37,15 @@ type AccessStat struct {
 	UpdateTime int64  `json:"update_time"` // Used for expired cleanup
 }
 
+type RefererStat struct {
+	AppID      int64  `json:"app_id"`
+	Host       string `json:"host"`
+	URL        string `json:"url"`
+	ClientID   string `json:"client_id"`
+	Delta      int64  `json:"delta"`
+	UpdateTime int64  `json:"update_time"` // Used for expired cleanup
+}
+
 // PopularContent i.e. top visited URL Path
 type PopularContent struct {
 	AppID   int64  `json:"app_id"`
@@ -77,6 +86,6 @@ type RefererHost struct {
 // RefererURL ...
 type RefererURL struct {
 	URL string `json:"url"`
-	PV   int64 `json:"PV"`
-	UV   int64 `json:"UV"`
+	PV  int64  `json:"PV"`
+	UV  int64  `json:"UV"`
 }
