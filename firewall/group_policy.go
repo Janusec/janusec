@@ -102,7 +102,7 @@ func InitGroupPolicy() {
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Command Injection", 0, 210, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
 			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
-			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(^|\&\s*|\|\s*)(pwd|ls|ll|whoami|id|net\s+user)$`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(^|\&\s*|\|\s*)(pwd|ls|ll|whoami|net\s+user)$`, groupPolicyID)
 			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Web Shell", 0, 500, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)

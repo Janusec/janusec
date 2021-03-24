@@ -114,12 +114,12 @@ func InitDatabase() {
 	// 0.9.13 alter column ccpolicies type
 	err = dal.ExecSQL(`ALTER TABLE "ccpolicies" ALTER COLUMN "interval_milliseconds" TYPE double precision`)
 	if err != nil {
-		utils.DebugPrintln("InitDatabase ALTER TABLE ccpolicies ALTER COLUMN interval_milliseconds", err)
+		//utils.DebugPrintln("InitDatabase ALTER TABLE ccpolicies ALTER COLUMN interval_milliseconds", err)
 	}
 	// 0.9.13 alter column block_seconds type
 	err = dal.ExecSQL(`ALTER TABLE "ccpolicies" ALTER COLUMN "block_seconds" TYPE double precision`)
 	if err != nil {
-		utils.DebugPrintln("InitDatabase ALTER TABLE ccpolicies ALTER COLUMN block_seconds", err)
+		//utils.DebugPrintln("InitDatabase ALTER TABLE ccpolicies ALTER COLUMN block_seconds", err)
 	}
 }
 
