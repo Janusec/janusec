@@ -61,11 +61,11 @@ https://doc.janusec.com/cn/
 
 ## Requirements (需求)   
 
-* PostgreSQL 9.3, 9.4, 9.5, 9.6 or 10+ (Required by Development and Primary Node of Deployment, 开发环境，及生产环境主节点需要)  
-* CentOS/RHEL 7/8+, Debian 9/10+, CentOS 8 is preferred    
+* PostgreSQL 10/11/12+ (Required by Development and Primary Node of Deployment, 开发环境，及生产环境主节点需要)  
+* Debian 9/10+, CentOS/RHEL 7/8+, Debian 10+ is preferred    
 * systemd  
 * nftables  
-* Golang 1.14+ (Required by Development Only, 仅开发环境需要)  
+* Golang 1.16.2+ (Required by Development Only, 仅开发环境需要)  
 
 ## Quick Start for Deployment (部署快速指引)    
 

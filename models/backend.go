@@ -192,6 +192,15 @@ type Setting struct {
 
 // GlobalSettings used for admin configuration
 type GlobalSettings struct {
+	// AuthEnabled for SSO Authentication
+	AuthEnabled bool `json:"auth_enabled"`
+
+	// AuthProvider such as wxwork, dingtalk, feishu, ldap, cas2
+	AuthProvider string `json:"auth_provider"`
+
+	// WebSSHEnabled for Web-based SSH
+	WebSSHEnabled bool `json:"webssh_enabled"`
+
 	// WAFLogDays for WAF logs
 	WAFLogDays int64 `json:"waf_log_days"`
 

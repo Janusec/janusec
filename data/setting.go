@@ -108,11 +108,18 @@ func LoadSettings() {
 		Settings = append(Settings, &models.Setting{Name: "firewall_last_modified", Value: FirewallLastModified})
 		Settings = append(Settings, &models.Setting{Name: "sync_seconds", Value: SyncSeconds})
 
+		// 1.0.0 add
+		authEnabled, _ := DAL.SelectBoolSetting("auth_enabled")
+		authProvider, _ := DAL.SelectStringSetting("auth_provider")
+		websshEnabled, _ := DAL.SelectBoolSetting("webssh_enabled")
 		// 0.9.15 add
 		wafLogDays, _ := DAL.SelectIntSetting("waf_log_days")
 		ccLogDays, _ := DAL.SelectIntSetting("cc_log_days")
 		accessLogDays, _ := DAL.SelectIntSetting("access_log_days")
 		globalSettings = &models.GlobalSettings{
+			AuthEnabled:   authEnabled,
+			AuthProvider:  authProvider,
+			WebSSHEnabled: websshEnabled,
 			WAFLogDays:    wafLogDays,
 			CCLogDays:     ccLogDays,
 			AccessLogDays: accessLogDays,
@@ -151,6 +158,22 @@ func GetGlobalSettings(authUser *models.AuthUser) (*models.GlobalSettings, error
 // GetGlobalSettings2 for admin configuration
 func GetGlobalSettings2() *models.GlobalSettings {
 	return globalSettings
+}
+
+func GetWxworkConfig() (*models.WxworkConfig, error) {
+	displayName, _ := DAL.SelectStringSetting("display_name")
+	callback, _ := DAL.SelectStringSetting("callback")
+	corpID, _ := DAL.SelectStringSetting("corpid")
+	agentID, _ := DAL.SelectStringSetting("agentid")
+	corpSecret, _ := DAL.SelectStringSetting("corpsecret")
+	wxworkConfig := &models.WxworkConfig{
+		DisplayName: displayName,
+		Callback:    callback,
+		CorpID:      corpID,
+		AgentID:     agentID,
+		CorpSecret:  corpSecret,
+	}
+	return wxworkConfig, nil
 }
 
 // UpdateGlobalSettings ...

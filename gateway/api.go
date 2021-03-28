@@ -187,6 +187,8 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = data.GetGlobalSettings(authUser)
 	case "update_global_settings":
 		obj, err = data.UpdateGlobalSettings(param, authUser)
+	case "get_wxwork_config":
+		obj, err = data.GetWxworkConfig()
 	case "get_license":
 		obj, err = nil, nil
 	default:
