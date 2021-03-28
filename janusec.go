@@ -70,7 +70,7 @@ func main() {
 
 	tlsconfig := &tls.Config{
 		GetCertificate: func(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, error) {
-			cert, err := backend.GetCertificateByDomain(helloInfo.ServerName)
+			cert, err := backend.GetCertificateByDomain(helloInfo)
 			return cert, err
 		},
 		NextProtos: []string{"h2", "http/1.1"},
@@ -170,7 +170,8 @@ func main() {
 			os.Exit(1)
 		}
 		utils.DebugPrintln("Listen HTTP ", listenPort)
-		err = http.Serve(listen, ctxGateMux)
+		// err = http.Serve(listen, ctxGateMux)
+		err = http.Serve(listen, backend.AcmeCertManager.HTTPHandler(ctxGateMux))
 		if err != nil {
 			utils.CheckError("http.Serve error", err)
 			utils.DebugPrintln("http.Serve error", err)
@@ -186,7 +187,8 @@ func main() {
 		os.Exit(1)
 	}
 	utils.DebugPrintln("Listen HTTPS", data.CFG.ListenHTTPS)
-	err = http.Serve(listen, ctxGateMux)
+	//err = http.Serve(listen, ctxGateMux)
+	err = http.Serve(listen, backend.AcmeCertManager.HTTPHandler(ctxGateMux))
 	if err != nil {
 		utils.CheckError("http.Serve error", err)
 		utils.DebugPrintln("http.Serve error", err)

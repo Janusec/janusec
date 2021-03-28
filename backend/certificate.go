@@ -15,10 +15,16 @@ import (
 	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
+
+	"golang.org/x/crypto/acme/autocert"
 )
 
 // Certs list
 var Certs = []*models.CertItem{}
+var AcmeCertManager = autocert.Manager{
+	Prompt: autocert.AcceptTOS,
+	Cache:  autocert.DirCache("certs"),
+}
 
 // LoadCerts ...
 func LoadCerts() {
@@ -57,14 +63,15 @@ func LoadCerts() {
 }
 
 // GetCertificateByDomain ...
-func GetCertificateByDomain(domain string) (*tls.Certificate, error) {
+func GetCertificateByDomain(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, error) {
+	domain := helloInfo.ServerName
 	if domainRelation, ok := DomainsMap.Load(domain); ok == true {
 		certItem := domainRelation.(models.DomainRelation).Cert
 		if certItem == nil {
-			return nil, errors.New("GetCertificateByDomain Null CertItem: " + domain)
+			// autocert
+			return AcmeCertManager.GetCertificate(helloInfo)
 		}
-		cert := &(certItem.TlsCert)
-		return cert, nil
+		return &(certItem.TlsCert), nil
 	}
 	return nil, errors.New("Unknown Host: " + domain)
 }
