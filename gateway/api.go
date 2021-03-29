@@ -189,6 +189,14 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = data.UpdateGlobalSettings(param, authUser)
 	case "get_wxwork_config":
 		obj, err = data.GetWxworkConfig()
+	case "get_dingtalk_config":
+		obj, err = data.GetDingtalkConfig()
+	case "get_feishu_config":
+		obj, err = data.GetFeishuConfig()
+	case "get_ldap_config":
+		obj, err = data.GetLDAPConfig()
+	case "get_cas2_config":
+		obj, err = data.GetCAS2Config()
 	case "get_license":
 		obj, err = nil, nil
 	default:

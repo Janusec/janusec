@@ -160,12 +160,28 @@ func GetGlobalSettings2() *models.GlobalSettings {
 	return globalSettings
 }
 
+// GetWxworkConfig return Auth Wxwork config
 func GetWxworkConfig() (*models.WxworkConfig, error) {
-	displayName, _ := DAL.SelectStringSetting("display_name")
-	callback, _ := DAL.SelectStringSetting("callback")
-	corpID, _ := DAL.SelectStringSetting("corpid")
-	agentID, _ := DAL.SelectStringSetting("agentid")
-	corpSecret, _ := DAL.SelectStringSetting("corpsecret")
+	displayName, _ := DAL.SelectStringSetting("wxwork_display_name")
+	if len(displayName) == 0 {
+		displayName = "Login with WeChat Work"
+	}
+	callback, _ := DAL.SelectStringSetting("wxwork_callback")
+	if len(callback) == 0 {
+		callback = "http://your_domain.com/oauth/wxwork"
+	}
+	corpID, _ := DAL.SelectStringSetting("wxwork_corpid")
+	if len(corpID) == 0 {
+		corpID = "wwd03be1f8"
+	}
+	agentID, _ := DAL.SelectStringSetting("wxwork_agentid")
+	if len(agentID) == 0 {
+		agentID = "1000002"
+	}
+	corpSecret, _ := DAL.SelectStringSetting("wxwork_corpsecret")
+	if len(corpSecret) == 0 {
+		corpSecret = "BgZtz_hssdZV5em-AyGhOgLlm18rU_NdZI"
+	}
 	wxworkConfig := &models.WxworkConfig{
 		DisplayName: displayName,
 		Callback:    callback,
@@ -174,6 +190,73 @@ func GetWxworkConfig() (*models.WxworkConfig, error) {
 		CorpSecret:  corpSecret,
 	}
 	return wxworkConfig, nil
+}
+
+// GetDingtalkConfig return Auth Dingtalk config
+func GetDingtalkConfig() (*models.DingtalkConfig, error) {
+	displayName, _ := DAL.SelectStringSetting("dingtalk_display_name")
+	if len(displayName) == 0 {
+		displayName = "Login with Dingtalk"
+	}
+	callback, _ := DAL.SelectStringSetting("dingtalk_callback")
+	if len(callback) == 0 {
+		callback = "http://your_domain.com/oauth/dingtalk"
+	}
+	appID, _ := DAL.SelectStringSetting("dingtalk_appid")
+	if len(appID) == 0 {
+		appID = "dingoa8xvc"
+	}
+	appSecret, _ := DAL.SelectStringSetting("dingtalk_appsecret")
+	if len(appSecret) == 0 {
+		appSecret = "crrALdXUIj4T0zBekYh4u9sU_T1GZT"
+	}
+	dingtalkConfig := &models.DingtalkConfig{
+		DisplayName: displayName,
+		Callback:    callback,
+		AppID:       appID,
+		AppSecret:   appSecret,
+	}
+	return dingtalkConfig, nil
+}
+
+// GetFeishuConfig ...
+func GetFeishuConfig() (*models.FeishuConfig, error) {
+	displayName, _ := DAL.SelectStringSetting("feishu_display_name")
+	if len(displayName) == 0 {
+		displayName = "Login with Feishu"
+	}
+	callback, _ := DAL.SelectStringSetting("feishu_callback")
+	if len(callback) == 0 {
+		callback = "http://your_domain.com/oauth/feishu"
+	}
+	appID, _ := DAL.SelectStringSetting("feishu_appid")
+	if len(appID) == 0 {
+		appID = "cli_9ef21d00e"
+	}
+	appSecret, _ := DAL.SelectStringSetting("feishu_appsecret")
+	if len(appSecret) == 0 {
+		appSecret = "ihUBspRAG1PtNdDLUZ"
+	}
+	feishuConfig := &models.FeishuConfig{
+		DisplayName: displayName,
+		Callback:    callback,
+		AppID:       appID,
+		AppSecret:   appSecret,
+	}
+	return feishuConfig, nil
+}
+
+// GetLDAPConfig ...
+func GetLDAPConfig() (*models.LDAPConfig, error) {
+	displayName, _ := DAL.SelectStringSetting("ldap_display_name")
+	if len(displayName) == 0 {
+		displayName = "Login with LDAP"
+	}
+	entrance, _ := DAL.SelectStringSetting("ldap_entrance")
+	if len(entrance) == 0 {
+		entrance = "http://your_domain.com/ldap/login"
+	}
+
 }
 
 // UpdateGlobalSettings ...
