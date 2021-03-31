@@ -111,6 +111,9 @@ func LoadSettings() {
 		// 1.0.0 add
 		authEnabled, _ := DAL.SelectBoolSetting("auth_enabled")
 		authProvider, _ := DAL.SelectStringSetting("auth_provider")
+		if len(authProvider) == 0 {
+			authProvider = "wxwork"
+		}
 		websshEnabled, _ := DAL.SelectBoolSetting("webssh_enabled")
 		// 0.9.15 add
 		wafLogDays, _ := DAL.SelectIntSetting("waf_log_days")
@@ -256,7 +259,48 @@ func GetLDAPConfig() (*models.LDAPConfig, error) {
 	if len(entrance) == 0 {
 		entrance = "http://your_domain.com/ldap/login"
 	}
+	address, _ := DAL.SelectStringSetting("ldap_address")
+	if len(address) == 0 {
+		address = "your_ldap_domain.com:389"
+	}
+	dn, _ := DAL.SelectStringSetting("ldap_dn")
+	if len(dn) == 0 {
+		dn = "uid={uid},ou=People,dc=your_domain,dc=com"
+	}
+	usingTLS, _ := DAL.SelectBoolSetting("ldap_using_tls")
+	authenticatorEnabled, _ := DAL.SelectBoolSetting("ldap_authenticator_enabled")
 
+	ldapConfig := &models.LDAPConfig{
+		DisplayName:          displayName,
+		Entrance:             entrance,
+		Address:              address,
+		DN:                   dn,
+		UsingTLS:             usingTLS,
+		AuthenticatorEnabled: authenticatorEnabled,
+	}
+	return ldapConfig, nil
+}
+
+// GetCAS2Config ...
+func GetCAS2Config() (*models.CAS2Config, error) {
+	displayName, _ := DAL.SelectStringSetting("cas2_display_name")
+	if len(displayName) == 0 {
+		displayName = "Login with CAS 2.0"
+	}
+	entrance, _ := DAL.SelectStringSetting("cas2_entrance")
+	if len(entrance) == 0 {
+		entrance = "https://cas_server/cas"
+	}
+	callback, _ := DAL.SelectStringSetting("cas2_callback")
+	if len(callback) == 0 {
+		callback = "http://your_domain.com/oauth/cas2"
+	}
+	cas2Config := &models.CAS2Config{
+		DisplayName: displayName,
+		Entrance:    entrance,
+		Callback:    callback,
+	}
+	return cas2Config, nil
 }
 
 // UpdateGlobalSettings ...
