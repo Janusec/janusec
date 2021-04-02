@@ -188,15 +188,30 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "update_global_settings":
 		obj, err = data.UpdateGlobalSettings(param, authUser)
 	case "get_wxwork_config":
-		obj, err = data.GetWxworkConfig()
+		obj = data.GetWxworkConfig()
+		err = nil
+	case "update_wxwork_config":
+		obj, err = data.UpdateWxworkConfig(param, authUser)
 	case "get_dingtalk_config":
-		obj, err = data.GetDingtalkConfig()
+		obj = data.GetDingtalkConfig()
+		err = nil
+	case "update_dingtalk_config":
+		obj, err = data.UpdateDingtalkConfig(param, authUser)
 	case "get_feishu_config":
-		obj, err = data.GetFeishuConfig()
+		obj = data.GetFeishuConfig()
+		err = nil
+	case "update_feishu_config":
+		obj, err = data.UpdateFeishuConfig(param, authUser)
 	case "get_ldap_config":
-		obj, err = data.GetLDAPConfig()
+		obj = data.GetLDAPConfig()
+		err = nil
+	case "update_ldap_config":
+		obj, err = data.UpdateLDAPConfig(param, authUser)
 	case "get_cas2_config":
-		obj, err = data.GetCAS2Config()
+		obj = data.GetCAS2Config()
+		err = nil
+	case "update_cas2_config":
+		obj, err = data.UpdateCAS2Config(param, authUser)
 	case "get_license":
 		obj, err = nil, nil
 	default:

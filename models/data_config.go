@@ -17,19 +17,20 @@ type Config struct {
 }
 
 type OAuthConfig struct {
-	Enabled  bool           `json:"enabled"`
-	Provider string         `json:"provider"`
-	Wxwork   WxworkConfig   `json:"wxwork"`
-	Dingtalk DingtalkConfig `json:"dingtalk"`
-	Feishu   FeishuConfig   `json:"feishu"`
-	LDAP     LDAPConfig     `json:"ldap"`
-	CAS2     CAS2Config     `json:"cas2"`
+	Enabled  bool            `json:"enabled"`
+	Provider string          `json:"provider"`
+	Wxwork   *WxworkConfig   `json:"wxwork"`
+	Dingtalk *DingtalkConfig `json:"dingtalk"`
+	Feishu   *FeishuConfig   `json:"feishu"`
+	LDAP     *LDAPConfig     `json:"ldap"`
+	CAS2     *CAS2Config     `json:"cas2"`
 }
 
 type PrimaryNodeConfig struct {
 	Admin    AdminConfig `json:"admin"`
 	Database DBConfig    `json:"database"`
-	OAuth    OAuthConfig `json:"oauth"`
+	// OAuth removed from v1.0.0
+	// OAuth OAuthConfig `json:"oauth"`
 }
 
 type ReplicaNodeConfig struct {

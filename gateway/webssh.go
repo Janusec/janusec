@@ -107,8 +107,8 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		utils.CheckError("ReadMessage SSH Parameters Error:", err)
 		return
 	}
-	if data.CFG.PrimaryNode.Admin.WebSSHEnabled == false {
-		err = wsConn.WriteMessage(websocket.TextMessage, []byte("WebSSH disabled in config.json!\r\n"))
+	if data.GlobalSettings.WebSSHEnabled == false {
+		err = wsConn.WriteMessage(websocket.TextMessage, []byte("WebSSH disabled in settings!\r\n"))
 		if err != nil {
 			utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err)
 		}

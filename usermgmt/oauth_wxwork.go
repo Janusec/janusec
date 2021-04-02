@@ -50,7 +50,7 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=wwd03ba1f8&corpsecret=NdZI
 	// Response format: https://work.weixin.qq.com/api/doc/90000/90135/91039
 	accessTokenURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
-		data.CFG.PrimaryNode.OAuth.Wxwork.CorpID, data.CFG.PrimaryNode.OAuth.Wxwork.CorpSecret)
+		data.AuthConfig.Wxwork.CorpID, data.AuthConfig.Wxwork.CorpSecret)
 	request, _ := http.NewRequest("GET", accessTokenURL, nil)
 	resp, err := GetResponse(request)
 	if err != nil {

@@ -33,12 +33,12 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 	// LDAP Auth
 	var conn *ldap.Conn
 	var err error
-	if data.CFG.PrimaryNode.OAuth.LDAP.UsingTLS {
+	if data.AuthConfig.LDAP.UsingTLS {
 		conn, err = ldap.DialTLS("tcp",
-			data.CFG.PrimaryNode.OAuth.LDAP.Address,
+			data.AuthConfig.LDAP.Address,
 			&tls.Config{MinVersion: tls.VersionTLS12})
 	} else {
-		conn, err = ldap.Dial("tcp", data.CFG.PrimaryNode.OAuth.LDAP.Address)
+		conn, err = ldap.Dial("tcp", data.AuthConfig.LDAP.Address)
 	}
 	if err != nil {
 		utils.DebugPrintln("AuthWithLDAP Dial", err)
@@ -46,13 +46,13 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
-	dn := strings.Replace(data.CFG.PrimaryNode.OAuth.LDAP.DN, "{uid}", username, 1)
+	dn := strings.Replace(data.AuthConfig.LDAP.DN, "{uid}", username, 1)
 	err = conn.Bind(dn, password)
 	if err != nil {
 		utils.DebugPrintln("AuthWithLDAP Auth Error", username, err)
 		var entrance string
 		if state == "admin" {
-			entrance = data.CFG.PrimaryNode.OAuth.LDAP.Entrance + "?state=" + state
+			entrance = data.AuthConfig.LDAP.Entrance + "?state=" + state
 		} else {
 			entrance = "/ldap/login?state=" + state
 		}
@@ -61,7 +61,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TOTP Auth
-	if data.CFG.PrimaryNode.OAuth.LDAP.AuthenticatorEnabled {
+	if data.AuthConfig.LDAP.AuthenticatorEnabled {
 		totpItem, err := GetTOTPByUID(username)
 		if err != nil {
 			// Not exist totp item, means it is the First Login, Create totp key for current uid

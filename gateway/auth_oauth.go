@@ -12,7 +12,6 @@ import (
 	"net/http"
 
 	"janusec/data"
-
 	"janusec/usermgmt"
 )
 
@@ -57,46 +56,46 @@ func OAuthGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 // GetOAuthInfo Get OAuth Information
 func GetOAuthInfo() (*OAuthInfo, error) {
 	oauthInfo := OAuthInfo{}
-	if data.CFG.PrimaryNode.OAuth.Enabled == false {
+	if data.AuthConfig.Enabled == false {
 		return &oauthInfo, nil
 	}
-	switch data.CFG.PrimaryNode.OAuth.Provider {
+	switch data.AuthConfig.Provider {
 	case "wxwork":
 		entranceURL := fmt.Sprintf("https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s&state=admin",
-			data.CFG.PrimaryNode.OAuth.Wxwork.CorpID,
-			data.CFG.PrimaryNode.OAuth.Wxwork.AgentID,
-			data.CFG.PrimaryNode.OAuth.Wxwork.Callback)
+			data.AuthConfig.Wxwork.CorpID,
+			data.AuthConfig.Wxwork.AgentID,
+			data.AuthConfig.Wxwork.Callback)
 		oauthInfo.UseOAuth = true
-		oauthInfo.DisplayName = data.CFG.PrimaryNode.OAuth.Wxwork.DisplayName
+		oauthInfo.DisplayName = data.AuthConfig.Wxwork.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	case "dingtalk":
 		entranceURL := fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=admin&redirect_uri=%s",
-			data.CFG.PrimaryNode.OAuth.Dingtalk.AppID,
-			data.CFG.PrimaryNode.OAuth.Dingtalk.Callback)
+			data.AuthConfig.Dingtalk.AppID,
+			data.AuthConfig.Dingtalk.Callback)
 		oauthInfo.UseOAuth = true
-		oauthInfo.DisplayName = data.CFG.PrimaryNode.OAuth.Dingtalk.DisplayName
+		oauthInfo.DisplayName = data.AuthConfig.Dingtalk.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	case "feishu":
 		entranceURL := fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=admin",
-			data.CFG.PrimaryNode.OAuth.Feishu.Callback,
-			data.CFG.PrimaryNode.OAuth.Feishu.AppID)
+			data.AuthConfig.Feishu.Callback,
+			data.AuthConfig.Feishu.AppID)
 		oauthInfo.UseOAuth = true
-		oauthInfo.DisplayName = data.CFG.PrimaryNode.OAuth.Feishu.DisplayName
+		oauthInfo.DisplayName = data.AuthConfig.Feishu.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	case "ldap":
-		entranceURL := data.CFG.PrimaryNode.OAuth.LDAP.Entrance + "?state=admin"
+		entranceURL := data.AuthConfig.LDAP.Entrance + "?state=admin"
 		oauthInfo.UseOAuth = true
-		oauthInfo.DisplayName = data.CFG.PrimaryNode.OAuth.LDAP.DisplayName
+		oauthInfo.DisplayName = data.AuthConfig.LDAP.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	case "cas2":
 		entranceURL := fmt.Sprintf("%s/login?renew=true&service=%s?state=admin",
-			data.CFG.PrimaryNode.OAuth.CAS2.Entrance, data.CFG.PrimaryNode.OAuth.CAS2.Callback)
+			data.AuthConfig.CAS2.Entrance, data.AuthConfig.CAS2.Callback)
 		oauthInfo.UseOAuth = true
-		oauthInfo.DisplayName = data.CFG.PrimaryNode.OAuth.CAS2.DisplayName
+		oauthInfo.DisplayName = data.AuthConfig.CAS2.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	}

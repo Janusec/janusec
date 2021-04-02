@@ -29,9 +29,33 @@ var (
 	// SyncSeconds for update
 	SyncSeconds time.Duration = (120 * time.Second)
 
-	// globalSettings include logs retention etc.
-	globalSettings *models.GlobalSettings
+	// GlobalSettings include logs retention etc.
+	GlobalSettings *models.GlobalSettings
+
+	// added in v1.0.0
+	AuthConfig *models.OAuthConfig
 )
+
+// LoadAuthConfig ...
+func LoadAuthConfig() {
+	if !GlobalSettings.AuthEnabled {
+		AuthConfig = &models.OAuthConfig{
+			Enabled:  GlobalSettings.AuthEnabled,
+			Provider: "",
+		}
+		return
+	}
+	// Enabled
+	AuthConfig = &models.OAuthConfig{
+		Enabled:  GlobalSettings.AuthEnabled,
+		Provider: GlobalSettings.AuthProvider,
+		Wxwork:   GetWxworkConfig(),
+		Dingtalk: GetDingtalkConfig(),
+		Feishu:   GetFeishuConfig(),
+		LDAP:     GetLDAPConfig(),
+		CAS2:     GetCAS2Config(),
+	}
+}
 
 // UpdateBackendLastModified ...
 func UpdateBackendLastModified() {
@@ -115,11 +139,12 @@ func LoadSettings() {
 			authProvider = "wxwork"
 		}
 		websshEnabled, _ := DAL.SelectBoolSetting("webssh_enabled")
+
 		// 0.9.15 add
 		wafLogDays, _ := DAL.SelectIntSetting("waf_log_days")
 		ccLogDays, _ := DAL.SelectIntSetting("cc_log_days")
 		accessLogDays, _ := DAL.SelectIntSetting("access_log_days")
-		globalSettings = &models.GlobalSettings{
+		GlobalSettings = &models.GlobalSettings{
 			AuthEnabled:   authEnabled,
 			AuthProvider:  authProvider,
 			WebSSHEnabled: websshEnabled,
@@ -127,9 +152,11 @@ func LoadSettings() {
 			CCLogDays:     ccLogDays,
 			AccessLogDays: accessLogDays,
 		}
+		LoadAuthConfig()
 	} else {
 		// Load OAuth Config
-		CFG.PrimaryNode.OAuth = *(RPCGetOAuthConfig())
+		//CFG.PrimaryNode.OAuth = *(RPCGetOAuthConfig())
+		AuthConfig = RPCGetOAuthConfig()
 		// Load Memory Settings
 		settingItems := RPCGetSettings()
 		for _, settingItem := range settingItems {
@@ -155,16 +182,16 @@ func GetGlobalSettings(authUser *models.AuthUser) (*models.GlobalSettings, error
 	if authUser.IsSuperAdmin == false {
 		return nil, errors.New("Only super administrators can perform this operation")
 	}
-	return globalSettings, nil
+	return GlobalSettings, nil
 }
 
 // GetGlobalSettings2 for admin configuration
 func GetGlobalSettings2() *models.GlobalSettings {
-	return globalSettings
+	return GlobalSettings
 }
 
 // GetWxworkConfig return Auth Wxwork config
-func GetWxworkConfig() (*models.WxworkConfig, error) {
+func GetWxworkConfig() *models.WxworkConfig {
 	displayName, _ := DAL.SelectStringSetting("wxwork_display_name")
 	if len(displayName) == 0 {
 		displayName = "Login with WeChat Work"
@@ -192,11 +219,38 @@ func GetWxworkConfig() (*models.WxworkConfig, error) {
 		AgentID:     agentID,
 		CorpSecret:  corpSecret,
 	}
-	return wxworkConfig, nil
+	return wxworkConfig
+}
+
+// UpdateWxworkConfig ...
+func UpdateWxworkConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.WxworkConfig, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
+	wxworkConfig := param["object"].(map[string]interface{})
+	displayName := wxworkConfig["display_name"].(string)
+	callback := wxworkConfig["callback"].(string)
+	corpid := wxworkConfig["corpid"].(string)
+	agentid := wxworkConfig["agentid"].(string)
+	corpsecret := wxworkConfig["corpsecret"].(string)
+	DAL.SaveStringSetting("wxwork_display_name", displayName)
+	DAL.SaveStringSetting("wxwork_callback", callback)
+	DAL.SaveStringSetting("wxwork_corpid", corpid)
+	DAL.SaveStringSetting("wxwork_agentid", agentid)
+	DAL.SaveStringSetting("wxwork_corpsecret", corpsecret)
+	newWxworkConfig := &models.WxworkConfig{
+		DisplayName: displayName,
+		Callback:    callback,
+		CorpID:      corpid,
+		AgentID:     agentid,
+		CorpSecret:  corpsecret,
+	}
+	AuthConfig.Wxwork = newWxworkConfig
+	return newWxworkConfig, nil
 }
 
 // GetDingtalkConfig return Auth Dingtalk config
-func GetDingtalkConfig() (*models.DingtalkConfig, error) {
+func GetDingtalkConfig() *models.DingtalkConfig {
 	displayName, _ := DAL.SelectStringSetting("dingtalk_display_name")
 	if len(displayName) == 0 {
 		displayName = "Login with Dingtalk"
@@ -219,11 +273,35 @@ func GetDingtalkConfig() (*models.DingtalkConfig, error) {
 		AppID:       appID,
 		AppSecret:   appSecret,
 	}
-	return dingtalkConfig, nil
+	return dingtalkConfig
+}
+
+// UpdateDingtalkConfig ...
+func UpdateDingtalkConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.DingtalkConfig, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
+	dingtalkConfig := param["object"].(map[string]interface{})
+	displayName := dingtalkConfig["display_name"].(string)
+	callback := dingtalkConfig["callback"].(string)
+	appid := dingtalkConfig["appid"].(string)
+	appsecret := dingtalkConfig["appsecret"].(string)
+	DAL.SaveStringSetting("dingtalk_display_name", displayName)
+	DAL.SaveStringSetting("dingtalk_callback", callback)
+	DAL.SaveStringSetting("dingtalk_appid", appid)
+	DAL.SaveStringSetting("dingtalk_appsecret", appsecret)
+	newDingtalkConfig := &models.DingtalkConfig{
+		DisplayName: displayName,
+		Callback:    callback,
+		AppID:       appid,
+		AppSecret:   appsecret,
+	}
+	AuthConfig.Dingtalk = newDingtalkConfig
+	return newDingtalkConfig, nil
 }
 
 // GetFeishuConfig ...
-func GetFeishuConfig() (*models.FeishuConfig, error) {
+func GetFeishuConfig() *models.FeishuConfig {
 	displayName, _ := DAL.SelectStringSetting("feishu_display_name")
 	if len(displayName) == 0 {
 		displayName = "Login with Feishu"
@@ -246,11 +324,35 @@ func GetFeishuConfig() (*models.FeishuConfig, error) {
 		AppID:       appID,
 		AppSecret:   appSecret,
 	}
-	return feishuConfig, nil
+	return feishuConfig
+}
+
+// UpdateFeishuConfig ...
+func UpdateFeishuConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.FeishuConfig, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
+	feishuConfig := param["object"].(map[string]interface{})
+	displayName := feishuConfig["display_name"].(string)
+	callback := feishuConfig["callback"].(string)
+	appid := feishuConfig["appid"].(string)
+	appsecret := feishuConfig["appsecret"].(string)
+	DAL.SaveStringSetting("feishu_display_name", displayName)
+	DAL.SaveStringSetting("feishu_callback", callback)
+	DAL.SaveStringSetting("feishu_appid", appid)
+	DAL.SaveStringSetting("feishu_appsecret", appsecret)
+	newFeishuConfig := &models.FeishuConfig{
+		DisplayName: displayName,
+		Callback:    callback,
+		AppID:       appid,
+		AppSecret:   appsecret,
+	}
+	AuthConfig.Feishu = newFeishuConfig
+	return newFeishuConfig, nil
 }
 
 // GetLDAPConfig ...
-func GetLDAPConfig() (*models.LDAPConfig, error) {
+func GetLDAPConfig() *models.LDAPConfig {
 	displayName, _ := DAL.SelectStringSetting("ldap_display_name")
 	if len(displayName) == 0 {
 		displayName = "Login with LDAP"
@@ -278,11 +380,41 @@ func GetLDAPConfig() (*models.LDAPConfig, error) {
 		UsingTLS:             usingTLS,
 		AuthenticatorEnabled: authenticatorEnabled,
 	}
-	return ldapConfig, nil
+	return ldapConfig
+}
+
+// UpdateLDAPConfig ...
+func UpdateLDAPConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.LDAPConfig, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
+	ldapConfig := param["object"].(map[string]interface{})
+	displayName := ldapConfig["display_name"].(string)
+	entrance := ldapConfig["entrance"].(string)
+	address := ldapConfig["address"].(string)
+	dn := ldapConfig["dn"].(string)
+	usingTLS := ldapConfig["using_tls"].(bool)
+	authenticatorEnabled := ldapConfig["authenticator_enabled"].(bool)
+	DAL.SaveStringSetting("ldap_display_name", displayName)
+	DAL.SaveStringSetting("ldap_entrance", entrance)
+	DAL.SaveStringSetting("ldap_address", address)
+	DAL.SaveStringSetting("ldap_dn", dn)
+	DAL.SaveBoolSetting("ldap_using_tls", usingTLS)
+	DAL.SaveBoolSetting("ldap_authenticator_enabled", authenticatorEnabled)
+	newLDAPConfig := &models.LDAPConfig{
+		DisplayName:          displayName,
+		Entrance:             entrance,
+		Address:              address,
+		DN:                   dn,
+		UsingTLS:             usingTLS,
+		AuthenticatorEnabled: authenticatorEnabled,
+	}
+	AuthConfig.LDAP = newLDAPConfig
+	return newLDAPConfig, nil
 }
 
 // GetCAS2Config ...
-func GetCAS2Config() (*models.CAS2Config, error) {
+func GetCAS2Config() *models.CAS2Config {
 	displayName, _ := DAL.SelectStringSetting("cas2_display_name")
 	if len(displayName) == 0 {
 		displayName = "Login with CAS 2.0"
@@ -300,7 +432,28 @@ func GetCAS2Config() (*models.CAS2Config, error) {
 		Entrance:    entrance,
 		Callback:    callback,
 	}
-	return cas2Config, nil
+	return cas2Config
+}
+
+// UpdateCAS2Config ...
+func UpdateCAS2Config(param map[string]interface{}, authUser *models.AuthUser) (*models.CAS2Config, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
+	cas2Config := param["object"].(map[string]interface{})
+	displayName := cas2Config["display_name"].(string)
+	entrance := cas2Config["entrance"].(string)
+	callback := cas2Config["callback"].(string)
+	DAL.SaveStringSetting("cas2_display_name", displayName)
+	DAL.SaveStringSetting("cas2_entrance", entrance)
+	DAL.SaveStringSetting("cas2_callback", callback)
+	newCAS2Config := &models.CAS2Config{
+		DisplayName: displayName,
+		Entrance:    entrance,
+		Callback:    callback,
+	}
+	AuthConfig.CAS2 = newCAS2Config
+	return newCAS2Config, nil
 }
 
 // UpdateGlobalSettings ...
@@ -309,16 +462,27 @@ func UpdateGlobalSettings(param map[string]interface{}, authUser *models.AuthUse
 		return nil, errors.New("Only super administrators can perform this operation")
 	}
 	settings := param["object"].(map[string]interface{})
+	authEnabled := settings["auth_enabled"].(bool)
+	authProvider := settings["auth_provider"].(string)
+	webSSHEnabled := settings["webssh_enabled"].(bool)
+	GlobalSettings.AuthEnabled = authEnabled
+	AuthConfig.Enabled = authEnabled
+	GlobalSettings.AuthProvider = authProvider
+	AuthConfig.Provider = authProvider
+	GlobalSettings.WebSSHEnabled = webSSHEnabled
+	DAL.SaveBoolSetting("auth_enabled", authEnabled)
+	DAL.SaveStringSetting("auth_provider", authProvider)
+	DAL.SaveBoolSetting("webssh_enabled", webSSHEnabled)
 	wafLogDays := int64(settings["waf_log_days"].(float64))
 	ccLogDays := int64(settings["cc_log_days"].(float64))
 	accessLogDays := int64(settings["access_log_days"].(float64))
-	globalSettings.WAFLogDays = wafLogDays
-	globalSettings.CCLogDays = ccLogDays
-	globalSettings.AccessLogDays = accessLogDays
+	GlobalSettings.WAFLogDays = wafLogDays
+	GlobalSettings.CCLogDays = ccLogDays
+	GlobalSettings.AccessLogDays = accessLogDays
 	DAL.SaveIntSetting("waf_log_days", wafLogDays)
 	DAL.SaveIntSetting("cc_log_days", ccLogDays)
 	DAL.SaveIntSetting("access_log_days", accessLogDays)
-	return globalSettings, nil
+	return GlobalSettings, nil
 }
 
 // RPCGetSettings ...

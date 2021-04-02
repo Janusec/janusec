@@ -17,7 +17,7 @@ import (
 )
 
 func GetOAuthConfig() (*models.OAuthConfig, error) {
-	return &data.CFG.PrimaryNode.OAuth, nil
+	return data.AuthConfig, nil
 }
 
 func GetResponse(request *http.Request) (respBytes []byte, err error) {

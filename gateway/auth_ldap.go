@@ -8,10 +8,9 @@
 package gateway
 
 import (
+	"janusec/data"
 	"net/http"
 	"text/template"
-
-	"janusec/data"
 )
 
 var (
@@ -29,9 +28,9 @@ type LDAPContext struct {
 func ShowLDAPLoginUI(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	ldapContext := LDAPContext{
-		DisplayName:     data.CFG.PrimaryNode.OAuth.LDAP.DisplayName,
+		DisplayName:     data.AuthConfig.LDAP.DisplayName,
 		State:           state,
-		AuthCodeEnabled: data.CFG.PrimaryNode.OAuth.LDAP.AuthenticatorEnabled}
+		AuthCodeEnabled: data.AuthConfig.LDAP.AuthenticatorEnabled}
 	if err := ldapLoginTemplate.Execute(w, &ldapContext); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
