@@ -246,6 +246,7 @@ func UpdateWxworkConfig(param map[string]interface{}, authUser *models.AuthUser)
 		CorpSecret:  corpsecret,
 	}
 	AuthConfig.Wxwork = newWxworkConfig
+	UpdateBackendLastModified()
 	return newWxworkConfig, nil
 }
 
@@ -297,6 +298,7 @@ func UpdateDingtalkConfig(param map[string]interface{}, authUser *models.AuthUse
 		AppSecret:   appsecret,
 	}
 	AuthConfig.Dingtalk = newDingtalkConfig
+	UpdateBackendLastModified()
 	return newDingtalkConfig, nil
 }
 
@@ -348,6 +350,7 @@ func UpdateFeishuConfig(param map[string]interface{}, authUser *models.AuthUser)
 		AppSecret:   appsecret,
 	}
 	AuthConfig.Feishu = newFeishuConfig
+	UpdateBackendLastModified()
 	return newFeishuConfig, nil
 }
 
@@ -410,6 +413,7 @@ func UpdateLDAPConfig(param map[string]interface{}, authUser *models.AuthUser) (
 		AuthenticatorEnabled: authenticatorEnabled,
 	}
 	AuthConfig.LDAP = newLDAPConfig
+	UpdateBackendLastModified()
 	return newLDAPConfig, nil
 }
 
@@ -453,6 +457,7 @@ func UpdateCAS2Config(param map[string]interface{}, authUser *models.AuthUser) (
 		Callback:    callback,
 	}
 	AuthConfig.CAS2 = newCAS2Config
+	UpdateBackendLastModified()
 	return newCAS2Config, nil
 }
 
@@ -482,6 +487,7 @@ func UpdateGlobalSettings(param map[string]interface{}, authUser *models.AuthUse
 	DAL.SaveIntSetting("waf_log_days", wafLogDays)
 	DAL.SaveIntSetting("cc_log_days", ccLogDays)
 	DAL.SaveIntSetting("access_log_days", accessLogDays)
+	UpdateBackendLastModified()
 	return GlobalSettings, nil
 }
 

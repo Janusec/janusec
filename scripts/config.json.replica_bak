@@ -14,42 +14,6 @@
 			"user": "",
 			"password": "",
 			"dbname": "janusec"
-        },
-        "oauth": {
-            "enabled": false,
-            "provider": "wxwork",
-            "wxwork": {
-                "display_name": "",
-                "callback": "",
-                "corpid": "",
-                "agentid": "",
-                "corpsecret": ""
-            },
-            "dingtalk": {
-                "display_name": "",
-                "callback": "",
-                "appid": "",
-                "appsecret": ""
-            },
-            "feishu": {
-                "display_name": "",
-                "callback": "",
-                "appid": "",
-                "appsecret": ""
-            },
-            "ldap": {
-                "display_name": "",
-                "entrance": "",
-                "address": "",
-                "dn":"",
-                "using_tls": false,
-                "authenticator_enabled": false
-            },
-			"cas2": {
-				"display_name": "",
-				"entrance": "",
-				"callback": ""
-			}
         }
 	},
 	"replica_node": {

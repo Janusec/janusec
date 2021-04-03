@@ -14,42 +14,6 @@
 			"user": "janusec",
 			"password": "123456",
 			"dbname": "janusec"
-        },
-        "oauth": {
-            "enabled": false,
-            "provider": "wxwork",
-            "wxwork": {
-                "display_name": "Login with WeChat Work",
-                "callback": "http://your_domain.com/oauth/wxwork",
-                "corpid": "wwd03be1f8",
-                "agentid": "1000002",
-                "corpsecret": "BgZtz_hssdZV5em-AyGhOgLlm18rU_NdZI"
-            },
-            "dingtalk": {
-                "display_name": "Login with DingTalk",
-                "callback": "http://your_domain.com/oauth/dingtalk",
-                "appid": "dingoa8xvc",
-                "appsecret": "crrALdXUIj4T0zBekYh4u9sU_T1GZT"
-            },
-            "feishu": {
-                "display_name": "Login with Feishu",
-                "callback": "http://your_domain.com/oauth/feishu",
-                "appid": "cli_9ef21d00e",
-                "appsecret": "ihUBspRAG1PtNdDLUZ"
-            },
-            "ldap": {
-                "display_name": "Login with LDAP",
-                "entrance": "http://your_domain.com/ldap/login",
-                "address": "your_ldap_domain.com:389",
-                "dn":"uid={uid},ou=People,dc=your_domain,dc=com",
-                "using_tls": false,
-                "authenticator_enabled": false
-            },
-			"cas2": {
-				"display_name": "Login with CAS 2.0",
-				"entrance": "https://cas_server/cas",
-				"callback": "http://your_domain.com/oauth/cas2"
-			}
         }
 	},
 	"replica_node": {

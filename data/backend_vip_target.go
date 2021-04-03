@@ -14,7 +14,7 @@ import (
 
 // CreateTableIfNotExistsVipTargets create vip_targets
 func (dal *MyDAL) CreateTableIfNotExistsVipTargets() error {
-	const sqlCreateTableIfNotExistsVipTargets = `CREATE TABLE IF NOT EXISTS "vip_targets"("id" bigserial PRIMARY KEY,"vip_app_id" bigint NOT NULL,"destination" VARCHAR(128) NOT NULL)`
+	const sqlCreateTableIfNotExistsVipTargets = `CREATE TABLE IF NOT EXISTS "vip_targets"("id" bigserial PRIMARY KEY, "vip_app_id" bigint NOT NULL, "destination" VARCHAR(128) NOT NULL)`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsVipTargets)
 	return err
 }
