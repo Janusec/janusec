@@ -7,7 +7,7 @@
 
 ![Janusec Application Gateway](gateway1.png)  
 
-Janusec Application Gateway Introduction PPT：
+Introduction Slides / 介绍PPT:  
 
 中文： https://www.janusec.com/download/Janusec-Application-Gateway-CN.pdf   
 
@@ -23,7 +23,8 @@ English: https://www.janusec.com/download/Janusec-Application-Gateway.pdf
 
   + Secure Authentication (安全认证):  
       - OAuth2: WxWork(企业微信), DingTalk(钉钉), Feishu(飞书)  
-      - LDAP + Authenticator 2FA (LDAP+认证码双因子)  
+      - LDAP + Authenticator 2FA (LDAP+认证码双因子)   
+      - CAS 2.0  
 
   + Secure Defense (安全防御)  
       - WAF (Web Application Firewall), Block SQL Injection, XSS, Sensitive Data leakage etc. (拦截SQL注入/XSS/敏感数据泄露等)    
@@ -62,16 +63,18 @@ https://doc.janusec.com/cn/
 ## Requirements (需求)   
 
 * PostgreSQL 10/11/12+ (Required by Development and Primary Node of Deployment, 开发环境，及生产环境主节点需要)  
-* Debian 9/10+, CentOS/RHEL 7/8+, Debian 10+ is preferred    
+* Debian 9/10+, CentOS/RHEL 7/8+, Debian 10+ is preferred (首选Debian 10+)    
 * systemd  
 * nftables  
-* Golang 1.16.2+ (Required by Development Only, 仅开发环境需要)  
+* Golang 1.16+ (Required by Development Only, 仅开发环境需要)  
 
 ## Quick Start for Deployment (部署快速指引)    
 
 Detailed documentation is available at： [Janusec Application Gateway Quick Start](https://janusec.github.io/documentation/quick-start/).  
 
-详细文档可在这里获取： [Janusec应用网关快速入门](https://doc.janusec.com/cn/quick-start/).
+详细文档可在这里获取： [Janusec应用网关快速入门](https://doc.janusec.com/cn/quick-start/)  
+
+如希望快速体验，可尝试使用 [Docker镜像](https://www.janusec.com/articles/opensource/1615470598.html)    
 
 ## Quick Start for Developer (开发快速指引)   
 
