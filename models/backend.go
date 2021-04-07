@@ -195,7 +195,7 @@ type GlobalSettings struct {
 	// AuthEnabled for SSO Authentication
 	AuthEnabled bool `json:"auth_enabled"`
 
-	// AuthProvider such as wxwork, dingtalk, feishu, ldap, cas2
+	// AuthProvider such as wxwork, dingtalk, feishu, lark, ldap, cas2
 	AuthProvider string `json:"auth_provider"`
 
 	// WebSSHEnabled for Web-based SSH

@@ -52,6 +52,7 @@ func LoadAuthConfig() {
 		Wxwork:   GetWxworkConfig(),
 		Dingtalk: GetDingtalkConfig(),
 		Feishu:   GetFeishuConfig(),
+		Lark:     GetLarkConfig(),
 		LDAP:     GetLDAPConfig(),
 		CAS2:     GetCAS2Config(),
 	}
@@ -349,6 +350,57 @@ func UpdateFeishuConfig(param map[string]interface{}, authUser *models.AuthUser)
 	}
 	AuthConfig.Feishu = newFeishuConfig
 	return newFeishuConfig, nil
+}
+
+// GetLarkConfig ...
+func GetLarkConfig() *models.LarkConfig {
+	displayName, _ := DAL.SelectStringSetting("lark_display_name")
+	if len(displayName) == 0 {
+		displayName = "Login with Lark"
+	}
+	callback, _ := DAL.SelectStringSetting("lark_callback")
+	if len(callback) == 0 {
+		callback = "http://your_domain.com/oauth/lark"
+	}
+	appID, _ := DAL.SelectStringSetting("lark_appid")
+	if len(appID) == 0 {
+		appID = "cli_9ef21d00e"
+	}
+	appSecret, _ := DAL.SelectStringSetting("lark_appsecret")
+	if len(appSecret) == 0 {
+		appSecret = "ihUBspRAG1PtNdDLUZ"
+	}
+	larkConfig := &models.LarkConfig{
+		DisplayName: displayName,
+		Callback:    callback,
+		AppID:       appID,
+		AppSecret:   appSecret,
+	}
+	return larkConfig
+}
+
+// UpdateLarkConfig ...
+func UpdateLarkConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.LarkConfig, error) {
+	if authUser.IsSuperAdmin == false {
+		return nil, errors.New("Only super administrators can perform this operation")
+	}
+	larkConfig := param["object"].(map[string]interface{})
+	displayName := larkConfig["display_name"].(string)
+	callback := larkConfig["callback"].(string)
+	appid := larkConfig["appid"].(string)
+	appsecret := larkConfig["appsecret"].(string)
+	DAL.SaveStringSetting("lark_display_name", displayName)
+	DAL.SaveStringSetting("lark_callback", callback)
+	DAL.SaveStringSetting("lark_appid", appid)
+	DAL.SaveStringSetting("lark_appsecret", appsecret)
+	newLarkConfig := &models.LarkConfig{
+		DisplayName: displayName,
+		Callback:    callback,
+		AppID:       appid,
+		AppSecret:   appsecret,
+	}
+	AuthConfig.Lark = newLarkConfig
+	return newLarkConfig, nil
 }
 
 // GetLDAPConfig ...

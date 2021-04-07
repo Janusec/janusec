@@ -22,6 +22,7 @@ type OAuthConfig struct {
 	Wxwork   *WxworkConfig   `json:"wxwork"`
 	Dingtalk *DingtalkConfig `json:"dingtalk"`
 	Feishu   *FeishuConfig   `json:"feishu"`
+	Lark     *LarkConfig     `json:"lark"`
 	LDAP     *LDAPConfig     `json:"ldap"`
 	CAS2     *CAS2Config     `json:"cas2"`
 }
@@ -78,6 +79,13 @@ type DingtalkConfig struct {
 }
 
 type FeishuConfig struct {
+	DisplayName string `json:"display_name"`
+	Callback    string `json:"callback"`
+	AppID       string `json:"appid"`
+	AppSecret   string `json:"appsecret"`
+}
+
+type LarkConfig struct {
 	DisplayName string `json:"display_name"`
 	Callback    string `json:"callback"`
 	AppID       string `json:"appid"`

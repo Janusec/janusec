@@ -202,6 +202,11 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		err = nil
 	case "update_feishu_config":
 		obj, err = data.UpdateFeishuConfig(param, authUser)
+	case "get_lark_config":
+		obj = data.GetLarkConfig()
+		err = nil
+	case "update_lark_config":
+		obj, err = data.UpdateLarkConfig(param, authUser)
 	case "get_ldap_config":
 		obj = data.GetLDAPConfig()
 		err = nil

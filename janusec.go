@@ -144,6 +144,7 @@ func main() {
 	gateMux.HandleFunc("/oauth/wxwork", gateway.WxworkCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/dingtalk", gateway.DingtalkCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/feishu", gateway.FeishuCallBackHandleFunc)
+	gateMux.HandleFunc("/oauth/lark", gateway.LarkCallBackHandleFunc)
 	gateMux.HandleFunc("/oauth/code/register", gateway.ShowAuthCodeRegisterUI)
 	gateMux.HandleFunc("/oauth/code/verify", gateway.AuthCodeVerifyFunc)
 	// Add CAS2.0

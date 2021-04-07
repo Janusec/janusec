@@ -466,6 +466,11 @@ func getOAuthEntrance(state string) (entranceURL string, err error) {
 			data.AuthConfig.Feishu.Callback,
 			data.AuthConfig.Feishu.AppID,
 			state)
+	case "lark":
+		entranceURL = fmt.Sprintf("https://open.larksuite.com/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=%s",
+			data.AuthConfig.Lark.Callback,
+			data.AuthConfig.Lark.AppID,
+			state)
 	case "ldap":
 		entranceURL = "/ldap/login?state=" + state
 	case "cas2":

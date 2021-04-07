@@ -37,6 +37,11 @@ func FeishuCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.FeishuCallbackWithCode(w, r)
 }
 
+// LarkCallBackHandleFunc for Lark CallBack
+func LarkCallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
+	usermgmt.LarkCallbackWithCode(w, r)
+}
+
 // CAS2CallBackHandleFunc for CAS2 CallBack
 func CAS2CallBackHandleFunc(w http.ResponseWriter, r *http.Request) {
 	usermgmt.CAS2CallbackWithCode(w, r)
@@ -83,6 +88,14 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 			data.AuthConfig.Feishu.AppID)
 		oauthInfo.UseOAuth = true
 		oauthInfo.DisplayName = data.AuthConfig.Feishu.DisplayName
+		oauthInfo.EntranceURL = entranceURL
+		return &oauthInfo, nil
+	case "lark":
+		entranceURL := fmt.Sprintf("https://open.larksuite.com/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=admin",
+			data.AuthConfig.Lark.Callback,
+			data.AuthConfig.Lark.AppID)
+		oauthInfo.UseOAuth = true
+		oauthInfo.DisplayName = data.AuthConfig.Lark.DisplayName
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	case "ldap":
