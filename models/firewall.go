@@ -93,6 +93,7 @@ const (
 	OperationEqualsStringCaseInSensitive Operation = 1 << 1
 	OperationGreaterThanInteger          Operation = 1 << 2
 	OperationEqualsInteger               Operation = 1 << 3
+	OperationLengthGreaterThanInteger    Operation = 1 << 4
 )
 
 type CheckItem struct {
