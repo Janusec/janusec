@@ -32,3 +32,8 @@ func GetResponse(request *http.Request) (respBytes []byte, err error) {
 	respBytes, err = ioutil.ReadAll(resp.Body)
 	return respBytes, err
 }
+
+// RecordAuthLog ...
+func RecordAuthLog(username string, provider string, callback string) {
+	go utils.AuthLog(username, provider, callback)
+}

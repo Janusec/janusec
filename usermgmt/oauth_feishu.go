@@ -120,6 +120,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			utils.DebugPrintln("FeishuCallbackWithCode session save error", err)
 		}
+		RecordAuthLog(authUser.Username, "Feishu", data.CFG.PrimaryNode.Admin.Portal)
 		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
@@ -130,6 +131,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		oauthState.UserID = feishuUser.Data.EnName
 		oauthState.AccessToken = feishuUser.Data.AccessToken
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
+		RecordAuthLog(oauthState.UserID, "Feishu", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 		return
 	}
