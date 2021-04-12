@@ -136,7 +136,14 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 		}
 	}
 
-	// ChkPoint_ParameterCount
+	// ChkPointFileExt, added v1.1.0
+	ext := filepath.Ext(r.URL.Path)
+	if ext != "" {
+		matched, policy = IsMatchGroupPolicy(ctxMap, appID, ext, models.ChkPointFileExt, "", false)
+		if matched == true {
+			return matched, policy
+		}
+	}
 
 	bodyBuf, _ := ioutil.ReadAll(r.Body)
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))

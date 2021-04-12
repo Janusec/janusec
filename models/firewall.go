@@ -40,6 +40,7 @@ const (
 	ChkPointMethod              ChkPoint = 1 << 2
 	ChkPointURLPath             ChkPoint = 1 << 3
 	ChkPointURLQuery            ChkPoint = 1 << 4
+	ChkPointFileExt             ChkPoint = 1 << 5 // added v1.1.0
 	ChkPointValueLength         ChkPoint = 1 << 6
 	ChkPointGetPostKey          ChkPoint = 1 << 7
 	ChkPointGetPostValue        ChkPoint = 1 << 8

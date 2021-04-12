@@ -315,7 +315,7 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 			case models.OperationLengthGreaterThanInteger:
 				policyValue, err := strconv.ParseInt(checkItem.RegexPolicy, 10, 64)
 				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
-				if int64(len(value)) > policyValue {
+				if (int64(len(value)) > policyValue) && (policyValue > 0) {
 					matched = true
 				}
 			}
