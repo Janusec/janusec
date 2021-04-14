@@ -11,6 +11,7 @@ import (
 	"database/sql"
 )
 
+type PolicyKey string
 type PolicyAction int64
 
 const (
@@ -55,8 +56,8 @@ const (
 	ChkPointResponseStatusCode  ChkPoint = 1 << 25
 	ChkPointResponseHeaderKey   ChkPoint = 1 << 26
 	ChkPointResponseHeaderValue ChkPoint = 1 << 27
-	ChkPointResponseBodyLength  ChkPoint = 1 << 28
-	ChkPointResponseBody        ChkPoint = 1 << 29
+	//ChkPointResponseBodyLength  ChkPoint = 1 << 28  // deprecated from v1.1.0
+	ChkPointResponseBody ChkPoint = 1 << 29
 )
 
 type GroupPolicy struct {

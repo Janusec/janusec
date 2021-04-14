@@ -81,10 +81,11 @@ func rewriteResponse(resp *http.Response) (err error) {
 				hitInfo := &models.HitInfo{TypeID: 2, PolicyID: policy.ID, VulnName: vulnName.(string)}
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 				blockContent := GenerateBlockConcent(hitInfo)
-				body := ioutil.NopCloser(bytes.NewReader(blockContent))
-				resp.Body = body
-				resp.ContentLength = int64(len(blockContent))
 				resp.StatusCode = 403
+				resp.Body = ioutil.NopCloser(bytes.NewBuffer(blockContent))
+				resp.ContentLength = int64(len(blockContent))
+				resp.Header.Set("Content-Length", fmt.Sprint(len(blockContent)))
+				resp.Header.Del("Content-Encoding")
 				return nil
 			case models.Action_BypassAndLog_200:
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
@@ -103,7 +104,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 				resp.Header.Set("Location", captchaURL)
 				resp.ContentLength = 0
 				//http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
-				return
+				return nil
 			default:
 				// models.Action_Pass_400 do nothing
 			}

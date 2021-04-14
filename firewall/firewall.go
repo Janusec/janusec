@@ -9,6 +9,7 @@ package firewall
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -26,6 +27,8 @@ import (
 	"janusec/models"
 	"janusec/utils"
 )
+
+type policyKey string
 
 var dynamicSuffix = []string{".html", ".htm", ".shtml", ".php", ".jsp", ".aspx", ".asp", ".do", ".cgi", ".cfm"}
 
@@ -101,7 +104,7 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 
 	// Has not IP Policy, Continue
 
-	ctxMap := r.Context().Value("groupPolicyHitValue").(*sync.Map)
+	ctxMap := r.Context().Value(models.PolicyKey("groupPolicyHitValue")).(*sync.Map)
 
 	// ChkPoint_Host
 	matched, policy := IsMatchGroupPolicy(ctxMap, appID, r.Host, models.ChkPointHost, "", false)
@@ -302,7 +305,7 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 	if IsStaticResource(resp.Request) {
 		return false, nil
 	}
-	ctxMap := resp.Request.Context().Value("groupPolicyHitValue").(*sync.Map)
+	ctxMap := resp.Request.Context().Value(models.PolicyKey("groupPolicyHitValue")).(*sync.Map)
 	// ChkPoint_ResponseStatusCode
 	matched, policy := IsMatchGroupPolicy(ctxMap, appID, strconv.Itoa(resp.StatusCode), models.ChkPointResponseStatusCode, "", false)
 	//fmt.Println("IsResponseHitPolicy ResponseStatusCode", matched)
@@ -325,20 +328,35 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 			}
 		}
 	}
-	// ChkPoint_ResponseBodyLength
-	bodyLength := strconv.FormatInt(resp.ContentLength, 10)
-	matched, policy = IsMatchGroupPolicy(ctxMap, appID, bodyLength, models.ChkPointResponseBodyLength, "", false)
-	//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBodyLength", matched)
-	if matched == true {
-		return matched, policy
-	}
+	// ChkPoint_ResponseBodyLength, deprecated from v1.1.0
+	// resp.ContentLength = -1 if unknown
+	/*
+		bodyLength := strconv.FormatInt(resp.ContentLength, 10)
+		matched, policy = IsMatchGroupPolicy(ctxMap, appID, bodyLength, models.ChkPointResponseBodyLength, "", false)
+		//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBodyLength", matched)
+		if matched == true {
+			return matched, policy
+		}
+	*/
+
 	// ChkPoint_ResponseBody
-	bodyBuf, _ := ioutil.ReadAll(resp.Body)
+	bodyBuf, err := ioutil.ReadAll(resp.Body)
+	utils.CheckError("IsResponseHitPolicy ChkPoint_ResponseBody ReadAll", err)
+	contentEncoding := resp.Header.Get("Content-Encoding")
+	if contentEncoding == "gzip" {
+		reader, err := gzip.NewReader(bytes.NewBuffer(bodyBuf))
+		defer reader.Close()
+		decompressedBodyBuf, err := ioutil.ReadAll(reader)
+		if err != nil {
+			utils.DebugPrintln("Gzip decompress Error", err)
+		}
+		bodyBuf = decompressedBodyBuf
+	}
 	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	defer resp.Body.Close()
 	body1 := string(bodyBuf)
 	matched, policy = IsMatchGroupPolicy(ctxMap, appID, body1, models.ChkPointResponseBody, "", false)
-	//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBody", matched)
+	//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBody", matched, resp.ContentLength, bodyLength, "000", body1)
 	if matched == true {
 		return matched, policy
 	}

@@ -202,7 +202,7 @@ func main() {
 func AddContextHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// map[GroupPolicyID int64](Value int64)
-		ctx := context.WithValue(r.Context(), "groupPolicyHitValue", &sync.Map{})
+		ctx := context.WithValue(r.Context(), models.PolicyKey("groupPolicyHitValue"), &sync.Map{})
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
