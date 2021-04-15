@@ -180,6 +180,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 			utils.DebugPrintln("Cache File Chtimes", targetFile, err)
 		}
 	}
+
 	//body, err := httputil.DumpResponse(resp, true)
 	//fmt.Println("Dump Response:")
 	//fmt.Println(string(body))

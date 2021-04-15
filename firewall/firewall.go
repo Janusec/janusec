@@ -343,6 +343,7 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 	bodyBuf, err := ioutil.ReadAll(resp.Body)
 	utils.CheckError("IsResponseHitPolicy ChkPoint_ResponseBody ReadAll", err)
 	contentEncoding := resp.Header.Get("Content-Encoding")
+	var body1 string
 	if contentEncoding == "gzip" {
 		reader, err := gzip.NewReader(bytes.NewBuffer(bodyBuf))
 		defer reader.Close()
@@ -350,11 +351,11 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 		if err != nil {
 			utils.DebugPrintln("Gzip decompress Error", err)
 		}
-		bodyBuf = decompressedBodyBuf
+		body1 = string(decompressedBodyBuf)
+	} else {
+		body1 = string(bodyBuf)
 	}
 	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
-	defer resp.Body.Close()
-	body1 := string(bodyBuf)
 	matched, policy = IsMatchGroupPolicy(ctxMap, appID, body1, models.ChkPointResponseBody, "", false)
 	//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBody", matched, resp.ContentLength, bodyLength, "000", body1)
 	if matched == true {

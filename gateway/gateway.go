@@ -480,7 +480,7 @@ func getOAuthEntrance(state string) (entranceURL string, err error) {
 		entranceURL = "/saml/login?state=" + state
 	default:
 		//w.Write([]byte("Designated OAuth not supported, please check config.json ."))
-		return "", errors.New("the OAuth provider is not supported, please check config.json")
+		return "", errors.New("the OAuth provider is not supported, please check settings.")
 	}
 	return entranceURL, nil
 }
