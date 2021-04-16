@@ -21,7 +21,7 @@ import (
 
 	"janusec/data"
 
-	"github.com/go-ldap/ldap"
+	"github.com/go-ldap/ldap/v3"
 )
 
 // LDAPAuthFunc CallBack at /ldap/auth

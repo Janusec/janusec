@@ -102,7 +102,7 @@ func InitGroupPolicy() {
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Command Injection", 0, 210, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
 			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
-			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(^|\&\s*|\|\s*)(pwd|ls|ll|whoami|net\s+user)$`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(^|\&\s*|\|\s*|\;\s*)(pwd|ls|ll|whoami|net\s+user)$`, groupPolicyID)
 			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Web Shell", 0, 500, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
@@ -265,7 +265,8 @@ func UpdateGroupPolicy(r *http.Request, userID int64, authUser *models.AuthUser)
 
 // IsMatchGroupPolicy ...
 func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkPoint models.ChkPoint, designatedKey string, needDecode bool) (bool, *models.GroupPolicy) {
-	if len(value) == 0 {
+	if len(value) == 0 && checkPoint != models.ChkPointReferer {
+		// Exclude referer, because some cases require that Referer exists, such as CSRF detection
 		return false, nil
 	}
 	checkItemsMap, ok := checkPointCheckItemsMap.Load(checkPoint)
@@ -286,15 +287,15 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 			if len(designatedKey) > 0 && (checkItem.KeyName != designatedKey) {
 				continue
 			}
-			matched := false
+			hit := false
 			var err error
 			switch checkItem.Operation {
 			case models.OperationRegexMatch:
-				matched, err = regexp.MatchString(checkItem.RegexPolicy, value)
+				hit, err = regexp.MatchString(checkItem.RegexPolicy, value)
 				utils.CheckError("IsMatchGroupPolicy MatchString", err)
-			case models.OperationEqualsStringCaseInSensitive:
+			case models.OperationEqualsStringCaseInsensitive:
 				if strings.ToLower(checkItem.RegexPolicy) == strings.ToLower(value) {
-					matched = true
+					hit = true
 				}
 			case models.OperationGreaterThanInteger:
 				policyValue, err := strconv.ParseInt(checkItem.RegexPolicy, 10, 64)
@@ -302,7 +303,7 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 				checkValue, err := strconv.ParseInt(value, 10, 64)
 				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
 				if checkValue > policyValue {
-					matched = true
+					hit = true
 				}
 			case models.OperationEqualsInteger:
 				policyValue, err := strconv.ParseInt(checkItem.RegexPolicy, 10, 64)
@@ -310,21 +311,25 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 				checkValue, err := strconv.ParseInt(value, 10, 64)
 				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
 				if checkValue == policyValue {
-					matched = true
+					hit = true
 				}
 			case models.OperationLengthGreaterThanInteger:
 				policyValue, err := strconv.ParseInt(checkItem.RegexPolicy, 10, 64)
 				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
 				if (int64(len(value)) > policyValue) && (policyValue > 0) {
-					matched = true
+					hit = true
 				}
+			case models.OperationRegexNotMatch:
+				notHit, err := regexp.MatchString(checkItem.RegexPolicy, value)
+				hit = !notHit
+				utils.CheckError("IsMatchGroupPolicy NotMatchString", err)
 			}
-			if matched == true {
+			if hit == true {
 				hitValueInterface, _ := hitValueMap.LoadOrStore(groupPolicy.ID, int64(0))
 				hitValue := hitValueInterface.(int64)
 				hitValue += int64(checkItem.CheckPoint)
 				if hitValue == groupPolicy.HitValue {
-					return matched, groupPolicy
+					return hit, groupPolicy
 				}
 				hitValueMap.Store(groupPolicy.ID, hitValue)
 			}

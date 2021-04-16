@@ -224,12 +224,15 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 					continue
 				}
 			}
-			// ChkPoint_ValueLength
-			valueLength := strconv.Itoa(len(value))
-			matched, policy = IsMatchGroupPolicy(ctxMap, appID, valueLength, models.ChkPointValueLength, "", false)
-			if matched == true {
-				return matched, policy
-			}
+			// ChkPoint_ValueLength deprecated from v1.1.0
+			/*
+				valueLength := strconv.Itoa(len(value))
+				matched, policy = IsMatchGroupPolicy(ctxMap, appID, valueLength, models.ChkPointValueLength, "", false)
+				if matched == true {
+					return matched, policy
+				}
+			*/
+
 			// ChkPoint_GetPostValue
 			matched, policy = IsMatchGroupPolicy(ctxMap, appID, value, models.ChkPointGetPostValue, "", true)
 			//fmt.Println("ChkPoint_GetPostValue:", value2, matched)
@@ -238,6 +241,12 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 			}
 		}
 
+	}
+
+	// ChkPoint_Referer added v1.1.0
+	matched, policy = IsMatchGroupPolicy(ctxMap, appID, r.Referer(), models.ChkPointReferer, "", false)
+	if matched == true {
+		return matched, policy
 	}
 
 	// ChkPoint_Cookie
@@ -278,8 +287,6 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 		}
 		// ChkPoint_HeaderValue
 		for _, headerValue := range headerValues {
-
-			//headerValue = UnEscapeRawValue(headerValue)
 			matched, policy = IsMatchGroupPolicy(ctxMap, appID, headerValue, models.ChkPointHeaderValue, headerKey, false)
 			//fmt.Println("ChkPoint_HeaderValue", headerKey, headerValue, matched)
 			if matched == true {

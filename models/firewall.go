@@ -36,16 +36,17 @@ type CCPolicy struct {
 type ChkPoint int64
 
 const (
-	ChkPointHost                ChkPoint = 1
-	ChkPointIPAddress           ChkPoint = 1 << 1
-	ChkPointMethod              ChkPoint = 1 << 2
-	ChkPointURLPath             ChkPoint = 1 << 3
-	ChkPointURLQuery            ChkPoint = 1 << 4
-	ChkPointFileExt             ChkPoint = 1 << 5 // added v1.1.0
-	ChkPointValueLength         ChkPoint = 1 << 6
+	ChkPointHost      ChkPoint = 1
+	ChkPointIPAddress ChkPoint = 1 << 1
+	ChkPointMethod    ChkPoint = 1 << 2
+	ChkPointURLPath   ChkPoint = 1 << 3
+	ChkPointURLQuery  ChkPoint = 1 << 4
+	ChkPointFileExt   ChkPoint = 1 << 5 // added v1.1.0
+	// ChkPointValueLength         ChkPoint = 1 << 6 // deprecated from v1.1.0
 	ChkPointGetPostKey          ChkPoint = 1 << 7
 	ChkPointGetPostValue        ChkPoint = 1 << 8
 	ChkPointUploadFileExt       ChkPoint = 1 << 9
+	ChkPointReferer             ChkPoint = 1 << 10 // added v1.1.0
 	ChkPointCookieKey           ChkPoint = 1 << 11
 	ChkPointCookieValue         ChkPoint = 1 << 12
 	ChkPointUserAgent           ChkPoint = 1 << 13
@@ -92,10 +93,11 @@ type Operation int64
 
 const (
 	OperationRegexMatch                  Operation = 1
-	OperationEqualsStringCaseInSensitive Operation = 1 << 1
+	OperationEqualsStringCaseInsensitive Operation = 1 << 1
 	OperationGreaterThanInteger          Operation = 1 << 2
 	OperationEqualsInteger               Operation = 1 << 3
 	OperationLengthGreaterThanInteger    Operation = 1 << 4
+	OperationRegexNotMatch               Operation = 1 << 5 // added from v1.1.0
 )
 
 type CheckItem struct {
