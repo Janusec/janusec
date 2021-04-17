@@ -114,7 +114,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		RecordAuthLog(authUser.Username, "LDAP", data.CFG.PrimaryNode.Admin.Portal)
+		RecordAuthLog(r, authUser.Username, "LDAP", data.CFG.PrimaryNode.Admin.Portal)
 		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
@@ -125,7 +125,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		oauthState.UserID = username
 		oauthState.AccessToken = "N/A"
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-		RecordAuthLog(oauthState.UserID, "LDAP", oauthState.CallbackURL)
+		RecordAuthLog(r, oauthState.UserID, "LDAP", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusFound)
 		return
 	}

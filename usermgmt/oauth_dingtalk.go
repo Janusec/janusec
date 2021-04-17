@@ -105,7 +105,7 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			utils.DebugPrintln("DingtalkCallbackWithCode session save error", err)
 		}
-		RecordAuthLog(authUser.Username, "DingTalk", data.CFG.PrimaryNode.Admin.Portal)
+		RecordAuthLog(r, authUser.Username, "DingTalk", data.CFG.PrimaryNode.Admin.Portal)
 		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
@@ -116,7 +116,7 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		oauthState.UserID = dingtalkUser.Nick
 		oauthState.AccessToken = "N/A"
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-		RecordAuthLog(oauthState.UserID, "DingTalk", oauthState.CallbackURL)
+		RecordAuthLog(r, oauthState.UserID, "DingTalk", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 		return
 	}

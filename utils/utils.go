@@ -92,14 +92,14 @@ func VipAccessLog(name string, clientAddr string, gateAddr string, backendAddr s
 }
 
 // AuthLog record log for each successful authentication
-func AuthLog(username string, provider string, callback string) {
+func AuthLog(ip string, username string, provider string, callback string) {
 	now := time.Now()
 	f, err := os.OpenFile("./log/auth"+now.Format("20060102")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		log.Printf("error opening file: %s\n", err.Error())
 	}
 	log.SetOutput(f)
-	log.Printf("[%s] [%s] [%s]\n", username, provider, callback)
+	log.Printf("[%s] [%s] [%s] [%s]\n", ip, username, provider, callback)
 	if err := f.Close(); err != nil {
 		log.Printf("error closing file: %s\n", err.Error())
 	}

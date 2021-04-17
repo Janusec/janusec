@@ -126,7 +126,7 @@ func LarkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			utils.DebugPrintln("LarkCallbackWithCode session save error", err)
 		}
-		RecordAuthLog(authUser.Username, "Lark", data.CFG.PrimaryNode.Admin.Portal)
+		RecordAuthLog(r, authUser.Username, "Lark", data.CFG.PrimaryNode.Admin.Portal)
 		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
@@ -137,7 +137,7 @@ func LarkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		oauthState.UserID = larkUser.Data.EnName
 		oauthState.AccessToken = larkUser.Data.AccessToken
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-		RecordAuthLog(oauthState.UserID, "Lark", oauthState.CallbackURL)
+		RecordAuthLog(r, oauthState.UserID, "Lark", oauthState.CallbackURL)
 		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 		return
 	}

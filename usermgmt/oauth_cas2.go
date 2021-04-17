@@ -92,7 +92,7 @@ func CAS2CallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			utils.DebugPrintln("CAS2CallbackWithCode session save error", err)
 		}
-		RecordAuthLog(authUser.Username, "CAS2", data.CFG.PrimaryNode.Admin.Portal)
+		RecordAuthLog(r, authUser.Username, "CAS2", data.CFG.PrimaryNode.Admin.Portal)
 		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 
@@ -103,7 +103,7 @@ func CAS2CallbackWithCode(w http.ResponseWriter, r *http.Request) {
 			oauthState := oauthStateI.(models.OAuthState)
 			oauthState.UserID = casUser
 			OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
-			RecordAuthLog(oauthState.UserID, "CAS2", oauthState.CallbackURL)
+			RecordAuthLog(r, oauthState.UserID, "CAS2", oauthState.CallbackURL)
 			//fmt.Println("307 to:", oauthState.CallbackURL)
 			http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 			return

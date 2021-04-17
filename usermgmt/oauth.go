@@ -9,6 +9,7 @@ package usermgmt
 
 import (
 	"io/ioutil"
+	"net"
 	"net/http"
 
 	"janusec/data"
@@ -34,6 +35,8 @@ func GetResponse(request *http.Request) (respBytes []byte, err error) {
 }
 
 // RecordAuthLog ...
-func RecordAuthLog(username string, provider string, callback string) {
-	go utils.AuthLog(username, provider, callback)
+func RecordAuthLog(r *http.Request, username string, provider string, callback string) {
+	// Get REMOTE_ADDR IP Address
+	clientIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+	go utils.AuthLog(clientIP, username, provider, callback)
 }
