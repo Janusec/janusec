@@ -317,7 +317,7 @@ func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
 }
 
 // UpdateApplication ...
-func UpdateApplication(param map[string]interface{}) (*models.Application, error) {
+func UpdateApplication(param map[string]interface{}, clientIP string, username string) (*models.Application, error) {
 	application := param["object"].(map[string]interface{})
 	appID := int64(application["id"].(float64))
 	appName := application["name"].(string)
@@ -360,6 +360,7 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 			CSPEnabled:     cspEnabled,
 			CSP:            csp}
 		Apps = append(Apps, app)
+		go utils.OperationLog(clientIP, username, "Add Application", app.Name)
 	} else {
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
@@ -379,6 +380,7 @@ func UpdateApplication(param map[string]interface{}) (*models.Application, error
 			app.Owner = owner
 			app.CSPEnabled = cspEnabled
 			app.CSP = csp
+			go utils.OperationLog(clientIP, username, "Update Application", app.Name)
 		} else {
 			return nil, errors.New("application not found")
 		}

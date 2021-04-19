@@ -104,3 +104,17 @@ func AuthLog(ip string, username string, provider string, callback string) {
 		log.Printf("error closing file: %s\n", err.Error())
 	}
 }
+
+// OperationLog ...
+func OperationLog(ip string, username string, operation string, object string) {
+	now := time.Now()
+	f, err := os.OpenFile("./log/operation"+now.Format("20060102")+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		log.Printf("error opening file: %s\n", err.Error())
+	}
+	log.SetOutput(f)
+	log.Printf("[%s] [%s] [%s] [%s]\n", ip, username, operation, object)
+	if err := f.Close(); err != nil {
+		log.Printf("error closing file: %s\n", err.Error())
+	}
+}

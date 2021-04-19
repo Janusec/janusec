@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httputil"
 
@@ -52,6 +53,15 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		utils.CheckError("AdminAPIHandlerFunc DumpRequest", err)
 		fmt.Println(string(dump))
 	}
+
+	clientIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+	var logUsername string
+	if authUser == nil {
+		logUsername = "Null"
+	} else {
+		logUsername = authUser.Username
+	}
+
 	var obj interface{}
 	switch action {
 	case "get_nodes_key":
@@ -79,7 +89,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		id := int64(param["id"].(float64))
 		obj, err = backend.GetVipAppByID(id)
 	case "update_app":
-		obj, err = backend.UpdateApplication(param)
+		obj, err = backend.UpdateApplication(param, clientIP, logUsername)
 	case "update_vip_app":
 		obj, err = backend.UpdateVipApp(param, authUser)
 	case "del_app":
