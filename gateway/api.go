@@ -55,12 +55,6 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientIP, _, _ := net.SplitHostPort(r.RemoteAddr)
-	var logUsername string
-	if authUser == nil {
-		logUsername = "Null"
-	} else {
-		logUsername = authUser.Username
-	}
 
 	var obj interface{}
 	switch action {
@@ -89,17 +83,17 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		id := int64(param["id"].(float64))
 		obj, err = backend.GetVipAppByID(id)
 	case "update_app":
-		obj, err = backend.UpdateApplication(param, clientIP, logUsername)
+		obj, err = backend.UpdateApplication(param, clientIP, authUser)
 	case "update_vip_app":
-		obj, err = backend.UpdateVipApp(param, authUser)
+		obj, err = backend.UpdateVipApp(param, clientIP, authUser)
 	case "del_app":
 		obj = nil
 		id := int64(param["id"].(float64))
-		err = backend.DeleteApplicationByID(id, authUser)
+		err = backend.DeleteApplicationByID(id, clientIP, authUser)
 	case "del_vip_app":
 		obj = nil
 		id := int64(param["id"].(float64))
-		err = backend.DeleteVipAppByID(id)
+		err = backend.DeleteVipAppByID(id, clientIP, authUser)
 	case "get_certs":
 		obj, err = backend.GetCertificates(authUser)
 	case "get_cert":

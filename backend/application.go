@@ -317,7 +317,7 @@ func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
 }
 
 // UpdateApplication ...
-func UpdateApplication(param map[string]interface{}, clientIP string, username string) (*models.Application, error) {
+func UpdateApplication(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.Application, error) {
 	application := param["object"].(map[string]interface{})
 	appID := int64(application["id"].(float64))
 	appName := application["name"].(string)
@@ -360,7 +360,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, username s
 			CSPEnabled:     cspEnabled,
 			CSP:            csp}
 		Apps = append(Apps, app)
-		go utils.OperationLog(clientIP, username, "Add Application", app.Name)
+		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
@@ -380,7 +380,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, username s
 			app.Owner = owner
 			app.CSPEnabled = cspEnabled
 			app.CSP = csp
-			go utils.OperationLog(clientIP, username, "Update Application", app.Name)
+			go utils.OperationLog(clientIP, authUser.Username, "Update Application", app.Name)
 		} else {
 			return nil, errors.New("application not found")
 		}
@@ -412,7 +412,7 @@ func DeleteDestinationsByApp(appID int64) {
 }
 
 // DeleteApplicationByID ...
-func DeleteApplicationByID(appID int64, authUser *models.AuthUser) error {
+func DeleteApplicationByID(appID int64, clientIP string, authUser *models.AuthUser) error {
 	app, err := GetApplicationByID(appID)
 	if err != nil {
 		return err
@@ -430,6 +430,7 @@ func DeleteApplicationByID(appID int64, authUser *models.AuthUser) error {
 	}
 	i := GetApplicationIndex(appID)
 	Apps = append(Apps[:i], Apps[i+1:]...)
+	go utils.OperationLog(clientIP, authUser.Username, "Delete Application", app.Name)
 	data.UpdateBackendLastModified()
 	return nil
 }

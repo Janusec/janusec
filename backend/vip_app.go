@@ -238,7 +238,7 @@ func GetVipApps(authUser *models.AuthUser) ([]*models.VipApp, error) {
 }
 
 // UpdateVipApp create or update VipApp for port forwarding
-func UpdateVipApp(param map[string]interface{}, authUser *models.AuthUser) (*models.VipApp, error) {
+func UpdateVipApp(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.VipApp, error) {
 	if authUser.IsSuperAdmin == false {
 		return nil, errors.New("only super admin can configure port forwarding")
 	}
@@ -271,6 +271,7 @@ func UpdateVipApp(param map[string]interface{}, authUser *models.AuthUser) (*mod
 			ExitChan:    make(chan bool),
 		}
 		VipApps = append(VipApps, vipApp)
+		go utils.OperationLog(clientIP, authUser.Username, "Add Port Forwarding", vipApp.Name)
 	} else {
 		vipApp, _ = GetVipAppByID(appID)
 		if vipApp != nil {
@@ -285,7 +286,7 @@ func UpdateVipApp(param map[string]interface{}, authUser *models.AuthUser) (*mod
 			vipApp.Description = description
 			// fmt.Println("send exit signal to", vipApp.Name)
 			vipApp.ExitChan <- true
-			// fmt.Println("sended exit signal to", vipApp.Name)
+			go utils.OperationLog(clientIP, authUser.Username, "Update Port Forwarding", vipApp.Name)
 		} else {
 			return nil, errors.New("Port Forwarding not found")
 		}
@@ -357,7 +358,10 @@ func UpdateTargets(vipApp *models.VipApp, targets []interface{}) {
 }
 
 // DeleteVipAppByID delete port forwarding
-func DeleteVipAppByID(id int64) error {
+func DeleteVipAppByID(id int64, clientIP string, authUser *models.AuthUser) error {
+	if !authUser.IsSuperAdmin {
+		return errors.New("you have no privilege to delete it")
+	}
 	DeleteVipTargetsByAppID(id)
 	err := data.DAL.DeleteVipAppByID(id)
 	if err != nil {
@@ -366,7 +370,8 @@ func DeleteVipAppByID(id int64) error {
 	}
 	i := GetVipAppIndex(id)
 	VipApps[i].ExitChan <- true
-	VipApps = append(VipApps[:i], VipApps[i+1:]...)
+	go utils.OperationLog(clientIP, authUser.Username, "Delete Port Forwarding", VipApps[i].Name)
+	VipApps = append(VipApps[:i], VipApps[i+1:]...)	
 	data.UpdateBackendLastModified()
 	return nil
 }
