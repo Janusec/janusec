@@ -239,7 +239,7 @@ func GetVipApps(authUser *models.AuthUser) ([]*models.VipApp, error) {
 
 // UpdateVipApp create or update VipApp for port forwarding
 func UpdateVipApp(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.VipApp, error) {
-	if authUser.IsSuperAdmin == false {
+	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super admin can configure port forwarding")
 	}
 	application := param["object"].(map[string]interface{})
@@ -288,7 +288,7 @@ func UpdateVipApp(param map[string]interface{}, clientIP string, authUser *model
 			vipApp.ExitChan <- true
 			go utils.OperationLog(clientIP, authUser.Username, "Update Port Forwarding", vipApp.Name)
 		} else {
-			return nil, errors.New("Port Forwarding not found")
+			return nil, errors.New("port forwarding not found")
 		}
 	}
 	// fmt.Println("update targets ...")
@@ -371,7 +371,7 @@ func DeleteVipAppByID(id int64, clientIP string, authUser *models.AuthUser) erro
 	i := GetVipAppIndex(id)
 	VipApps[i].ExitChan <- true
 	go utils.OperationLog(clientIP, authUser.Username, "Delete Port Forwarding", VipApps[i].Name)
-	VipApps = append(VipApps[:i], VipApps[i+1:]...)	
+	VipApps = append(VipApps[:i], VipApps[i+1:]...)
 	data.UpdateBackendLastModified()
 	return nil
 }

@@ -100,11 +100,11 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		id := int64(param["id"].(float64))
 		obj, err = backend.GetCertificateByID(id, authUser)
 	case "update_cert":
-		obj, err = backend.UpdateCertificate(param, authUser)
+		obj, err = backend.UpdateCertificate(param, clientIP, authUser)
 	case "del_cert":
 		id := int64(param["id"].(float64))
 		obj = nil
-		err = backend.DeleteCertificateByID(id)
+		err = backend.DeleteCertificateByID(id, clientIP, authUser)
 	case "self_sign_cert":
 		obj, err = utils.GenerateRSACertificate(param)
 	case "get_domains":

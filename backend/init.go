@@ -65,28 +65,28 @@ func InitDatabase() {
 		utils.DebugPrintln("InitDatabase CreateTableIfNotExistsTOTP", err)
 	}
 	// Upgrade to latest version
-	if dal.ExistColumnInTable("domains", "redirect") == false {
+	if !dal.ExistColumnInTable("domains", "redirect") {
 		// v0.9.6+ required
 		err = dal.ExecSQL(`ALTER TABLE "domains" ADD COLUMN "redirect" boolean default false, ADD COLUMN "location" VARCHAR(256) NOT NULL DEFAULT ''`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE domains", err)
 		}
 	}
-	if dal.ExistColumnInTable("applications", "oauth_required") == false {
+	if !dal.ExistColumnInTable("applications", "oauth_required") {
 		// v0.9.7+ required
 		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "oauth_required" boolean default false, ADD COLUMN "session_seconds" bigint default 7200, ADD COLUMN "owner" VARCHAR(128)`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications oauth", err)
 		}
 	}
-	if dal.ExistColumnInTable("destinations", "route_type") == false {
+	if !dal.ExistColumnInTable("destinations", "route_type") {
 		// v0.9.8+ required
 		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "route_type" bigint default 1, ADD COLUMN "request_route" VARCHAR(128) NOT NULL DEFAULT '/', ADD COLUMN "backend_route" VARCHAR(128) NOT NULL DEFAULT '/'`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE destinations", err)
 		}
 	}
-	if dal.ExistColumnInTable("ccpolicies", "interval_seconds") == true {
+	if dal.ExistColumnInTable("ccpolicies", "interval_seconds") {
 		// v0.9.9 interval_seconds, v0.9.10 interval_milliseconds
 		err = dal.ExecSQL(`ALTER TABLE "ccpolicies" RENAME COLUMN "interval_seconds" TO "interval_milliseconds"`)
 		if err != nil {
@@ -97,14 +97,14 @@ func InitDatabase() {
 			utils.DebugPrintln("InitDatabase UPDATE ccpolicies", err)
 		}
 	}
-	if dal.ExistColumnInTable("applications", "csp") == false {
+	if !dal.ExistColumnInTable("applications", "csp") {
 		// v0.9.11 CSP
 		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "csp_enabled" boolean default false, ADD COLUMN "csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self'''`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications", err)
 		}
 	}
-	if dal.ExistColumnInTable("totp", "uid") == true {
+	if dal.ExistColumnInTable("totp", "uid") {
 		// 0.9.12+fix
 		err = dal.ExecSQL(`ALTER TABLE "totp" RENAME COLUMN "uid" TO "totp_uid"`)
 		if err != nil {

@@ -11,6 +11,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"log"
+	"strconv"
 
 	"janusec/data"
 	"janusec/models"
@@ -45,7 +46,7 @@ func LoadCerts() {
 			cert.PrivKeyContent = string(privKey)
 			cert.TlsCert = tlsCert
 			cert.ExpireTime = dbCert.ExpireTime
-			if dbCert.Description.Valid == true {
+			if dbCert.Description.Valid {
 				cert.Description = dbCert.Description.String
 			} else {
 				cert.Description = ""
@@ -65,7 +66,7 @@ func LoadCerts() {
 // GetCertificateByDomain ...
 func GetCertificateByDomain(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, error) {
 	domain := helloInfo.ServerName
-	if domainRelation, ok := DomainsMap.Load(domain); ok == true {
+	if domainRelation, ok := DomainsMap.Load(domain); ok {
 		certItem := domainRelation.(models.DomainRelation).Cert
 		if certItem == nil {
 			// autocert
@@ -78,7 +79,7 @@ func GetCertificateByDomain(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, e
 
 // GetCertificates ...
 func GetCertificates(authUser *models.AuthUser) ([]*models.CertItem, error) {
-	if authUser.IsCertAdmin == true {
+	if authUser.IsCertAdmin {
 		return Certs, nil
 	}
 	// Remove private key
@@ -104,7 +105,7 @@ func SysCallGetCertByID(certID int64) (*models.CertItem, error) {
 			return cert, nil
 		}
 	}
-	return nil, errors.New("Certificate not found")
+	return nil, errors.New("certificate not found")
 }
 
 // GetCertificateByID ...
@@ -140,7 +141,7 @@ func GetCertificateByCommonName(commonName string) *models.CertItem {
 }
 
 // UpdateCertificate ...
-func UpdateCertificate(param map[string]interface{}, authUser *models.AuthUser) (*models.CertItem, error) {
+func UpdateCertificate(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.CertItem, error) {
 	certificate := param["object"].(map[string]interface{})
 	id := int64(certificate["id"].(float64))
 	commonName := certificate["common_name"].(string)
@@ -165,6 +166,7 @@ func UpdateCertificate(param map[string]interface{}, authUser *models.AuthUser) 
 		certItem = &models.CertItem{}
 		certItem.ID = newID
 		Certs = append(Certs, certItem)
+		go utils.OperationLog(clientIP, authUser.Username, "Add Certificate", commonName)
 	} else {
 		certItem, err = GetCertificateByID(id, authUser)
 		if err != nil {
@@ -174,6 +176,7 @@ func UpdateCertificate(param map[string]interface{}, authUser *models.AuthUser) 
 		if err != nil {
 			return nil, err
 		}
+		go utils.OperationLog(clientIP, authUser.Username, "Update Certificate", commonName)
 	}
 	certItem.CommonName = commonName
 	certItem.CertContent = certContent
@@ -196,7 +199,7 @@ func GetCertificateIndex(certID int64) int {
 }
 
 // DeleteCertificateByID ...
-func DeleteCertificateByID(certID int64) error {
+func DeleteCertificateByID(certID int64, clientIP string, authUser *models.AuthUser) error {
 	certDomainsCount := data.DAL.SelectDomainsCountByCertID(certID)
 	if certDomainsCount > 0 {
 		return errors.New("this certificate is in use, please delete relevant applications at first")
@@ -206,6 +209,7 @@ func DeleteCertificateByID(certID int64) error {
 		return err
 	}
 	i := GetCertificateIndex(certID)
+	go utils.OperationLog(clientIP, authUser.Username, "Delete Certificate", strconv.FormatInt(certID, 10))
 	Certs = append(Certs[:i], Certs[i+1:]...)
 	data.UpdateBackendLastModified()
 	return nil

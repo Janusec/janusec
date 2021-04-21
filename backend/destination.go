@@ -30,7 +30,7 @@ func InterfaceContainsDestinationID(destinations []interface{}, destID int64) bo
 func CheckOfflineDestinations(nowTimeStamp int64) {
 	for _, app := range Apps {
 		for _, dest := range app.Destinations {
-			if dest.RouteType == models.ReverseProxyRoute && dest.Online == false {
+			if dest.RouteType == models.ReverseProxyRoute && !dest.Online {
 				go func() {
 					conn, err := net.DialTimeout("tcp", dest.Destination, time.Second)
 					if err == nil {
