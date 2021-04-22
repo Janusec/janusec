@@ -93,7 +93,7 @@ func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
 	var queryUsers = []*models.QueryAppUser{}
 	for rows.Next() {
 		queryUser := &models.QueryAppUser{}
-		err = rows.Scan(&queryUser.ID, &queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin)
+		_ = rows.Scan(&queryUser.ID, &queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin)
 		queryUsers = append(queryUsers, queryUser)
 	}
 	return queryUsers
@@ -111,27 +111,27 @@ func (dal *MyDAL) SelectAppUserByID(userID int64) *models.QueryAppUser {
 
 // UpdateAppUserWithPwd ...
 func (dal *MyDAL) UpdateAppUserWithPwd(username string, hashpwd string, salt string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, needModifyPwd bool, userID int64) error {
-	stmt, err := dal.db.Prepare(sqlUpdateAppUserWithPwd)
+	stmt, _ := dal.db.Prepare(sqlUpdateAppUserWithPwd)
 	defer stmt.Close()
-	_, err = stmt.Exec(username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd, userID)
+	_, err := stmt.Exec(username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd, userID)
 	utils.CheckError("UpdateAppUserWithPwd", err)
 	return err
 }
 
 // UpdateAppUserNoPwd ...
 func (dal *MyDAL) UpdateAppUserNoPwd(username string, email string, isSuperAdmin, isCertAdmin, isAppAdmin bool, userID int64) error {
-	stmt, err := dal.db.Prepare(sqlUpdateAppUserNoPwd)
+	stmt, _ := dal.db.Prepare(sqlUpdateAppUserNoPwd)
 	defer stmt.Close()
-	_, err = stmt.Exec(username, email, isSuperAdmin, isCertAdmin, isAppAdmin, userID)
+	_, err := stmt.Exec(username, email, isSuperAdmin, isCertAdmin, isAppAdmin, userID)
 	utils.CheckError("UpdateAppUserNoPwd", err)
 	return err
 }
 
 // DeleteAppUser ...
 func (dal *MyDAL) DeleteAppUser(userID int64) error {
-	stmt, err := dal.db.Prepare(sqlDeleteAppUser)
+	stmt, _ := dal.db.Prepare(sqlDeleteAppUser)
 	defer stmt.Close()
-	_, err = stmt.Exec(userID)
+	_, err := stmt.Exec(userID)
 	utils.CheckError("DeleteAppUser", err)
 	return err
 }

@@ -32,7 +32,7 @@ var (
 
 // LoadInstanceKey ...
 func (dal *MyDAL) LoadInstanceKey() {
-	if dal.ExistsSetting("instance_key") == false {
+	if !dal.ExistsSetting("instance_key") {
 		instanceKey = GenRandomAES256Key()
 		encryptedInstanceKey := AES256Encrypt(instanceKey, true)
 		hexInstanceKey := hex.EncodeToString(encryptedInstanceKey)
@@ -51,7 +51,7 @@ func (dal *MyDAL) LoadInstanceKey() {
 
 // LoadNodesKey ...
 func (dal *MyDAL) LoadNodesKey() {
-	if dal.ExistsSetting("nodes_key") == false {
+	if !dal.ExistsSetting("nodes_key") {
 		NodesKey = GenRandomAES256Key()
 		encryptedNodesKey := AES256Encrypt(NodesKey, true)
 		HexEncryptedNodesKey = hex.EncodeToString(encryptedNodesKey)
@@ -100,7 +100,7 @@ func EncryptWithKey(plaintext []byte, key []byte) []byte {
 // AES256Encrypt ...
 func AES256Encrypt(plaintext []byte, useRootkey bool) []byte {
 	key := instanceKey
-	if useRootkey == true {
+	if useRootkey {
 		key = RootKey
 	}
 	ciphertext := EncryptWithKey(plaintext, key)
@@ -133,7 +133,7 @@ func DecryptWithKey(ciphertext []byte, key []byte) ([]byte, error) {
 // AES256Decrypt ...
 func AES256Decrypt(ciphertext []byte, useRootkey bool) ([]byte, error) {
 	key := instanceKey
-	if useRootkey == true {
+	if useRootkey {
 		key = RootKey
 	}
 	plaintext, err := DecryptWithKey(ciphertext, key)

@@ -30,9 +30,9 @@ func (dal *MyDAL) CreateTableIfNotExistsCCPolicy() error {
 
 // DeleteCCPolicy ...
 func (dal *MyDAL) DeleteCCPolicy(appID int64) error {
-	stmt, err := dal.db.Prepare(sqlDeleteCCPolicy)
+	stmt, _ := dal.db.Prepare(sqlDeleteCCPolicy)
 	defer stmt.Close()
-	_, err = stmt.Exec(appID)
+	_, err := stmt.Exec(appID)
 	utils.CheckError("DeleteCCPolicy", err)
 	return err
 }
@@ -40,9 +40,9 @@ func (dal *MyDAL) DeleteCCPolicy(appID int64) error {
 // UpdateCCPolicy ...
 func (dal *MyDAL) UpdateCCPolicy(IntervalMilliSeconds float64, maxCount int64, blockSeconds float64, action models.PolicyAction,
 	statByURL bool, statByUA bool, statByCookie bool, isEnabled bool, appID int64) error {
-	stmt, err := dal.db.Prepare(sqlUpdateCCPolicy)
+	stmt, _ := dal.db.Prepare(sqlUpdateCCPolicy)
 	defer stmt.Close()
-	_, err = stmt.Exec(IntervalMilliSeconds, maxCount, blockSeconds, action,
+	_, err := stmt.Exec(IntervalMilliSeconds, maxCount, blockSeconds, action,
 		statByURL, statByUA, statByCookie, isEnabled, appID)
 	utils.CheckError("UpdateCCPolicy", err)
 	return err
@@ -53,10 +53,7 @@ func (dal *MyDAL) ExistsCCPolicy() bool {
 	var existCCPolicy int
 	err := dal.db.QueryRow(sqlExistsCCPolicy).Scan(&existCCPolicy)
 	utils.CheckError("ExistsCCPolicy", err)
-	if existCCPolicy == 0 {
-		return false
-	}
-	return true
+	return existCCPolicy != 0
 }
 
 // ExistsCCPolicyByAppID ...
@@ -64,10 +61,7 @@ func (dal *MyDAL) ExistsCCPolicyByAppID(appID int64) bool {
 	var existCCPolicy int
 	err := dal.db.QueryRow(sqlExistsCCPolicyByAppID, appID).Scan(&existCCPolicy)
 	utils.CheckError("ExistsCCPolicyByAppID", err)
-	if existCCPolicy == 0 {
-		return false
-	}
-	return true
+	return existCCPolicy != 0
 }
 
 // InsertCCPolicy ...

@@ -298,11 +298,11 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 // UpdateAppDomains ...
 func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
 	newAppDomains := []*models.Domain{}
-	newDomainNames := []string{}
+	//newDomainNames := []string{}
 	for _, domainMap := range appDomains {
 		domain := UpdateDomain(app, domainMap)
 		newAppDomains = append(newAppDomains, domain)
-		newDomainNames = append(newDomainNames, domain.Name)
+		//newDomainNames = append(newDomainNames, domain.Name)
 	}
 	for _, oldDomain := range app.Domains {
 		if !InterfaceContainsDomainID(appDomains, oldDomain.ID) {
@@ -419,7 +419,7 @@ func DeleteApplicationByID(appID int64, clientIP string, authUser *models.AuthUs
 	}
 	DeleteDomainsByApp(app)
 	DeleteDestinationsByApp(appID)
-	err = firewall.DeleteCCPolicyByAppID(appID, authUser, false)
+	err = firewall.DeleteCCPolicyByAppID(appID, clientIP, authUser, false)
 	if err != nil {
 		utils.DebugPrintln("DeleteApplicationByID DeleteCCPolicyByAppID", err)
 	}

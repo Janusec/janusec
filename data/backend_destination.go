@@ -15,9 +15,9 @@ import (
 // UpdateDestinationNode ...
 func (dal *MyDAL) UpdateDestinationNode(routeType int64, requestRoute string, backendRoute string, destination string, appID int64, nodeID int64, id int64) error {
 	const sqlUpdateDestinationNode = `UPDATE "destinations" SET "route_type"=$1,"request_route"=$2,"backend_route"=$3,"destination"=$4,"app_id"=$5,"node_id"=$6 WHERE "id"=$7`
-	stmt, err := dal.db.Prepare(sqlUpdateDestinationNode)
+	stmt, _ := dal.db.Prepare(sqlUpdateDestinationNode)
 	defer stmt.Close()
-	_, err = stmt.Exec(routeType, requestRoute, backendRoute, destination, appID, nodeID, id)
+	_, err := stmt.Exec(routeType, requestRoute, backendRoute, destination, appID, nodeID, id)
 	utils.CheckError("UpdateDestinationNode", err)
 	return err
 }
@@ -28,10 +28,7 @@ func (dal *MyDAL) ExistsDestinationID(id int64) bool {
 	const sqlExistsDestinationID = `SELECT COALESCE((SELECT 1 FROM "destinations" WHERE "id"=$1 limit 1),0)`
 	err := dal.db.QueryRow(sqlExistsDestinationID, id).Scan(&exist)
 	utils.CheckError("ExistsDestinationID", err)
-	if exist == 0 {
-		return false
-	}
-	return true
+	return exist != 0
 }
 
 // CreateTableIfNotExistsDestinations ...
@@ -73,9 +70,9 @@ func (dal *MyDAL) InsertDestination(routeType int64, requestRoute string, backen
 // DeleteDestinationByID ...
 func (dal *MyDAL) DeleteDestinationByID(id int64) error {
 	const sqlDeleteDestinationByID = `DELETE FROM "destinations" WHERE "id"=$1`
-	stmt, err := dal.db.Prepare(sqlDeleteDestinationByID)
+	stmt, _ := dal.db.Prepare(sqlDeleteDestinationByID)
 	defer stmt.Close()
-	_, err = stmt.Exec(id)
+	_, err := stmt.Exec(id)
 	utils.CheckError("DeleteDestinationByID", err)
 	return err
 }
@@ -83,9 +80,9 @@ func (dal *MyDAL) DeleteDestinationByID(id int64) error {
 // DeleteDestinationsByAppID ...
 func (dal *MyDAL) DeleteDestinationsByAppID(appID int64) error {
 	const sqlDeleteDestinationsByAppID = `DELETE FROM "destinations" WHERE "app_id"=$1`
-	stmt, err := dal.db.Prepare(sqlDeleteDestinationsByAppID)
+	stmt, _ := dal.db.Prepare(sqlDeleteDestinationsByAppID)
 	defer stmt.Close()
-	_, err = stmt.Exec(appID)
+	_, err := stmt.Exec(appID)
 	utils.CheckError("DeleteDestinationsByAppID", err)
 	return err
 }

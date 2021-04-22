@@ -218,7 +218,7 @@ func DeleteCheckItemsByGroupPolicy(groupPolicy *models.GroupPolicy) error {
 
 // DebugTranverseCheckItems ...
 func DebugTranverseCheckItems() {
-	if utils.Debug == false {
+	if !utils.Debug {
 		return
 	}
 	checkPointCheckItemsMap.Range(func(key, value interface{}) bool {

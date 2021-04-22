@@ -95,25 +95,25 @@ func InitDefaultSettings() {
 	DAL.LoadInstanceKey()
 	DAL.LoadNodesKey()
 	var err error
-	if DAL.ExistsSetting("backend_last_modified") == false {
+	if !DAL.ExistsSetting("backend_last_modified") {
 		err = DAL.SaveIntSetting("backend_last_modified", 0)
 	}
-	if DAL.ExistsSetting("firewall_last_modified") == false {
+	if !DAL.ExistsSetting("firewall_last_modified") {
 		err = DAL.SaveIntSetting("firewall_last_modified", 0)
 	}
-	if DAL.ExistsSetting("sync_seconds") == false {
+	if !DAL.ExistsSetting("sync_seconds") {
 		err = DAL.SaveIntSetting("sync_seconds", 600)
 	}
-	if DAL.ExistsSetting("waf_log_days") == false {
+	if !DAL.ExistsSetting("waf_log_days") {
 		err = DAL.SaveIntSetting("waf_log_days", 7)
 	}
-	if DAL.ExistsSetting("cc_log_days") == false {
+	if !DAL.ExistsSetting("cc_log_days") {
 		err = DAL.SaveIntSetting("cc_log_days", 7)
 	}
-	if DAL.ExistsSetting("access_log_days") == false {
+	if !DAL.ExistsSetting("access_log_days") {
 		err = DAL.SaveIntSetting("access_log_days", 180)
 	}
-	if DAL.ExistsSetting("init_time") == false {
+	if !DAL.ExistsSetting("init_time") {
 		// 0.9.13 +
 		err = DAL.SaveIntSetting("init_time", time.Now().Unix())
 	}
@@ -180,8 +180,8 @@ func GetSettings() ([]*models.Setting, error) {
 
 // GetGlobalSettings for admin configuration
 func GetGlobalSettings(authUser *models.AuthUser) (*models.GlobalSettings, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	return GlobalSettings, nil
 }
@@ -224,9 +224,9 @@ func GetWxworkConfig() *models.WxworkConfig {
 }
 
 // UpdateWxworkConfig ...
-func UpdateWxworkConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.WxworkConfig, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+func UpdateWxworkConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.WxworkConfig, error) {
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	wxworkConfig := param["object"].(map[string]interface{})
 	displayName := wxworkConfig["display_name"].(string)
@@ -247,6 +247,7 @@ func UpdateWxworkConfig(param map[string]interface{}, authUser *models.AuthUser)
 		CorpSecret:  corpsecret,
 	}
 	AuthConfig.Wxwork = newWxworkConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update Wxwork Config", displayName)
 	return newWxworkConfig, nil
 }
 
@@ -278,9 +279,9 @@ func GetDingtalkConfig() *models.DingtalkConfig {
 }
 
 // UpdateDingtalkConfig ...
-func UpdateDingtalkConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.DingtalkConfig, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+func UpdateDingtalkConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.DingtalkConfig, error) {
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	dingtalkConfig := param["object"].(map[string]interface{})
 	displayName := dingtalkConfig["display_name"].(string)
@@ -298,6 +299,7 @@ func UpdateDingtalkConfig(param map[string]interface{}, authUser *models.AuthUse
 		AppSecret:   appsecret,
 	}
 	AuthConfig.Dingtalk = newDingtalkConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update Dingtalk Config", displayName)
 	return newDingtalkConfig, nil
 }
 
@@ -329,9 +331,9 @@ func GetFeishuConfig() *models.FeishuConfig {
 }
 
 // UpdateFeishuConfig ...
-func UpdateFeishuConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.FeishuConfig, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+func UpdateFeishuConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.FeishuConfig, error) {
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	feishuConfig := param["object"].(map[string]interface{})
 	displayName := feishuConfig["display_name"].(string)
@@ -349,6 +351,7 @@ func UpdateFeishuConfig(param map[string]interface{}, authUser *models.AuthUser)
 		AppSecret:   appsecret,
 	}
 	AuthConfig.Feishu = newFeishuConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update Feishu Config", displayName)
 	return newFeishuConfig, nil
 }
 
@@ -380,9 +383,9 @@ func GetLarkConfig() *models.LarkConfig {
 }
 
 // UpdateLarkConfig ...
-func UpdateLarkConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.LarkConfig, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+func UpdateLarkConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.LarkConfig, error) {
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	larkConfig := param["object"].(map[string]interface{})
 	displayName := larkConfig["display_name"].(string)
@@ -400,6 +403,7 @@ func UpdateLarkConfig(param map[string]interface{}, authUser *models.AuthUser) (
 		AppSecret:   appsecret,
 	}
 	AuthConfig.Lark = newLarkConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update Lark Config", displayName)
 	return newLarkConfig, nil
 }
 
@@ -436,9 +440,9 @@ func GetLDAPConfig() *models.LDAPConfig {
 }
 
 // UpdateLDAPConfig ...
-func UpdateLDAPConfig(param map[string]interface{}, authUser *models.AuthUser) (*models.LDAPConfig, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+func UpdateLDAPConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.LDAPConfig, error) {
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	ldapConfig := param["object"].(map[string]interface{})
 	displayName := ldapConfig["display_name"].(string)
@@ -462,6 +466,7 @@ func UpdateLDAPConfig(param map[string]interface{}, authUser *models.AuthUser) (
 		AuthenticatorEnabled: authenticatorEnabled,
 	}
 	AuthConfig.LDAP = newLDAPConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update LDAP Config", displayName)
 	return newLDAPConfig, nil
 }
 
@@ -488,9 +493,9 @@ func GetCAS2Config() *models.CAS2Config {
 }
 
 // UpdateCAS2Config ...
-func UpdateCAS2Config(param map[string]interface{}, authUser *models.AuthUser) (*models.CAS2Config, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+func UpdateCAS2Config(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.CAS2Config, error) {
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	cas2Config := param["object"].(map[string]interface{})
 	displayName := cas2Config["display_name"].(string)
@@ -505,13 +510,14 @@ func UpdateCAS2Config(param map[string]interface{}, authUser *models.AuthUser) (
 		Callback:    callback,
 	}
 	AuthConfig.CAS2 = newCAS2Config
+	go utils.OperationLog(clientIP, authUser.Username, "Update CAS2 Config", displayName)
 	return newCAS2Config, nil
 }
 
 // UpdateGlobalSettings ...
 func UpdateGlobalSettings(param map[string]interface{}, authUser *models.AuthUser) (*models.GlobalSettings, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	settings := param["object"].(map[string]interface{})
 	authEnabled := settings["auth_enabled"].(bool)

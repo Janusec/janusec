@@ -38,9 +38,9 @@ func (dal *MyDAL) DeleteGroupPolicyByID(id int64) error {
 
 // UpdateGroupPolicy ...
 func (dal *MyDAL) UpdateGroupPolicy(description string, appID int64, vulnID int64, hitValue int64, action models.PolicyAction, isEnabled bool, userID int64, updateTime int64, id int64) error {
-	stmt, err := dal.db.Prepare(sqlUpdateGroupPolicy)
+	stmt, _ := dal.db.Prepare(sqlUpdateGroupPolicy)
 	defer stmt.Close()
-	_, err = stmt.Exec(description, appID, vulnID, hitValue, action, isEnabled, userID, updateTime, id)
+	_, err := stmt.Exec(description, appID, vulnID, hitValue, action, isEnabled, userID, updateTime, id)
 	utils.CheckError("UpdateGroupPolicy", err)
 	return err
 }
@@ -96,8 +96,5 @@ func (dal *MyDAL) ExistsGroupPolicy() bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsGroupPolicy).Scan(&exist)
 	utils.CheckError("ExistsGroupPolicy", err)
-	if exist == 0 {
-		return false
-	}
-	return true
+	return exist != 0
 }

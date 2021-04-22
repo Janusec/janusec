@@ -74,7 +74,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
 			return
 		}
-		if totpItem.TOTPVerified == false {
+		if !totpItem.TOTPVerified {
 			// TOTP Not Verified, redirect to register
 			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
 			return
@@ -83,7 +83,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		totpCode := r.FormValue("code")
 		totpCodeInt, _ := strconv.ParseUint(totpCode, 10, 32)
 		verifyOK := VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
-		if verifyOK == false {
+		if !verifyOK {
 			http.Redirect(w, r, "/ldap/login", http.StatusFound)
 			return
 		}
@@ -130,5 +130,4 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
-	return
 }

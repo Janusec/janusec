@@ -30,10 +30,7 @@ func (dal *MyDAL) ExistsVulnType() bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsVulnType).Scan(&exist)
 	utils.CheckError("ExistsVulnType", err)
-	if exist == 0 {
-		return false
-	}
-	return true
+	return exist != 0
 }
 
 // SelectVulnTypes ...

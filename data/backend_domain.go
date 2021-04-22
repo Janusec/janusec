@@ -36,7 +36,7 @@ func (dal *MyDAL) SelectDomains() []*models.DBDomain {
 	dbDomains := []*models.DBDomain{}
 	for rows.Next() {
 		dbDomain := &models.DBDomain{}
-		err = rows.Scan(&dbDomain.ID, &dbDomain.Name, &dbDomain.AppID, &dbDomain.CertID, &dbDomain.Redirect, &dbDomain.Location)
+		_ = rows.Scan(&dbDomain.ID, &dbDomain.Name, &dbDomain.AppID, &dbDomain.CertID, &dbDomain.Redirect, &dbDomain.Location)
 		dbDomains = append(dbDomains, dbDomain)
 	}
 	return dbDomains
@@ -66,18 +66,18 @@ func (dal *MyDAL) UpdateDomain(name string, appID int64, certID int64, redirect 
 
 // DeleteDomainByDomainID ...
 func (dal *MyDAL) DeleteDomainByDomainID(domainID int64) error {
-	stmt, err := dal.db.Prepare(sqlDeleteDomainByDomainID)
+	stmt, _ := dal.db.Prepare(sqlDeleteDomainByDomainID)
 	defer stmt.Close()
-	_, err = stmt.Exec(domainID)
+	_, err := stmt.Exec(domainID)
 	utils.CheckError("DeleteDomainByDomainID", err)
 	return err
 }
 
 // DeleteDomainByAppID ...
 func (dal *MyDAL) DeleteDomainByAppID(appID int64) error {
-	stmt, err := dal.db.Prepare(sqlDeleteDomainByAppID)
+	stmt, _ := dal.db.Prepare(sqlDeleteDomainByAppID)
 	defer stmt.Close()
-	_, err = stmt.Exec(appID)
+	_, err := stmt.Exec(appID)
 	utils.CheckError("DeleteDomainByAppID", err)
 	return err
 }

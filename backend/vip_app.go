@@ -112,7 +112,7 @@ func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 		}
 		if vipTarget != nil {
 			vipTarget.CheckTime = time.Now().Unix()
-			targetAddr, err := net.ResolveUDPAddr("udp", vipTarget.Destination)
+			targetAddr, _ := net.ResolveUDPAddr("udp", vipTarget.Destination)
 			udpTargetConn, err := net.DialUDP("udp", nil, targetAddr)
 			if err != nil {
 				utils.DebugPrintln("UDPForwarding DialUDP could not connect to target", vipTarget.Destination, err)

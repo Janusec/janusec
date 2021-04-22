@@ -38,7 +38,7 @@ func NewConfig(filename string) (*models.Config, error) {
 			encryptedConfig := models.EncryptedConfig(*config)
 			encryptedConfig.PrimaryNode.Database.Password = encryptedPassword
 			encryptedConfigBytes, _ := json.MarshalIndent(encryptedConfig, "", "\t")
-			err = ioutil.WriteFile(filename, encryptedConfigBytes, 0600)
+			_ = ioutil.WriteFile(filename, encryptedConfigBytes, 0600)
 		} else {
 			// Decrypt password
 			encryptedPassword, err := hex.DecodeString(dbPassword)

@@ -37,7 +37,7 @@ func (dal *MyDAL) SelectCertificates() []*models.DBCertItem {
 	var dbCerts = []*models.DBCertItem{}
 	for rows.Next() {
 		dbCert := &models.DBCertItem{}
-		err = rows.Scan(&dbCert.ID, &dbCert.CommonName,
+		_ = rows.Scan(&dbCert.ID, &dbCert.CommonName,
 			&dbCert.CertContent, &dbCert.EncryptedPrivKey,
 			&dbCert.ExpireTime, &dbCert.Description)
 		dbCerts = append(dbCerts, dbCert)
@@ -54,18 +54,18 @@ func (dal *MyDAL) InsertCertificate(commonName string, certContent string, encry
 
 // UpdateCertificate ...
 func (dal *MyDAL) UpdateCertificate(commonName string, certContent string, encryptedPrivKey []byte, expireTime int64, description string, id int64) error {
-	stmt, err := dal.db.Prepare(sqlUpdateCertificate)
+	stmt, _ := dal.db.Prepare(sqlUpdateCertificate)
 	defer stmt.Close()
-	_, err = stmt.Exec(commonName, certContent, encryptedPrivKey, expireTime, description, id)
+	_, err := stmt.Exec(commonName, certContent, encryptedPrivKey, expireTime, description, id)
 	utils.CheckError("UpdateCertificate", err)
 	return err
 }
 
 // DeleteCertificate by id
 func (dal *MyDAL) DeleteCertificate(certID int64) error {
-	stmt, err := dal.db.Prepare(sqlDeleteCertificate)
+	stmt, _ := dal.db.Prepare(sqlDeleteCertificate)
 	defer stmt.Close()
-	_, err = stmt.Exec(certID)
+	_, err := stmt.Exec(certID)
 	utils.CheckError("DeleteCertificate", err)
 	return err
 }

@@ -34,10 +34,7 @@ func (dal *MyDAL) ExistsSetting(name string) bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsSetting, name).Scan(&exist)
 	utils.CheckError("ExistsSetting", err)
-	if exist == 0 {
-		return false
-	}
-	return true
+	return exist != 0
 }
 
 // SelectBoolSetting ...
@@ -66,7 +63,7 @@ func (dal *MyDAL) SelectStringSetting(name string) (value string, err error) {
 
 // SaveBoolSetting ...
 func (dal *MyDAL) SaveBoolSetting(name string, value bool) (err error) {
-	if dal.ExistsSetting(name) == true {
+	if dal.ExistsSetting(name) {
 		_, err = dal.db.Exec(sqlUpdateBoolSetting, value, name)
 	} else {
 		_, err = dal.db.Exec(sqlInsertBoolSetting, name, value)
@@ -76,7 +73,7 @@ func (dal *MyDAL) SaveBoolSetting(name string, value bool) (err error) {
 
 // SaveIntSetting ...
 func (dal *MyDAL) SaveIntSetting(name string, value int64) (err error) {
-	if dal.ExistsSetting(name) == true {
+	if dal.ExistsSetting(name) {
 		_, err = dal.db.Exec(sqlUpdateIntSetting, value, name)
 	} else {
 		_, err = dal.db.Exec(sqlInsertIntSetting, name, value)
@@ -87,7 +84,7 @@ func (dal *MyDAL) SaveIntSetting(name string, value int64) (err error) {
 
 // SaveFloatSetting ...
 func (dal *MyDAL) SaveFloatSetting(name string, value float64) (err error) {
-	if dal.ExistsSetting(name) == true {
+	if dal.ExistsSetting(name) {
 		_, err = dal.db.Exec(sqlUpdateFloatSetting, value, name)
 	} else {
 		_, err = dal.db.Exec(sqlInsertFloatSetting, name, value)
@@ -97,7 +94,7 @@ func (dal *MyDAL) SaveFloatSetting(name string, value float64) (err error) {
 
 // SaveStringSetting ...
 func (dal *MyDAL) SaveStringSetting(name string, value string) (err error) {
-	if dal.ExistsSetting(name) == true {
+	if dal.ExistsSetting(name) {
 		_, err = dal.db.Exec(sqlUpdateStringSetting, value, name)
 	} else {
 		_, err = dal.db.Exec(sqlInsertStringSetting, name, value)

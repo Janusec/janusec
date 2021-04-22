@@ -13,6 +13,7 @@ import (
 	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
+	"strconv"
 	"strings"
 )
 
@@ -35,9 +36,9 @@ func GetIPPolicies() ([]*models.IPPolicy, error) {
 }
 
 // UpdateIPPolicy update IP policy
-func UpdateIPPolicy(param map[string]interface{}, authUser *models.AuthUser) (*models.IPPolicy, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+func UpdateIPPolicy(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.IPPolicy, error) {
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	ipPolicyI := param["object"].(map[string]interface{})
 	id := int64(ipPolicyI["id"].(float64))
@@ -57,6 +58,7 @@ func UpdateIPPolicy(param map[string]interface{}, authUser *models.AuthUser) (*m
 			ApplyToCC:  applyToCC,
 		}
 		globalIPPolicies = append(globalIPPolicies, ipPolicy)
+		go utils.OperationLog(clientIP, authUser.Username, "Add IP Policy", ipAddr)
 		data.UpdateFirewallLastModified()
 		return ipPolicy, nil
 	}
@@ -73,14 +75,15 @@ func UpdateIPPolicy(param map[string]interface{}, authUser *models.AuthUser) (*m
 	if err != nil {
 		return nil, err
 	}
+	go utils.OperationLog(clientIP, authUser.Username, "Update IP Policy", ipAddr)
 	data.UpdateFirewallLastModified()
 	return ipPolicy, nil
 }
 
 // DeleteIPPolicyByID ...
-func DeleteIPPolicyByID(id int64, authUser *models.AuthUser) error {
-	if authUser.IsSuperAdmin == false {
-		return errors.New("Only super administrators can perform this operation")
+func DeleteIPPolicyByID(id int64, clientIP string, authUser *models.AuthUser) error {
+	if !authUser.IsSuperAdmin {
+		return errors.New("only super administrators can perform this operation")
 	}
 	for i, ipPolicy := range globalIPPolicies {
 		if ipPolicy.ID == id {
@@ -89,6 +92,7 @@ func DeleteIPPolicyByID(id int64, authUser *models.AuthUser) error {
 		}
 	}
 	err := data.DAL.DeleteIPPolicyByID(id)
+	go utils.OperationLog(clientIP, authUser.Username, "Delete IP Policy by ID", strconv.FormatInt(id, 10))
 	data.UpdateFirewallLastModified()
 	return err
 }

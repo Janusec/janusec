@@ -115,21 +115,21 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_app_user":
 		obj, err = usermgmt.GetAdmin(param)
 	case "update_app_user":
-		obj, err = usermgmt.UpdateUser(w, r, param, authUser)
+		obj, err = usermgmt.UpdateUser(w, r, param, clientIP, authUser)
 	case "del_app_user":
 		id := int64(param["id"].(float64))
 		obj = nil
-		err = usermgmt.DeleteUser(id, authUser)
+		err = usermgmt.DeleteUser(id, clientIP, authUser)
 	case "get_cc_policy":
 		id := int64(param["id"].(float64))
 		obj, err = firewall.GetCCPolicyRespByAppID(id)
 	case "del_cc_policy":
 		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteCCPolicyByAppID(id, authUser, true)
+		err = firewall.DeleteCCPolicyByAppID(id, clientIP, authUser, true)
 	case "update_cc_policy":
 		obj = nil
-		err = firewall.UpdateCCPolicy(param, authUser)
+		err = firewall.UpdateCCPolicy(param, clientIP, authUser)
 	case "get_group_policies":
 		appID := int64(param["id"].(float64))
 		obj, err = firewall.GetGroupPolicies(appID)
@@ -137,25 +137,25 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		id := int64(param["id"].(float64))
 		obj, err = firewall.GetGroupPolicyByID(id)
 	case "update_group_policy":
-		obj, err = firewall.UpdateGroupPolicy(r, userID, authUser)
+		obj, err = firewall.UpdateGroupPolicy(r, userID, clientIP, authUser)
 	case "get_ip_policies":
 		obj, err = firewall.GetIPPolicies()
 	case "update_ip_policy":
-		obj, err = firewall.UpdateIPPolicy(param, authUser)
+		obj, err = firewall.UpdateIPPolicy(param, clientIP, authUser)
 	case "del_ip_policy":
 		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteIPPolicyByID(id, authUser)
+		err = firewall.DeleteIPPolicyByID(id, clientIP, authUser)
 	case "del_group_policy":
 		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteGroupPolicyByID(id, authUser)
+		err = firewall.DeleteGroupPolicyByID(id, clientIP, authUser)
 	case "test_regex":
 		obj, err = firewall.TestRegex(param)
 	case "get_vuln_types":
 		obj, err = firewall.GetVulnTypes()
 	case "login":
-		obj, err = usermgmt.Login(w, r, param)
+		obj, err = usermgmt.Login(w, r, param, clientIP)
 	case "logout":
 		obj = nil
 		err = usermgmt.Logout(w, r)
@@ -195,32 +195,32 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj = data.GetWxworkConfig()
 		err = nil
 	case "update_wxwork_config":
-		obj, err = data.UpdateWxworkConfig(param, authUser)
+		obj, err = data.UpdateWxworkConfig(param, clientIP, authUser)
 	case "get_dingtalk_config":
 		obj = data.GetDingtalkConfig()
 		err = nil
 	case "update_dingtalk_config":
-		obj, err = data.UpdateDingtalkConfig(param, authUser)
+		obj, err = data.UpdateDingtalkConfig(param, clientIP, authUser)
 	case "get_feishu_config":
 		obj = data.GetFeishuConfig()
 		err = nil
 	case "update_feishu_config":
-		obj, err = data.UpdateFeishuConfig(param, authUser)
+		obj, err = data.UpdateFeishuConfig(param, clientIP, authUser)
 	case "get_lark_config":
 		obj = data.GetLarkConfig()
 		err = nil
 	case "update_lark_config":
-		obj, err = data.UpdateLarkConfig(param, authUser)
+		obj, err = data.UpdateLarkConfig(param, clientIP, authUser)
 	case "get_ldap_config":
 		obj = data.GetLDAPConfig()
 		err = nil
 	case "update_ldap_config":
-		obj, err = data.UpdateLDAPConfig(param, authUser)
+		obj, err = data.UpdateLDAPConfig(param, clientIP, authUser)
 	case "get_cas2_config":
 		obj = data.GetCAS2Config()
 		err = nil
 	case "update_cas2_config":
-		obj, err = data.UpdateCAS2Config(param, authUser)
+		obj, err = data.UpdateCAS2Config(param, clientIP, authUser)
 	case "get_license":
 		obj, err = nil, nil
 	default:

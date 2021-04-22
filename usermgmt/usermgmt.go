@@ -10,6 +10,7 @@ package usermgmt
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"janusec/data"
 	"janusec/models"
@@ -39,10 +40,10 @@ func GetAuthUser(w http.ResponseWriter, r *http.Request) (*models.AuthUser, erro
 		authUser := authUserI.(models.AuthUser)
 		return &authUser, nil
 	}
-	return nil, errors.New("Please login")
+	return nil, errors.New("please login")
 }
 
-func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{}) (*models.AuthUser, error) {
+func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{}, clientIP string) (*models.AuthUser, error) {
 	obj := param["object"].(map[string]interface{})
 	username := obj["username"].(string)
 	password := obj["passwd"].(string)
@@ -65,9 +66,10 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{})
 		if err != nil {
 			utils.DebugPrintln("session save error", err)
 		}
+		go utils.AuthLog(clientIP, username, "JANUSEC", "/janusec-admin/")
 		return authUser, nil
 	}
-	return nil, errors.New("Login failed.")
+	return nil, errors.New("login failed")
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) error {
@@ -130,7 +132,7 @@ func GetAppUserByID(userID int64) (*models.AppUser, error) {
 	}
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interface{}, authUser *models.AuthUser) (*models.AppUser, error) {
+func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.AppUser, error) {
 	var user = param["object"].(map[string]interface{})
 	var userID = int64(user["id"].(float64))
 	var username = user["username"].(string)
@@ -162,6 +164,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 			return nil, err
 		}
 		appUser.ID = newID
+		go utils.OperationLog(clientIP, authUser.Username, "Add User", username)
 	} else {
 		// update existed user
 		if len(password) > 0 {
@@ -185,6 +188,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 			}
 		}
 		appUser.ID = userID
+		go utils.OperationLog(clientIP, authUser.Username, "Update User", username)
 	}
 	appUser.Username = username
 	appUser.Email = email
@@ -194,11 +198,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interfa
 	return appUser, nil
 }
 
-func DeleteUser(userID int64, authUser *models.AuthUser) error {
-	if authUser.IsSuperAdmin == false && userID != authUser.UserID {
+func DeleteUser(userID int64, clientIP string, authUser *models.AuthUser) error {
+	if !authUser.IsSuperAdmin && userID != authUser.UserID {
 		return errors.New("delete others is not permitted")
 	}
 	err := data.DAL.DeleteAppUser(userID)
+	go utils.OperationLog(clientIP, authUser.Username, "Delete User", strconv.FormatInt(userID, 10))
 	return err
 }
 

@@ -61,9 +61,9 @@ func (dal *MyDAL) InsertApplication(appName string, internalScheme string, redir
 // UpdateApplication update an Application
 func (dal *MyDAL) UpdateApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string, appID int64) error {
 	const sqlUpdateApplication = `UPDATE "applications" SET "name"=$1,"internal_scheme"=$2,"redirect_https"=$3,"hsts_enabled"=$4,"waf_enabled"=$5,"ip_method"=$6,"description"=$7,"oauth_required"=$8,"session_seconds"=$9,"owner"=$10,"csp_enabled"=$11,"csp"=$12 WHERE "id"=$13`
-	stmt, err := dal.db.Prepare(sqlUpdateApplication)
+	stmt, _ := dal.db.Prepare(sqlUpdateApplication)
 	defer stmt.Close()
-	_, err = stmt.Exec(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
+	_, err := stmt.Exec(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
 	utils.CheckError("UpdateApplication", err)
 	return err
 }
@@ -71,9 +71,9 @@ func (dal *MyDAL) UpdateApplication(appName string, internalScheme string, redir
 // DeleteApplication delete an Application
 func (dal *MyDAL) DeleteApplication(appID int64) error {
 	const sqlDeleteApplication = `DELETE FROM "applications" WHERE "id"=$1`
-	stmt, err := dal.db.Prepare(sqlDeleteApplication)
+	stmt, _ := dal.db.Prepare(sqlDeleteApplication)
 	defer stmt.Close()
-	_, err = stmt.Exec(appID)
+	_, err := stmt.Exec(appID)
 	utils.CheckError("DeleteApplication", err)
 	return err
 }

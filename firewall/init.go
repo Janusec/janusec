@@ -19,7 +19,7 @@ func InitFirewall() {
 	ccPolicies.Range(func(key, value interface{}) bool {
 		appID := key.(int64)
 		ccPolicy := value.(*models.CCPolicy)
-		if ccPolicy.IsEnabled == true {
+		if ccPolicy.IsEnabled {
 			go CCAttackTick(appID)
 		}
 		return true

@@ -61,7 +61,7 @@ func main() {
 	backend.LoadAppConfiguration()
 	firewall.InitFirewall()
 	data.LoadSettings()
-	if data.IsPrimary == false {
+	if !data.IsPrimary {
 		go gateway.UpdateTimeTick()
 	}
 	go gateway.InitAccessStat()
@@ -95,7 +95,7 @@ func main() {
 	gateMux := http.NewServeMux()
 	if data.IsPrimary {
 		admin := data.CFG.PrimaryNode.Admin
-		if admin.Listen == true {
+		if admin.Listen {
 			adminMux := http.NewServeMux()
 			LoadAPIRoute(adminMux)
 			if len(admin.ListenHTTP) > 0 {

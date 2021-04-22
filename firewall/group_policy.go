@@ -40,7 +40,7 @@ func InitGroupPolicy() {
 			utils.DebugPrintln("CreateTableIfNotExistCheckItems error", err)
 		}
 		existRegexPolicy := data.DAL.ExistsGroupPolicy()
-		if existRegexPolicy == false {
+		if !existRegexPolicy {
 			err := data.DAL.SetIDSeqStartWith("group_policies", 10101)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy SetIDSeqStartWith error", err)
@@ -174,7 +174,7 @@ func GetGroupPolicyByID(id int64) (*models.GroupPolicy, error) {
 			return groupPolicy, nil
 		}
 	}
-	return nil, errors.New("Not found")
+	return nil, errors.New("not found")
 }
 
 // GetGroupPolicyIndex ...
@@ -188,9 +188,9 @@ func GetGroupPolicyIndex(id int64) int {
 }
 
 // DeleteGroupPolicyByID ...
-func DeleteGroupPolicyByID(id int64, authUser *models.AuthUser) error {
-	if authUser.IsSuperAdmin == false {
-		return errors.New("Only super administrators can perform this operation")
+func DeleteGroupPolicyByID(id int64, clientIP string, authUser *models.AuthUser) error {
+	if !authUser.IsSuperAdmin {
+		return errors.New("only super administrators can perform this operation")
 	}
 	groupPolicy, err := GetGroupPolicyByID(id)
 	if err != nil {
@@ -206,24 +206,28 @@ func DeleteGroupPolicyByID(id int64, authUser *models.AuthUser) error {
 	}
 	i := GetGroupPolicyIndex(id)
 	groupPolicies = append(groupPolicies[:i], groupPolicies[i+1:]...)
+	go utils.OperationLog(clientIP, authUser.Username, "Delete Group Policy", strconv.FormatInt(id, 10))
 	data.UpdateFirewallLastModified()
 	return nil
 }
 
 // UpdateGroupPolicy ...
-func UpdateGroupPolicy(r *http.Request, userID int64, authUser *models.AuthUser) (*models.GroupPolicy, error) {
-	if authUser.IsSuperAdmin == false {
-		return nil, errors.New("Only super administrators can perform this operation")
+func UpdateGroupPolicy(r *http.Request, userID int64, clientIP string, authUser *models.AuthUser) (*models.GroupPolicy, error) {
+	if !authUser.IsSuperAdmin {
+		return nil, errors.New("only super administrators can perform this operation")
 	}
 	var setGroupPolicyRequest models.RPCSetGroupPolicy
 	err := json.NewDecoder(r.Body).Decode(&setGroupPolicyRequest)
+	if err != nil {
+		return nil, errors.New("decode body error")
+	}
 	defer r.Body.Close()
 	utils.CheckError("UpdateGroupPolicy Decode", err)
 	curGroupPolicy := setGroupPolicyRequest.Object
-	curGroupPolicy.UpdateTime = time.Now().Unix()
 	if curGroupPolicy == nil {
-		return nil, errors.New("UpdateGroupPolicy parse body null")
+		return nil, errors.New("updateGroupPolicy parse body null")
 	}
+	curGroupPolicy.UpdateTime = time.Now().Unix()
 	checkItems := curGroupPolicy.CheckItems
 	curGroupPolicy.HitValue = 0
 	for _, checkItem := range checkItems {
@@ -243,10 +247,11 @@ func UpdateGroupPolicy(r *http.Request, userID int64, authUser *models.AuthUser)
 		if err != nil {
 			utils.DebugPrintln("UpdateGroupPolicy UpdateCheckItems error", err)
 		}
+		go utils.OperationLog(clientIP, authUser.Username, "Add Group Policy", curGroupPolicy.Description)
 	} else {
 		groupPolicy, err := GetGroupPolicyByID(curGroupPolicy.ID)
 		utils.CheckError("UpdateGroupPolicy GetGroupPolicyByID", err)
-		err = data.DAL.UpdateGroupPolicy(curGroupPolicy.Description, curGroupPolicy.AppID, curGroupPolicy.VulnID, curGroupPolicy.HitValue, curGroupPolicy.Action, curGroupPolicy.IsEnabled, curGroupPolicy.UserID, curTime, groupPolicy.ID)
+		_ = data.DAL.UpdateGroupPolicy(curGroupPolicy.Description, curGroupPolicy.AppID, curGroupPolicy.VulnID, curGroupPolicy.HitValue, curGroupPolicy.Action, curGroupPolicy.IsEnabled, curGroupPolicy.UserID, curTime, groupPolicy.ID)
 		groupPolicy.Description = curGroupPolicy.Description
 		groupPolicy.AppID = curGroupPolicy.AppID
 		groupPolicy.VulnID = curGroupPolicy.VulnID
@@ -259,6 +264,7 @@ func UpdateGroupPolicy(r *http.Request, userID int64, authUser *models.AuthUser)
 		if err != nil {
 			utils.DebugPrintln("UpdateGroupPolicy UpdateCheckItems error", err)
 		}
+		go utils.OperationLog(clientIP, authUser.Username, "Update Group Policy", curGroupPolicy.Description)
 	}
 	return curGroupPolicy, nil
 }
@@ -280,7 +286,7 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 	}
 	for _, checkItem := range checkItems {
 		groupPolicy := checkItem.GroupPolicy
-		if groupPolicy.IsEnabled == false {
+		if !groupPolicy.IsEnabled {
 			continue
 		}
 		if groupPolicy.AppID == 0 || groupPolicy.AppID == appID {
@@ -294,7 +300,7 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 				hit, err = regexp.MatchString(checkItem.RegexPolicy, value)
 				utils.CheckError("IsMatchGroupPolicy MatchString", err)
 			case models.OperationEqualsStringCaseInsensitive:
-				if strings.ToLower(checkItem.RegexPolicy) == strings.ToLower(value) {
+				if strings.EqualFold(checkItem.RegexPolicy, value) {
 					hit = true
 				}
 			case models.OperationGreaterThanInteger:
@@ -324,7 +330,7 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 				hit = !notHit
 				utils.CheckError("IsMatchGroupPolicy NotMatchString", err)
 			}
-			if hit == true {
+			if hit {
 				hitValueInterface, _ := hitValueMap.LoadOrStore(groupPolicy.ID, int64(0))
 				hitValue := hitValueInterface.(int64)
 				hitValue += int64(checkItem.CheckPoint)

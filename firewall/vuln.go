@@ -32,7 +32,7 @@ func InitVulnType() {
 			os.Exit(1)
 		}
 		existVuln := data.DAL.ExistsVulnType()
-		if existVuln == false {
+		if !existVuln {
 			err := data.DAL.InsertVulnType(001, "None")
 			if err != nil {
 				utils.DebugPrintln("InsertVulnType error", err)

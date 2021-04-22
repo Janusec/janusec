@@ -10,6 +10,7 @@ package firewall
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -52,7 +53,7 @@ func CCAttackTick(appID int64) {
 			clientID := key.(string)
 			stat := value.(*models.ClientStat)
 			//fmt.Println("CCAttackTick:", appID, clientID, stat)
-			if stat.IsBadIP == true {
+			if stat.IsBadIP {
 				stat.RemainSeconds -= ccPolicy.IntervalMilliSeconds / 1000.0
 				if stat.RemainSeconds <= 0 {
 					appCCCount.Delete(clientID)
@@ -124,7 +125,7 @@ func IsCCAttack(r *http.Request, app *models.Application, srcIP string) (bool, *
 		}
 	}
 	ccPolicy := GetCCPolicyByAppID(app.ID)
-	if ccPolicy.IsEnabled == false {
+	if !ccPolicy.IsEnabled {
 		return false, nil, "", false
 	}
 	if isCC {
@@ -138,21 +139,21 @@ func IsCCAttack(r *http.Request, app *models.Application, srcIP string) (bool, *
 	ccCount, _ := ccCounts.LoadOrStore(ccAppID, &sync.Map{})
 	appCCCount := ccCount.(*sync.Map)
 	preHashContent := srcIP
-	if ccPolicy.StatByURL == true {
+	if ccPolicy.StatByURL {
 		preHashContent += r.URL.Path
 	}
-	if ccPolicy.StatByUserAgent == true {
+	if ccPolicy.StatByUserAgent {
 		ua := r.Header.Get("User-Agent")
 		preHashContent += ua
 	}
-	if ccPolicy.StatByCookie == true {
+	if ccPolicy.StatByCookie {
 		cookie := r.Header.Get("Cookie")
 		preHashContent += cookie
 	}
 	clientID := data.SHA256Hash(preHashContent)
 	clientIDStat, _ := appCCCount.LoadOrStore(clientID, &models.ClientStat{QuickCount: 0, SlowCount: 0, TimeFrameCount: 0, IsBadIP: false, RemainSeconds: 0})
 	clientStat := clientIDStat.(*models.ClientStat)
-	if clientStat.IsBadIP == true {
+	if clientStat.IsBadIP {
 		needLog := false
 		if clientStat.QuickCount == 0 {
 			clientStat.QuickCount++
@@ -173,7 +174,7 @@ func InitCCPolicy() {
 			utils.DebugPrintln("InitCCPolicy CreateTableIfNotExistsCCPolicy", err)
 		}
 		existCCPolicy := data.DAL.ExistsCCPolicy()
-		if existCCPolicy == false {
+		if !existCCPolicy {
 			err = data.DAL.InsertCCPolicy(0, 100, 6, 900, models.Action_Block_100, true, false, false, true)
 			if err != nil {
 				utils.DebugPrintln("InitCCPolicy InsertCCPolicy", err)
@@ -190,9 +191,9 @@ func InitCCPolicy() {
 }
 
 // UpdateCCPolicy update CC policy
-func UpdateCCPolicy(param map[string]interface{}, authUser *models.AuthUser) error {
-	if authUser.IsSuperAdmin == false {
-		return errors.New("Only super administrators can perform this operation")
+func UpdateCCPolicy(param map[string]interface{}, clientIP string, authUser *models.AuthUser) error {
+	if !authUser.IsSuperAdmin {
+		return errors.New("only super administrators can perform this operation")
 	}
 	ccPolicyMap := param["object"].(map[string]interface{})
 	appID := int64(param["id"].(float64))
@@ -205,7 +206,7 @@ func UpdateCCPolicy(param map[string]interface{}, authUser *models.AuthUser) err
 	statByCookie := ccPolicyMap["stat_by_cookie"].(bool)
 	isEnabled := ccPolicyMap["is_enabled"].(bool)
 	existAppID := data.DAL.ExistsCCPolicyByAppID(appID)
-	if existAppID == false {
+	if !existAppID {
 		// new policy
 		err := data.DAL.InsertCCPolicy(appID, intervalMilliSeconds, maxCount, blockSeconds, action, statByURL, statByUA, statByCookie, isEnabled)
 		if err != nil {
@@ -217,9 +218,10 @@ func UpdateCCPolicy(param map[string]interface{}, authUser *models.AuthUser) err
 			Action: action, StatByURL: statByURL, StatByUserAgent: statByUA, StatByCookie: statByCookie,
 			IsEnabled: isEnabled}
 		ccPolicies.Store(appID, ccPolicy)
-		if ccPolicy.IsEnabled == true {
+		if ccPolicy.IsEnabled {
 			go CCAttackTick(appID)
 		}
+		go utils.OperationLog(clientIP, authUser.Username, "Add CC Policy", strconv.FormatInt(appID, 10))
 	} else {
 		// update policy
 		err := data.DAL.UpdateCCPolicy(intervalMilliSeconds, maxCount, blockSeconds, action, statByURL, statByUA, statByCookie, isEnabled, appID)
@@ -240,21 +242,22 @@ func UpdateCCPolicy(param map[string]interface{}, authUser *models.AuthUser) err
 		ccPolicy.StatByCookie = statByCookie
 		ccPolicy.Action = action
 		ccPolicy.IsEnabled = isEnabled
-		if ccPolicy.IsEnabled == true {
+		if ccPolicy.IsEnabled {
 			go CCAttackTick(appID)
 		}
+		go utils.OperationLog(clientIP, authUser.Username, "Update CC Policy", strconv.FormatInt(appID, 10))
 	}
 	data.UpdateFirewallLastModified()
 	return nil
 }
 
 // DeleteCCPolicyByAppID delete CC policy by app id
-func DeleteCCPolicyByAppID(appID int64, authUser *models.AuthUser, adminRequired bool) error {
-	if adminRequired && authUser.IsSuperAdmin == false {
+func DeleteCCPolicyByAppID(appID int64, clientIP string, authUser *models.AuthUser, adminRequired bool) error {
+	if adminRequired && !authUser.IsSuperAdmin {
 		return errors.New("only super admin can delete CC policy")
 	}
 	if appID == 0 {
-		return errors.New("Global CC policy cannot be deleted")
+		return errors.New("global CC policy cannot be deleted")
 	}
 	err := data.DAL.DeleteCCPolicy(appID)
 	if err != nil {
@@ -267,6 +270,7 @@ func DeleteCCPolicyByAppID(appID int64, authUser *models.AuthUser, adminRequired
 			ccTicker.Stop()
 		}
 	}
+	go utils.OperationLog(clientIP, authUser.Username, "Delete CC Policy by AppID", strconv.FormatInt(appID, 10))
 	data.UpdateFirewallLastModified()
 	return nil
 }

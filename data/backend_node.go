@@ -34,7 +34,7 @@ func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
 	dbNodes := []*models.DBNode{}
 	for rows.Next() {
 		dbNode := &models.DBNode{}
-		err = rows.Scan(&dbNode.ID, &dbNode.Version, &dbNode.LastIP, &dbNode.LastRequestTime)
+		_ = rows.Scan(&dbNode.ID, &dbNode.Version, &dbNode.LastIP, &dbNode.LastRequestTime)
 		dbNodes = append(dbNodes, dbNode)
 	}
 	return dbNodes
@@ -55,9 +55,9 @@ func (dal *MyDAL) InsertNode(version string, lastIP string, lastReqTime int64) (
 
 // UpdateNodeLastInfo ...
 func (dal *MyDAL) UpdateNodeLastInfo(version string, lastIP string, lastReqTime int64, id int64) error {
-	stmt, err := dal.db.Prepare(sqlUpdateNodeLastInfo)
+	stmt, _ := dal.db.Prepare(sqlUpdateNodeLastInfo)
 	defer stmt.Close()
-	_, err = stmt.Exec(version, lastIP, lastReqTime, id)
+	_, err := stmt.Exec(version, lastIP, lastReqTime, id)
 	utils.CheckError("UpdateNodeLastInfo", err)
 	return err
 }

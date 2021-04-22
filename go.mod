@@ -16,6 +16,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/josharian/native v0.0.0-20200817173448-b6b71def0850 // indirect
 	github.com/lib/pq v1.10.0
+	github.com/mdlayher/ethtool v0.0.0-20210210192532-2b88debcdd43 // indirect
 	github.com/mdlayher/genetlink v1.0.0 // indirect
 	github.com/mdlayher/netlink v1.4.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -29,9 +30,9 @@ require (
 	github.com/yookoala/gofast v0.6.0
 	github.com/yuin/goldmark v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
+	golang.org/x/net v0.0.0-20210421230115-4e50805a0758
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
-	golang.org/x/sys v0.0.0-20210420072515-93ed5bcd2bfe // indirect
+	golang.org/x/sys v0.0.0-20210421221651-33663a62ff08 // indirect
 	golang.org/x/tools/gopls v0.6.10 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect

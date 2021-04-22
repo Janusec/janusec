@@ -27,7 +27,7 @@ func DeleteVipTargetsByAppID(id int64) {
 func CheckOfflineVipTargets(nowTimeStamp int64) {
 	for _, vipApp := range VipApps {
 		for _, target := range vipApp.Targets {
-			if target.Online == false {
+			if !target.Online {
 				go func(vApp *models.VipApp, vTarget *models.VipTarget) {
 					var conn net.Conn
 					var err error
@@ -39,7 +39,7 @@ func CheckOfflineVipTargets(nowTimeStamp int64) {
 							vTarget.CheckTime = nowTimeStamp
 						}
 					} else {
-						targetAddr, err := net.ResolveUDPAddr("udp", vTarget.Destination)
+						targetAddr, _ := net.ResolveUDPAddr("udp", vTarget.Destination)
 						udpTargetConn, err := net.DialUDP("udp", nil, targetAddr)
 						if err != nil {
 							vTarget.Online = false
