@@ -7,7 +7,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dchest/captcha v0.0.0-20200903113550-03f5f0333e1f
 	github.com/go-ini/ini v1.38.1 // indirect
-	github.com/go-ldap/ldap/v3 v3.3.0 // indirect
+	github.com/go-ldap/ldap/v3 v3.3.0
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/google/go-cmp v0.5.5 // indirect
 	github.com/google/nftables v0.0.0-20201230142148-715e31cb3c31
@@ -33,6 +33,7 @@ require (
 	golang.org/x/net v0.0.0-20210421230115-4e50805a0758
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
 	golang.org/x/sys v0.0.0-20210421221651-33663a62ff08 // indirect
+	golang.org/x/tools v0.1.1-0.20210408155258-593413344da1 // indirect
 	golang.org/x/tools/gopls v0.6.10 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
