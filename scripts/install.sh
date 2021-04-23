@@ -94,7 +94,7 @@ if [ $option == 1 ]; then
         sed -i "s/$old_pg/$new_pg/" ./janusec.service
     fi    
     \cp -f ./janusec.service ${full_service_path}
-    printf "* PostgreSQL 9.3/9.4/9.5/9.6/10 and prepare dbname,username,password \n"
+    printf "* PostgreSQL and prepare dbname,username,password \n"
     printf "* Fill in the config.json with dbname,username,password \n"
 else
     \cp -f ./janusec.service ./janusec-replica.service
