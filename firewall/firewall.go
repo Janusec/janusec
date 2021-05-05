@@ -66,7 +66,9 @@ func UnEscapeRawValue(rawQuery string) string {
 	re := regexp.MustCompile(`%$`)
 	rawQuery = re.ReplaceAllString(rawQuery, `%25`)
 	decodeQuery, err := url.QueryUnescape(rawQuery)
-	utils.CheckError("UnEscapeRawValue", err)
+	if err != nil {
+		utils.DebugPrintln("UnEscapeRawValue", err)
+	}
 	decodeQuery = PreProcessString(decodeQuery)
 	//fmt.Println("UnEscapeRawValue decodeQuery", decodeQuery)
 	return decodeQuery
@@ -333,20 +335,12 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 			}
 		}
 	}
-	// ChkPoint_ResponseBodyLength, deprecated from v1.1.0
-	// resp.ContentLength = -1 if unknown
-	/*
-		bodyLength := strconv.FormatInt(resp.ContentLength, 10)
-		matched, policy = IsMatchGroupPolicy(ctxMap, appID, bodyLength, models.ChkPointResponseBodyLength, "", false)
-		//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBodyLength", matched)
-		if matched {
-			return matched, policy
-		}
-	*/
 
 	// ChkPoint_ResponseBody
 	bodyBuf, err := ioutil.ReadAll(resp.Body)
-	utils.CheckError("IsResponseHitPolicy ChkPoint_ResponseBody ReadAll", err)
+	if err != nil {
+		utils.DebugPrintln("IsResponseHitPolicy ChkPoint_ResponseBody ReadAll", err)
+	}
 	contentEncoding := resp.Header.Get("Content-Encoding")
 	var body1 string
 	if contentEncoding == "gzip" {

@@ -18,15 +18,15 @@ import (
 )
 
 func GetOAuthConfig() (*models.OAuthConfig, error) {
-	return data.AuthConfig, nil
+	return data.NodeSetting.AuthConfig, nil
 }
 
 func GetResponse(request *http.Request) (respBytes []byte, err error) {
 	request.Header.Set("Accept", "application/json")
 	client := http.Client{}
 	resp, err := client.Do(request)
-	utils.CheckError("GetResponse Do", err)
 	if err != nil {
+		utils.DebugPrintln("GetResponse Do", err)
 		return nil, err
 	}
 	defer resp.Body.Close()

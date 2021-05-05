@@ -18,7 +18,9 @@ func RPCGroupHitLog(regexHitLog *models.GroupHitLog) {
 	rpcRequest := &models.RPCRequest{
 		Action: "log_group_hit", Object: regexHitLog}
 	_, err := data.GetRPCResponse(rpcRequest)
-	utils.CheckError("RPCRegexHitLog", err)
+	if err != nil {
+		utils.DebugPrintln("RPCRegexHitLog", err)
+	}
 }
 
 // RPCCCLog ...
@@ -26,5 +28,7 @@ func RPCCCLog(ccLog *models.CCLog) {
 	rpcRequest := &models.RPCRequest{
 		Action: "log_cc", Object: ccLog}
 	_, err := data.GetRPCResponse(rpcRequest)
-	utils.CheckError("RPCCCLog", err)
+	if err != nil {
+		utils.DebugPrintln("RPCCCLog", err)
+	}
 }

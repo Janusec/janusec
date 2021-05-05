@@ -18,7 +18,9 @@ func (dal *MyDAL) UpdateDestinationNode(routeType int64, requestRoute string, ba
 	stmt, _ := dal.db.Prepare(sqlUpdateDestinationNode)
 	defer stmt.Close()
 	_, err := stmt.Exec(routeType, requestRoute, backendRoute, destination, appID, nodeID, id)
-	utils.CheckError("UpdateDestinationNode", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateDestinationNode", err)
+	}
 	return err
 }
 
@@ -27,7 +29,9 @@ func (dal *MyDAL) ExistsDestinationID(id int64) bool {
 	var exist int
 	const sqlExistsDestinationID = `SELECT COALESCE((SELECT 1 FROM "destinations" WHERE "id"=$1 limit 1),0)`
 	err := dal.db.QueryRow(sqlExistsDestinationID, id).Scan(&exist)
-	utils.CheckError("ExistsDestinationID", err)
+	if err != nil {
+		utils.DebugPrintln("ExistsDestinationID", err)
+	}
 	return exist != 0
 }
 
@@ -35,6 +39,9 @@ func (dal *MyDAL) ExistsDestinationID(id int64) bool {
 func (dal *MyDAL) CreateTableIfNotExistsDestinations() error {
 	const sqlCreateTableIfNotExistsDestinations = `CREATE TABLE IF NOT EXISTS "destinations"("id" bigserial PRIMARY KEY,"route_type" bigint default 1,"request_route" VARCHAR(128) NOT NULL DEFAULT '/',"backend_route" VARCHAR(128) NOT NULL DEFAULT '/',"destination" VARCHAR(128) NOT NULL,"app_id" bigint NOT NULL,"node_id" bigint NOT NULL)`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsDestinations)
+	if err != nil {
+		utils.DebugPrintln("CreateTableIfNotExistsDestinations", err)
+	}
 	return err
 }
 
@@ -43,8 +50,8 @@ func (dal *MyDAL) SelectDestinationsByAppID(appID int64) []*models.Destination {
 	dests := []*models.Destination{}
 	const sqlSelectDestinationsByAppID = `SELECT "id","route_type","request_route","backend_route","destination","node_id" FROM "destinations" WHERE "app_id"=$1`
 	rows, err := dal.db.Query(sqlSelectDestinationsByAppID, appID)
-	utils.CheckError("SelectDestinationsByAppID", err)
 	if err != nil {
+		utils.DebugPrintln("SelectDestinationsByAppID", err)
 		return dests
 	}
 	defer rows.Close()
@@ -63,7 +70,9 @@ func (dal *MyDAL) SelectDestinationsByAppID(appID int64) []*models.Destination {
 func (dal *MyDAL) InsertDestination(routeType int64, requestRoute string, backendRoute string, dest string, appID int64, nodeID int64) (newID int64, err error) {
 	const sqlInsertDestination = `INSERT INTO "destinations"("route_type","request_route","backend_route","destination","app_id","node_id") VALUES($1,$2,$3,$4,$5,$6) RETURNING "id"`
 	err = dal.db.QueryRow(sqlInsertDestination, routeType, requestRoute, backendRoute, dest, appID, nodeID).Scan(&newID)
-	utils.CheckError("InsertDestination", err)
+	if err != nil {
+		utils.DebugPrintln("InsertDestination", err)
+	}
 	return newID, err
 }
 
@@ -73,7 +82,9 @@ func (dal *MyDAL) DeleteDestinationByID(id int64) error {
 	stmt, _ := dal.db.Prepare(sqlDeleteDestinationByID)
 	defer stmt.Close()
 	_, err := stmt.Exec(id)
-	utils.CheckError("DeleteDestinationByID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteDestinationByID", err)
+	}
 	return err
 }
 
@@ -83,6 +94,8 @@ func (dal *MyDAL) DeleteDestinationsByAppID(appID int64) error {
 	stmt, _ := dal.db.Prepare(sqlDeleteDestinationsByAppID)
 	defer stmt.Close()
 	_, err := stmt.Exec(appID)
-	utils.CheckError("DeleteDestinationsByAppID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteDestinationsByAppID", err)
+	}
 	return err
 }

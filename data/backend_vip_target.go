@@ -24,8 +24,8 @@ func (dal *MyDAL) SelectVipTargetsByAppID(vipAppID int64) []*models.VipTarget {
 	targets := []*models.VipTarget{}
 	const sqlSelectVipTargetsByAppID = `SELECT "id","destination" FROM "vip_targets" WHERE "vip_app_id"=$1`
 	rows, err := dal.db.Query(sqlSelectVipTargetsByAppID, vipAppID)
-	utils.CheckError("SelectDestinationsByAppID", err)
 	if err != nil {
+		utils.DebugPrintln("SelectDestinationsByAppID", err)
 		return targets
 	}
 	defer rows.Close()
@@ -44,7 +44,9 @@ func (dal *MyDAL) SelectVipTargetsByAppID(vipAppID int64) []*models.VipTarget {
 func (dal *MyDAL) UpdateVipTarget(vipAppID int64, destination string, id int64) error {
 	const sqlUpdateTarget = `UPDATE "vip_targets" SET "vip_app_id"=$1,"destination"=$2 WHERE "id"=$3`
 	_, err := dal.db.Exec(sqlUpdateTarget, vipAppID, destination, id)
-	utils.CheckError("UpdateVipTarget", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateVipTarget", err)
+	}
 	return err
 }
 
@@ -52,7 +54,9 @@ func (dal *MyDAL) UpdateVipTarget(vipAppID int64, destination string, id int64) 
 func (dal *MyDAL) InsertVipTarget(vipAppID int64, destination string) (newID int64, err error) {
 	const sqlInsertTarget = `INSERT INTO "vip_targets"("vip_app_id", "destination") VALUES($1,$2) RETURNING "id"`
 	err = dal.db.QueryRow(sqlInsertTarget, vipAppID, destination).Scan(&newID)
-	utils.CheckError("InsertVipTarget", err)
+	if err != nil {
+		utils.DebugPrintln("InsertVipTarget", err)
+	}
 	return newID, err
 }
 
@@ -60,7 +64,9 @@ func (dal *MyDAL) InsertVipTarget(vipAppID int64, destination string) (newID int
 func (dal *MyDAL) DeleteVipTargetByID(id int64) error {
 	const sqlDeleteVipTargetByID = `DELETE FROM "vip_targets" WHERE "id"=$1`
 	_, err := dal.db.Exec(sqlDeleteVipTargetByID, id)
-	utils.CheckError("DeleteDestinationByID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteDestinationByID", err)
+	}
 	return err
 }
 
@@ -68,6 +74,8 @@ func (dal *MyDAL) DeleteVipTargetByID(id int64) error {
 func (dal *MyDAL) DeleteVipTargetsByVipAppID(vipAppID int64) error {
 	const sqlDeleteVipTargetsByVipAppID = `DELETE FROM "vip_targets" WHERE "vip_app_id"=$1`
 	_, err := dal.db.Exec(sqlDeleteVipTargetsByVipAppID, vipAppID)
-	utils.CheckError("DeleteVipTargetsByVipAppID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteVipTargetsByVipAppID", err)
+	}
 	return err
 }

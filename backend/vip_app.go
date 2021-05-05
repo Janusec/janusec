@@ -9,7 +9,6 @@ package backend
 
 import (
 	"errors"
-	"fmt"
 	"hash/fnv"
 	"io"
 	"janusec/data"
@@ -117,6 +116,9 @@ func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 			if err != nil {
 				utils.DebugPrintln("UDPForwarding DialUDP could not connect to target", vipTarget.Destination, err)
 				vipTarget.Online = false
+				if data.NodeSetting.SMTP.SMTPEnabled {
+					sendVIPOfflineNotification(vipApp, vipTarget.Destination)
+				}
 				break
 			}
 			if udpTargetConn == nil {
@@ -131,15 +133,18 @@ func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 			udpTargetConn.SetDeadline(time.Now().Add(30 * time.Second))
 			go func() {
 				// make receiver ready before send request
-				data := make([]byte, 2048)
+				dataBuf := make([]byte, 2048)
 				for {
-					n, _, err := udpTargetConn.ReadFromUDP(data)
+					n, _, err := udpTargetConn.ReadFromUDP(dataBuf)
 					if err != nil {
 						vipTarget.Online = false
+						if data.NodeSetting.SMTP.SMTPEnabled {
+							sendVIPOfflineNotification(vipApp, vipTarget.Destination)
+						}
 						break
 					}
 					// Response to client
-					_, err = udpListenConn.WriteToUDP(data[:n], clientAddr)
+					_, err = udpListenConn.WriteToUDP(dataBuf[:n], clientAddr)
 					if err != nil {
 						break
 					}
@@ -179,6 +184,9 @@ func TCPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
 			if err != nil {
 				utils.DebugPrintln("TCPForwarding could not connect to target", vipTarget.Destination, err)
 				vipTarget.Online = false
+				if data.NodeSetting.SMTP.SMTPEnabled {
+					sendVIPOfflineNotification(vipApp, vipTarget.Destination)
+				}
 				continue
 			}
 			vipTarget.Online = true
@@ -297,7 +305,6 @@ func UpdateVipApp(param map[string]interface{}, clientIP string, authUser *model
 	vipListener, err := net.Listen("tcp", ":"+strconv.FormatInt(vipApp.ListenPort, 10))
 	if err != nil {
 		utils.DebugPrintln("could not start server on port ", vipApp.ListenPort, err)
-		fmt.Println("UpdateVipApp could not start server on port ", vipApp.ListenPort, vipListener, err)
 	}
 	if vipListener != nil {
 		vipListener.Close()
@@ -384,4 +391,24 @@ func GetVipAppIndex(vipAppID int64) int {
 		}
 	}
 	return -1
+}
+
+// sendVIPOfflineNotification ...
+func sendVIPOfflineNotification(app *models.VipApp, dest string) {
+	var emails string
+	if data.IsPrimary {
+		emails = data.DAL.GetAppAdminAndOwnerEmails(app.Owner)
+	} else {
+		emails = data.NodeSetting.SMTP.AdminEmails
+	}
+	mailBody := "Backend virtual IP server: " + dest + " (" + app.Name + ") was offline."
+	if len(mailBody) > 0 && len(emails) > 0 {
+		go utils.SendEmail(data.NodeSetting.SMTP.SMTPServer,
+			data.NodeSetting.SMTP.SMTPPort,
+			data.NodeSetting.SMTP.SMTPAccount,
+			data.NodeSetting.SMTP.SMTPPassword,
+			emails,
+			"[JANUSEC] Backend server offline notification",
+			mailBody)
+	}
 }

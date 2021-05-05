@@ -32,7 +32,9 @@ func (dal *MyDAL) CreateTableIfNotExistsCertificates() error {
 // SelectCertificates ...
 func (dal *MyDAL) SelectCertificates() []*models.DBCertItem {
 	rows, err := dal.db.Query(sqlSelectCertificates)
-	utils.CheckError("SelectCertificates", err)
+	if err != nil {
+		utils.DebugPrintln("SelectCertificates", err)
+	}
 	defer rows.Close()
 	var dbCerts = []*models.DBCertItem{}
 	for rows.Next() {
@@ -48,7 +50,9 @@ func (dal *MyDAL) SelectCertificates() []*models.DBCertItem {
 // InsertCertificate ...
 func (dal *MyDAL) InsertCertificate(commonName string, certContent string, encryptedPrivKey []byte, expireTime int64, description string) (newID int64) {
 	err := dal.db.QueryRow(sqlInsertCertificate, commonName, certContent, encryptedPrivKey, expireTime, description).Scan(&newID)
-	utils.CheckError("InsertCertificate", err)
+	if err != nil {
+		utils.DebugPrintln("InsertCertificate", err)
+	}
 	return newID
 }
 
@@ -57,7 +61,9 @@ func (dal *MyDAL) UpdateCertificate(commonName string, certContent string, encry
 	stmt, _ := dal.db.Prepare(sqlUpdateCertificate)
 	defer stmt.Close()
 	_, err := stmt.Exec(commonName, certContent, encryptedPrivKey, expireTime, description, id)
-	utils.CheckError("UpdateCertificate", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateCertificate", err)
+	}
 	return err
 }
 
@@ -66,7 +72,9 @@ func (dal *MyDAL) DeleteCertificate(certID int64) error {
 	stmt, _ := dal.db.Prepare(sqlDeleteCertificate)
 	defer stmt.Close()
 	_, err := stmt.Exec(certID)
-	utils.CheckError("DeleteCertificate", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteCertificate", err)
+	}
 	return err
 }
 
@@ -78,8 +86,8 @@ func GetCertificateExpiryTime(certPem string) int64 {
 		return 0
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
-	utils.CheckError("GetCertificateExpiryTime", err)
 	if err != nil {
+		utils.DebugPrintln("GetCertificateExpiryTime", err)
 		return 0
 	}
 	return cert.NotAfter.Unix()

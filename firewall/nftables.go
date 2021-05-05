@@ -76,7 +76,7 @@ func InitNFTables() {
 	}
 	err = conn.Flush()
 	if err != nil {
-		utils.CheckError("nftables init error", err)
+		utils.DebugPrintln("nftables init error", err)
 	}
 }
 
@@ -92,10 +92,10 @@ func AddIP2NFTables(ip string, blockSeconds float64) {
 		{Key: []byte(net.ParseIP(ip).To4()), Timeout: time.Duration(blockSeconds) * time.Second},
 	})
 	if err != nil {
-		utils.CheckError("AddIP2NFTables SetAddElements error", err)
+		utils.DebugPrintln("AddIP2NFTables SetAddElements error", err)
 	}
 	err = conn.Flush()
 	if err != nil {
-		utils.CheckError("AddIP2NFTables flush error", err)
+		utils.DebugPrintln("AddIP2NFTables flush error", err)
 	}
 }

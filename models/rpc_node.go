@@ -71,10 +71,12 @@ type RPCVulntypes struct {
 	Object []*VulnType `json:"object"`
 }
 
+/*
 type RPCSettings struct {
 	Error  *string    `json:"err"`
 	Object []*Setting `json:"object"`
 }
+*/
 
 type RPCOAuthConfig struct {
 	Error  *string      `json:"err"`
@@ -100,4 +102,15 @@ type RPCRefererRequest struct {
 	NodeID   int64                                             `json:"node_id"`
 	AuthKey  string                                            `json:"auth_key"`
 	Object   *map[int64]map[string]map[string]map[string]int64 `json:"object"`
+}
+
+type RPCNodeSetting struct {
+	Error  *string           `json:"err"`
+	Object *NodeShareSetting `json:"object"`
+}
+
+// PrimarySettingRequest for update NodeSetting
+type PrimarySettingRequest struct {
+	Action string          `json:"action"`
+	Object *PrimarySetting `json:"object"`
 }

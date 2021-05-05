@@ -20,13 +20,13 @@ func RPCSelectApplications() []*models.Application {
 	rpcRequest := &models.RPCRequest{Action: "get_apps", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
-		utils.CheckError("RPCSelectApplications GetResponse", err)
+		utils.DebugPrintln("RPCSelectApplications GetResponse", err)
 		return nil
 	}
 	rpcApps := &models.RPCApplications{}
 	err = json.Unmarshal(resp, rpcApps)
 	if err != nil {
-		utils.CheckError("RPCSelectApplications Unmarshal", err)
+		utils.DebugPrintln("RPCSelectApplications Unmarshal", err)
 		return nil
 	}
 	applications := rpcApps.Object
@@ -38,13 +38,13 @@ func RPCSelectVipApplications() []*models.VipApp {
 	rpcRequest := &models.RPCRequest{Action: "get_vip_apps", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
-		utils.CheckError("RPCSelectVipApplications GetResponse", err)
+		utils.DebugPrintln("RPCSelectVipApplications GetResponse", err)
 		return nil
 	}
 	rpcVipApps := &models.RPCVipApps{}
 	err = json.Unmarshal(resp, rpcVipApps)
 	if err != nil {
-		utils.CheckError("RPCSelectVipApplications Unmarshal", err)
+		utils.DebugPrintln("RPCSelectVipApplications Unmarshal", err)
 		return nil
 	}
 	vipApps := rpcVipApps.Object

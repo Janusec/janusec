@@ -152,6 +152,7 @@ func LoadApps() {
 				RedirectHTTPS:  dbApp.RedirectHTTPS,
 				HSTSEnabled:    dbApp.HSTSEnabled,
 				WAFEnabled:     dbApp.WAFEnabled,
+				ShieldEnabled:  dbApp.ShieldEnabled,
 				ClientIPMethod: dbApp.ClientIPMethod,
 				Description:    dbApp.Description,
 				Destinations:   []*models.Destination{},
@@ -325,6 +326,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 	redirectHTTPS := application["redirect_https"].(bool)
 	hstsEnabled := application["hsts_enabled"].(bool)
 	wafEnabled := application["waf_enabled"].(bool)
+	shieldEnabled := application["shield_enabled"].(bool)
 	ipMethod := models.IPMethod(application["ip_method"].(float64))
 	var description string
 	var ok bool
@@ -342,7 +344,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 	var app *models.Application
 	if appID == 0 {
 		// new application
-		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp)
+		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp)
 		app = &models.Application{
 			ID: newID, Name: appName,
 			InternalScheme: internalScheme,
@@ -352,6 +354,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 			RedirectHTTPS:  redirectHTTPS,
 			HSTSEnabled:    hstsEnabled,
 			WAFEnabled:     wafEnabled,
+			ShieldEnabled:  shieldEnabled,
 			ClientIPMethod: ipMethod,
 			Description:    description,
 			OAuthRequired:  oauthRequired,
@@ -364,7 +367,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 	} else {
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
-			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
+			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
 			if err != nil {
 				utils.DebugPrintln("UpdateApplication", err)
 			}
@@ -373,6 +376,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 			app.RedirectHTTPS = redirectHTTPS
 			app.HSTSEnabled = hstsEnabled
 			app.WAFEnabled = wafEnabled
+			app.ShieldEnabled = shieldEnabled
 			app.ClientIPMethod = ipMethod
 			app.Description = description
 			app.OAuthRequired = oauthRequired

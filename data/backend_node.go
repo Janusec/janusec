@@ -29,7 +29,9 @@ func (dal *MyDAL) DeleteNodeByID(id int64) error {
 // SelectAllNodes ...
 func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
 	rows, err := dal.db.Query(sqlSelectAllNodes)
-	utils.CheckError("SelectAllNodes", err)
+	if err != nil {
+		utils.DebugPrintln("SelectAllNodes", err)
+	}
 	defer rows.Close()
 	dbNodes := []*models.DBNode{}
 	for rows.Next() {
@@ -49,7 +51,9 @@ func (dal *MyDAL) CreateTableIfNotExistsNodes() error {
 // InsertNode ...
 func (dal *MyDAL) InsertNode(version string, lastIP string, lastReqTime int64) (newID int64) {
 	err := dal.db.QueryRow(sqlInsertNode, version, lastIP, lastReqTime).Scan(&newID)
-	utils.CheckError("InsertNode", err)
+	if err != nil {
+		utils.DebugPrintln("InsertNode", err)
+	}
 	return newID
 }
 
@@ -58,6 +62,8 @@ func (dal *MyDAL) UpdateNodeLastInfo(version string, lastIP string, lastReqTime 
 	stmt, _ := dal.db.Prepare(sqlUpdateNodeLastInfo)
 	defer stmt.Close()
 	_, err := stmt.Exec(version, lastIP, lastReqTime, id)
-	utils.CheckError("UpdateNodeLastInfo", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateNodeLastInfo", err)
+	}
 	return err
 }

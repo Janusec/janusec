@@ -40,9 +40,13 @@ func LoadCerts() {
 			cert.CertContent = dbCert.CertContent
 			pubCert := []byte(cert.CertContent)
 			privKey, err := data.AES256Decrypt(dbCert.EncryptedPrivKey, false)
-			utils.CheckError("LoadCerts AES256Decrypt", err)
+			if err != nil {
+				utils.DebugPrintln("LoadCerts AES256Decrypt", err)
+			}
 			tlsCert, err := tls.X509KeyPair(pubCert, privKey)
-			utils.CheckError("LoadCerts X509KeyPair", err)
+			if err != nil {
+				utils.DebugPrintln("LoadCerts X509KeyPair", err)
+			}
 			cert.PrivKeyContent = string(privKey)
 			cert.TlsCert = tlsCert
 			cert.ExpireTime = dbCert.ExpireTime
@@ -156,8 +160,8 @@ func UpdateCertificate(param map[string]interface{}, clientIP string, authUser *
 	}
 	var certItem *models.CertItem
 	tlsCert, err := tls.X509KeyPair([]byte(certContent), []byte(privKeyContent))
-	utils.CheckError("UpdateCertificate X509KeyPair", err)
 	if err != nil {
+		utils.DebugPrintln("UpdateCertificate X509KeyPair", err)
 		return nil, err
 	}
 	if id == 0 {

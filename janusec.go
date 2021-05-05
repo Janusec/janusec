@@ -62,7 +62,7 @@ func main() {
 	firewall.InitFirewall()
 	data.LoadSettings()
 	if !data.IsPrimary {
-		go gateway.UpdateTimeTick()
+		go gateway.SyncTimeTick()
 	}
 	go gateway.InitAccessStat()
 	go gateway.Counter()
@@ -158,6 +158,10 @@ func main() {
 	gateMux.HandleFunc("/captcha/confirm", gateway.ShowCaptchaHandlerFunc)
 	gateMux.HandleFunc("/captcha/validate", gateway.ValidateCaptchaHandlerFunc)
 	gateMux.Handle("/captcha/png/", gateway.ShowCaptchaImage())
+	// Add 5-second shield Authorization
+	gateMux.HandleFunc("/.auth/shield", gateway.SecondShieldAuthorization)
+	// Test only
+	// gateMux.HandleFunc("/.auth/test", gateway.Test)
 
 	// Reverse Proxy
 	gateMux.HandleFunc("/", gateway.ReverseHandlerFunc)
@@ -233,12 +237,12 @@ func SetOSEnv() {
 	if err != nil {
 		utils.DebugPrintln("Setrlimit", err)
 	}
-	cmd := exec.Command("sysctl", "-w", "net.core.somaxconn=65535")
+	cmd := exec.Command("/usr/sbin/sysctl", "-w", "net.core.somaxconn=65535")
 	err = cmd.Run()
 	if err != nil {
 		utils.DebugPrintln("sysctl set net.core.somaxconn error:", err)
 	}
-	cmd = exec.Command("sysctl", "-w", "net.ipv4.tcp_max_syn_backlog=1024000")
+	cmd = exec.Command("/usr/sbin/sysctl", "-w", "net.ipv4.tcp_max_syn_backlog=1024000")
 	err = cmd.Run()
 	if err != nil {
 		utils.DebugPrintln("sysctl set net.ipv4.tcp_max_syn_backlog error:", err)

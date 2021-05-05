@@ -23,7 +23,9 @@ import (
 func GenAuthKey() string {
 	nodeAuth := models.NodeAuth{CurTime: time.Now().Unix()}
 	nodeAuthBytes, err := json.Marshal(nodeAuth)
-	utils.CheckError("GenAuthKey", err)
+	if err != nil {
+		utils.DebugPrintln("GenAuthKey", err)
+	}
 	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, RootKey)
 	return hex.EncodeToString(encryptedAuthBytes)
 }
@@ -33,13 +35,17 @@ func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	rpcReq.NodeVersion = Version
 	rpcReq.AuthKey = GenAuthKey()
 	bytesData, err := json.Marshal(rpcReq)
-	utils.CheckError("GetRPCResponse Marshal", err)
+	if err != nil {
+		utils.DebugPrintln("GetRPCResponse Marshal", err)
+	}
 	reader := bytes.NewReader(bytesData)
 	request, err := http.NewRequest("POST", CFG.ReplicaNode.SyncAddr, reader)
 	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	client := http.Client{}
 	resp, err := client.Do(request)
-	utils.CheckError("GetRPCResponse Do", err)
+	if err != nil {
+		utils.DebugPrintln("GetRPCResponse Do", err)
+	}
 	if err != nil {
 		utils.DebugPrintln("GetRPCResponse Do", err)
 		return nil, err

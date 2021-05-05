@@ -69,7 +69,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		domainStr = r.Host[0:index]
 	}
 	domain := backend.GetDomainByName(domainStr)
-	if domain != nil && domain.Redirect == true {
+	if domain != nil && domain.Redirect {
 		RedirectRequest(w, r, domain.Location)
 		return
 	}
@@ -85,7 +85,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		staticHandler.ServeHTTP(w, r)
 		return
 	}
-	if (r.TLS == nil) && (app.RedirectHTTPS == true) {
+	if (r.TLS == nil) && (app.RedirectHTTPS) {
 		if data.CFG.ListenHTTPS == ":443" {
 			RedirectRequest(w, r, "https://"+domainStr+r.URL.Path)
 		} else {
@@ -100,10 +100,55 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	nowTimeStamp := time.Now().Unix()
 	// dynamic
 	srcIP := GetClientIP(r, app)
+	ua := r.UserAgent()
+
+	// IP Policy
+	isAllowIP := false
+	if app.ClientIPMethod == models.IPMethod_REMOTE_ADDR {
+		// First check whether it has IP Policy
+		ipPolicy := firewall.GetIPPolicyByIPAddr(srcIP)
+		if ipPolicy != nil {
+			if ipPolicy.ApplyToCC {
+				if ipPolicy.IsAllow {
+					// Allow list, legal security testing
+					isAllowIP = true
+				} else {
+					// Block IP 15 minutes
+					go firewall.AddIP2NFTables(srcIP, 900.0)
+				}
+			}
+		}
+	}
+
+	// 5-second shield from v1.2.0
+	if !isAllowIP && app.ShieldEnabled {
+		session, _ := store.Get(r, "janusec-token")
+		// check authorization
+		shldToken := session.Values["shldtoken"]
+		if shldToken == nil {
+			isSearchEngine := false
+			if data.NodeSetting.SkipSEEnabled {
+				isSearchEngine = IsSearchEngine(ua)
+			}
+			if !isSearchEngine {
+				isCrawler := IsCrawler(r, srcIP)
+				if isCrawler {
+					// Block IP
+					go firewall.AddIP2NFTables(srcIP, 900.0)
+					return
+				}
+				// not search engine, not crawler, show 5-second shield
+				GenerateShieldPage(w, r, r.URL.Path)
+				return
+			}
+			// search engine, or authorization ok, continue
+		}
+
+	}
 
 	// Check CC
 	isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app, srcIP)
-	if isCC == true {
+	if isCC {
 		targetURL := r.URL.Path
 		if len(r.URL.RawQuery) > 0 {
 			targetURL += "?" + r.URL.RawQuery
@@ -142,7 +187,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	// WAF Check
 	if app.WAFEnabled {
-		if isHit, policy := firewall.IsRequestHitPolicy(r, app.ID, srcIP); isHit == true {
+		if isHit, policy := firewall.IsRequestHitPolicy(r, app.ID, srcIP); isHit {
 			switch policy.Action {
 			case models.Action_Block_100:
 				vulnName, _ := firewall.VulnMap.Load(policy.VulnID)
@@ -174,7 +219,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check OAuth
-	if app.OAuthRequired && data.AuthConfig.Enabled {
+	if app.OAuthRequired && data.NodeSetting.AuthConfig.Enabled {
 		session, _ := store.Get(r, "janusec-token")
 		usernameI := session.Values["userid"]
 		var url string
@@ -190,7 +235,6 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		//fmt.Println("1000", usernameI, url)
 		if usernameI == nil {
 			// Exec OAuth2 Authentication
-			ua := r.UserAgent() //r.Header.Get("User-Agent")
 			state := data.SHA256Hash(srcIP + url + ua)
 			stateSession := session.Values[state]
 			//fmt.Println("1001 state=", state, url)
@@ -221,7 +265,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			// Has state in session, get UserID from cache
 			state = stateSession.(string)
 			oauthStateI, found := usermgmt.OAuthCache.Get(state)
-			if found == false {
+			if !found {
 				// Time expired, clear session
 				session.Options = &sessions.Options{Path: "/", MaxAge: -1}
 				err := session.Save(r, w)
@@ -282,11 +326,11 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add access log and statistics
-	go utils.AccessLog(r.Host, r.Method, srcIP, r.RequestURI, r.UserAgent())
+	go utils.AccessLog(domainStr, r.Method, srcIP, r.RequestURI, ua)
 	go IncAccessStat(app.ID, r.URL.Path)
 	referer := r.Referer()
 	if len(referer) > 0 {
-		go IncRefererStat(app.ID, referer, srcIP, r.UserAgent())
+		go IncRefererStat(app.ID, referer, srcIP, ua)
 	}
 
 	if dest.RouteType == models.StaticRoute {
@@ -326,6 +370,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				dest.Online = false
 				utils.DebugPrintln("DialContext error", err)
+				if data.NodeSetting.SMTP.SMTPEnabled {
+					sendOfflineNotification(app, dest.Destination)
+				}
 				errInfo := &models.InternalErrorInfo{
 					Description: "Internal Server Offline",
 				}
@@ -340,6 +387,9 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				dest.Online = false
 				dest.CheckTime = nowTimeStamp
 				utils.DebugPrintln("DialContext error", err)
+				if data.NodeSetting.SMTP.SMTPEnabled {
+					sendOfflineNotification(app, dest.Destination)
+				}
 				errInfo := &models.InternalErrorInfo{
 					Description: "Internal Server Offline",
 				}
@@ -354,9 +404,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			}
 			tlsConn := tls.Client(conn, cfg)
 			if err := tlsConn.Handshake(); err != nil {
-				//utils.DebugPrintln("tlsConn.Handshake error", err, tlsConn)
-				//_ = conn.Close()
-				//return nil, err
+				utils.DebugPrintln("tlsConn.Handshake error", err)
 			}
 			return tlsConn, err //net.Dial("tcp", dest)
 		},
@@ -407,9 +455,12 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 							//fmt.Println("200", backendAddr)
 							bodyBuf, _ := ioutil.ReadAll(resp.Body)
 							err = ioutil.WriteFile(targetFile, bodyBuf, 0600)
+							if err != nil {
+								utils.DebugPrintln("CDN WriteFile", targetFile, err)
+							}
 							lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
 							if err != nil {
-								//utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
+								utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
 							}
 							err = os.Chtimes(targetFile, now, lastModified)
 							if err != nil {
@@ -440,47 +491,49 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		Transport:      transport,
 		ModifyResponse: rewriteResponse}
 	if utils.Debug {
-		//dump, err := httputil.DumpRequest(r, true)
-		//utils.CheckError("ReverseHandlerFunc DumpRequest", err)
-		//fmt.Println(string(dump))
+		dump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			utils.DebugPrintln("ReverseHandlerFunc DumpRequest", err)
+		}
+		fmt.Println(string(dump))
 	}
 	r.Host = domainStr
 	proxy.ServeHTTP(w, r)
 }
 
 func getOAuthEntrance(state string) (entranceURL string, err error) {
-	switch data.AuthConfig.Provider {
+	switch data.NodeSetting.AuthConfig.Provider {
 	case "wxwork":
 		entranceURL = fmt.Sprintf("https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s&state=%s",
-			data.AuthConfig.Wxwork.CorpID,
-			data.AuthConfig.Wxwork.AgentID,
-			data.AuthConfig.Wxwork.Callback,
+			data.NodeSetting.AuthConfig.Wxwork.CorpID,
+			data.NodeSetting.AuthConfig.Wxwork.AgentID,
+			data.NodeSetting.AuthConfig.Wxwork.Callback,
 			state)
 	case "dingtalk":
 		entranceURL = fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=%s&redirect_uri=%s",
-			data.AuthConfig.Dingtalk.AppID,
+			data.NodeSetting.AuthConfig.Dingtalk.AppID,
 			state,
-			data.AuthConfig.Dingtalk.Callback)
+			data.NodeSetting.AuthConfig.Dingtalk.Callback)
 	case "feishu":
 		entranceURL = fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=%s",
-			data.AuthConfig.Feishu.Callback,
-			data.AuthConfig.Feishu.AppID,
+			data.NodeSetting.AuthConfig.Feishu.Callback,
+			data.NodeSetting.AuthConfig.Feishu.AppID,
 			state)
 	case "lark":
 		entranceURL = fmt.Sprintf("https://open.larksuite.com/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=%s",
-			data.AuthConfig.Lark.Callback,
-			data.AuthConfig.Lark.AppID,
+			data.NodeSetting.AuthConfig.Lark.Callback,
+			data.NodeSetting.AuthConfig.Lark.AppID,
 			state)
 	case "ldap":
 		entranceURL = "/ldap/login?state=" + state
 	case "cas2":
 		entranceURL = fmt.Sprintf("%s/login?renew=true&service=%s?state=%s",
-			data.AuthConfig.CAS2.Entrance, data.AuthConfig.CAS2.Callback, state)
+			data.NodeSetting.AuthConfig.CAS2.Entrance, data.NodeSetting.AuthConfig.CAS2.Callback, state)
 	case "saml":
 		entranceURL = "/saml/login?state=" + state
 	default:
 		//w.Write([]byte("Designated OAuth not supported, please check config.json ."))
-		return "", errors.New("the OAuth provider is not supported, please check settings.")
+		return "", errors.New("the OAuth provider is not supported, please check settings")
 	}
 	return entranceURL, nil
 }
@@ -553,6 +606,10 @@ func DailyRoutineTasks() {
 			go data.DAL.ClearExpiredAccessStats(expiredTime)
 			// Clear expired referer stats
 			go data.DAL.ClearExpiredReferStat(expiredTime)
+			// Check expiring certificates
+			if data.NodeSetting.SMTP.SMTPEnabled {
+				CheckExpiringCertificates()
+			}
 		}
 
 		// Clear expired logs under ./log/
@@ -564,4 +621,53 @@ func DailyRoutineTasks() {
 			utils.DebugPrintln("Delete old log files Error:", err)
 		}
 	}
+}
+
+// CheckExpiringCertificates and send email notification
+func CheckExpiringCertificates() {
+	now := time.Now().Unix()
+	emails := data.DAL.GetCertAdminEmails()
+	mailBody := ""
+	for _, cert := range backend.Certs {
+		remainDays := (cert.ExpireTime - now) / 86400
+		if remainDays <= 31 {
+			remainDaysStr := strconv.FormatInt(remainDays, 10)
+			mailBody += "Certificate: " + cert.CommonName + " is about to expire within " + remainDaysStr + " days.<br>\r\n"
+			utils.DebugPrintln("Warning: Certificate: " + cert.CommonName + " remain days: " + remainDaysStr)
+		}
+	}
+	if len(mailBody) > 0 && len(emails) > 0 {
+		go utils.SendEmail(data.NodeSetting.SMTP.SMTPServer,
+			data.NodeSetting.SMTP.SMTPPort,
+			data.NodeSetting.SMTP.SMTPAccount,
+			data.NodeSetting.SMTP.SMTPPassword,
+			emails,
+			"[JANUSEC] Certificate expire notification",
+			mailBody)
+	}
+}
+
+// sendOfflineNotification ...
+func sendOfflineNotification(app *models.Application, dest string) {
+	var emails string
+	if data.IsPrimary {
+		emails = data.DAL.GetAppAdminAndOwnerEmails(app.Owner)
+	} else {
+		emails = data.NodeSetting.SMTP.AdminEmails
+	}
+	mailBody := "Backend server: " + dest + " (" + app.Name + ") was offline."
+	if len(mailBody) > 0 && len(emails) > 0 {
+		go utils.SendEmail(data.NodeSetting.SMTP.SMTPServer,
+			data.NodeSetting.SMTP.SMTPPort,
+			data.NodeSetting.SMTP.SMTPAccount,
+			data.NodeSetting.SMTP.SMTPPassword,
+			emails,
+			"[JANUSEC] Backend server offline notification",
+			mailBody)
+	}
+}
+
+// Test ...
+func Test(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Done"))
 }

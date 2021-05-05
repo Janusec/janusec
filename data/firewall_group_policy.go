@@ -25,14 +25,18 @@ const (
 // CreateTableIfNotExistsGroupPolicy ...
 func (dal *MyDAL) CreateTableIfNotExistsGroupPolicy() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsGroupPolicy)
-	utils.CheckError("CreateTableIfNotExistsGroupPolicy", err)
+	if err != nil {
+		utils.DebugPrintln("CreateTableIfNotExistsGroupPolicy", err)
+	}
 	return err
 }
 
 // DeleteGroupPolicyByID ...
 func (dal *MyDAL) DeleteGroupPolicyByID(id int64) error {
 	_, err := dal.db.Exec(sqlDeleteGroupPolicyByID, id)
-	utils.CheckError("DeleteGroupPolicyByID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteGroupPolicyByID", err)
+	}
 	return err
 }
 
@@ -41,7 +45,9 @@ func (dal *MyDAL) UpdateGroupPolicy(description string, appID int64, vulnID int6
 	stmt, _ := dal.db.Prepare(sqlUpdateGroupPolicy)
 	defer stmt.Close()
 	_, err := stmt.Exec(description, appID, vulnID, hitValue, action, isEnabled, userID, updateTime, id)
-	utils.CheckError("UpdateGroupPolicy", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateGroupPolicy", err)
+	}
 	return err
 }
 
@@ -49,13 +55,17 @@ func (dal *MyDAL) UpdateGroupPolicy(description string, appID int64, vulnID int6
 func (dal *MyDAL) SelectGroupPolicies() []*models.GroupPolicy {
 	groupPolicies := []*models.GroupPolicy{}
 	rows, err := dal.db.Query(sqlSelectGroupPolicies)
-	utils.CheckError("SelectGroupPolicies", err)
+	if err != nil {
+		utils.DebugPrintln("SelectGroupPolicies", err)
+	}
 	defer rows.Close()
 	for rows.Next() {
 		groupPolicy := &models.GroupPolicy{}
 		err = rows.Scan(&groupPolicy.ID, &groupPolicy.Description, &groupPolicy.AppID, &groupPolicy.VulnID,
 			&groupPolicy.HitValue, &groupPolicy.Action, &groupPolicy.IsEnabled, &groupPolicy.UserID, &groupPolicy.UpdateTime)
-		utils.CheckError("SelectGroupPolicies Scan", err)
+		if err != nil {
+			utils.DebugPrintln("SelectGroupPolicies Scan", err)
+		}
 		groupPolicies = append(groupPolicies, groupPolicy)
 	}
 	return groupPolicies
@@ -65,15 +75,17 @@ func (dal *MyDAL) SelectGroupPolicies() []*models.GroupPolicy {
 func (dal *MyDAL) SelectGroupPoliciesByAppID(appID int64) ([]*models.GroupPolicy, error) {
 	groupPolicies := []*models.GroupPolicy{}
 	rows, err := dal.db.Query(sqlSelectGroupPoliciesByAppID, appID)
-	utils.CheckError("SelectGroupPoliciesByAppID", err)
+	if err != nil {
+		utils.DebugPrintln("SelectGroupPoliciesByAppID", err)
+	}
 	defer rows.Close()
 	for rows.Next() {
 		groupPolicy := &models.GroupPolicy{}
 		groupPolicy.AppID = appID
 		err = rows.Scan(&groupPolicy.ID, &groupPolicy.Description, &groupPolicy.VulnID,
 			&groupPolicy.HitValue, &groupPolicy.Action, &groupPolicy.IsEnabled, &groupPolicy.UserID, &groupPolicy.UpdateTime)
-		utils.CheckError("SelectGroupPoliciesByAppID Scan", err)
 		if err != nil {
+			utils.DebugPrintln("SelectGroupPoliciesByAppID Scan", err)
 			return groupPolicies, err
 		}
 		groupPolicies = append(groupPolicies, groupPolicy)
@@ -84,10 +96,14 @@ func (dal *MyDAL) SelectGroupPoliciesByAppID(appID int64) ([]*models.GroupPolicy
 // InsertGroupPolicy ...
 func (dal *MyDAL) InsertGroupPolicy(description string, appID int64, vulnID int64, hitValue int64, action models.PolicyAction, isEnabled bool, userID int64, updateTime int64) (newID int64, err error) {
 	stmt, err := dal.db.Prepare(sqlInsertGroupPolicy)
-	utils.CheckError("InsertGroupPolicy Prepare", err)
+	if err != nil {
+		utils.DebugPrintln("InsertGroupPolicy Prepare", err)
+	}
 	defer stmt.Close()
 	err = stmt.QueryRow(description, appID, vulnID, hitValue, action, isEnabled, userID, updateTime).Scan(&newID)
-	utils.CheckError("InsertGroupPolicy Scan", err)
+	if err != nil {
+		utils.DebugPrintln("InsertGroupPolicy Scan", err)
+	}
 	return newID, err
 }
 
@@ -95,6 +111,8 @@ func (dal *MyDAL) InsertGroupPolicy(description string, appID int64, vulnID int6
 func (dal *MyDAL) ExistsGroupPolicy() bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsGroupPolicy).Scan(&exist)
-	utils.CheckError("ExistsGroupPolicy", err)
+	if err != nil {
+		utils.DebugPrintln("ExistsGroupPolicy", err)
+	}
 	return exist != 0
 }

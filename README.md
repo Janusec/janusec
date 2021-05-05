@@ -66,7 +66,7 @@ https://doc.janusec.com/cn/
 * Debian 9/10+, CentOS/RHEL 7/8+, Debian 10+ is preferred (首选Debian 10+)    
 * systemd  
 * nftables  
-* Golang 1.16+ (Required by Development Only, 仅开发环境需要)  
+* Golang 1.15+ (Required by Development Only, 仅开发环境需要)  
 
 ## Quick Start for Deployment (部署快速指引)    
 

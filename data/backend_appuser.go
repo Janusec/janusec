@@ -63,7 +63,9 @@ func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt
 // SelectHashPwdAndSalt by username
 func (dal *MyDAL) SelectHashPwdAndSalt(username string) (userID int64, hashpwd string, salt string, needModifyPwd bool) {
 	err := dal.db.QueryRow(sqlSelectHashPwdAndSalt, username).Scan(&userID, &hashpwd, &salt, &needModifyPwd)
-	utils.CheckError("SelectHashPwdAndSalt", err)
+	if err != nil {
+		utils.DebugPrintln("SelectHashPwdAndSalt", err)
+	}
 	return userID, hashpwd, salt, needModifyPwd
 }
 
@@ -81,14 +83,18 @@ func (dal *MyDAL) SelectAppUserByName(username string) *models.AppUser {
 		&appUser.IsCertAdmin,
 		&appUser.IsAppAdmin,
 		&appUser.NeedModifyPWD)
-	utils.CheckError("SelectAppUserByName", err)
+	if err != nil {
+		utils.DebugPrintln("SelectAppUserByName", err)
+	}
 	return appUser
 }
 
 // SelectAppUsers ...
 func (dal *MyDAL) SelectAppUsers() []*models.QueryAppUser {
 	rows, err := dal.db.Query(sqlSelectAppUsers)
-	utils.CheckError("SelectAppUsers", err)
+	if err != nil {
+		utils.DebugPrintln("SelectAppUsers", err)
+	}
 	defer rows.Close()
 	var queryUsers = []*models.QueryAppUser{}
 	for rows.Next() {
@@ -105,7 +111,9 @@ func (dal *MyDAL) SelectAppUserByID(userID int64) *models.QueryAppUser {
 	queryUser.ID = userID
 	const sqlSelectAppUserByID = `SELECT "username","email","is_super_admin","is_cert_admin","is_app_admin","need_modify_pwd" FROM "appusers" WHERE "id"=$1`
 	err := dal.db.QueryRow(sqlSelectAppUserByID, userID).Scan(&queryUser.Username, &queryUser.Email, &queryUser.IsSuperAdmin, &queryUser.IsCertAdmin, &queryUser.IsAppAdmin, &queryUser.NeedModifyPWD)
-	utils.CheckError("SelectAppUserByID", err)
+	if err != nil {
+		utils.DebugPrintln("SelectAppUserByID", err)
+	}
 	return queryUser
 }
 
@@ -114,7 +122,9 @@ func (dal *MyDAL) UpdateAppUserWithPwd(username string, hashpwd string, salt str
 	stmt, _ := dal.db.Prepare(sqlUpdateAppUserWithPwd)
 	defer stmt.Close()
 	_, err := stmt.Exec(username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd, userID)
-	utils.CheckError("UpdateAppUserWithPwd", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateAppUserWithPwd", err)
+	}
 	return err
 }
 
@@ -123,7 +133,9 @@ func (dal *MyDAL) UpdateAppUserNoPwd(username string, email string, isSuperAdmin
 	stmt, _ := dal.db.Prepare(sqlUpdateAppUserNoPwd)
 	defer stmt.Close()
 	_, err := stmt.Exec(username, email, isSuperAdmin, isCertAdmin, isAppAdmin, userID)
-	utils.CheckError("UpdateAppUserNoPwd", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateAppUserNoPwd", err)
+	}
 	return err
 }
 
@@ -132,6 +144,71 @@ func (dal *MyDAL) DeleteAppUser(userID int64) error {
 	stmt, _ := dal.db.Prepare(sqlDeleteAppUser)
 	defer stmt.Close()
 	_, err := stmt.Exec(userID)
-	utils.CheckError("DeleteAppUser", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteAppUser", err)
+	}
 	return err
+}
+
+// GetCertAdminEmails ...
+func (dal *MyDAL) GetCertAdminEmails() string {
+	const sqlCertAdminEmails = `SELECT "email" FROM "appusers" WHERE "is_cert_admin"=TRUE`
+	rows, err := dal.db.Query(sqlCertAdminEmails)
+	if err != nil {
+		utils.DebugPrintln("GetCertAdminEmails", err)
+	}
+	defer rows.Close()
+	emails := ""
+	for rows.Next() {
+		var email string
+		_ = rows.Scan(&email)
+		if len(emails) == 0 {
+			emails = email
+		} else {
+			emails += ";" + email
+		}
+	}
+	return emails
+}
+
+// GetAppAdminEmails ...
+func (dal *MyDAL) GetAppAdminEmails() string {
+	const sqlAppAdminEmails = `SELECT "email" FROM "appusers" WHERE "is_app_admin"=TRUE`
+	rows, err := dal.db.Query(sqlAppAdminEmails)
+	if err != nil {
+		utils.DebugPrintln("GetAppAdminEmails", err)
+	}
+	defer rows.Close()
+	emails := ""
+	for rows.Next() {
+		var email string
+		_ = rows.Scan(&email)
+		if len(emails) == 0 {
+			emails = email
+		} else {
+			emails += ";" + email
+		}
+	}
+	return emails
+}
+
+// GetAppAdminAndOwnerEmails ...
+func (dal *MyDAL) GetAppAdminAndOwnerEmails(owner string) string {
+	const sqlAppAdminEmails = `SELECT "email" FROM "appusers" WHERE "is_app_admin"=TRUE OR "username"=$1`
+	rows, err := dal.db.Query(sqlAppAdminEmails, owner)
+	if err != nil {
+		utils.DebugPrintln("GetAppAdminAndOwnerEmails", err, owner)
+	}
+	defer rows.Close()
+	emails := ""
+	for rows.Next() {
+		var email string
+		_ = rows.Scan(&email)
+		if len(emails) == 0 {
+			emails = email
+		} else {
+			emails += ";" + email
+		}
+	}
+	return emails
 }

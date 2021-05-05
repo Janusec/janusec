@@ -23,7 +23,9 @@ func (dal *MyDAL) CreateTableIfNotExistsVipApplications() error {
 func (dal *MyDAL) SelectVipApplications() []*models.VipApp {
 	const sqlSelectVipApplications = `SELECT "id","name","listen_port","is_tcp","owner","description" FROM "vip_apps"`
 	rows, err := dal.db.Query(sqlSelectVipApplications)
-	utils.CheckError("SelectVipApplications", err)
+	if err != nil {
+		utils.DebugPrintln("SelectVipApplications", err)
+	}
 	defer rows.Close()
 	var vipApps = []*models.VipApp{}
 	for rows.Next() {
@@ -48,7 +50,9 @@ func (dal *MyDAL) SelectVipApplications() []*models.VipApp {
 func (dal *MyDAL) InsertVipApp(vipAppName string, listenPort int64, isTCP bool, owner string, description string) (newID int64) {
 	const sqlInsertVipApp = `INSERT INTO "vip_apps"("name","listen_port","is_tcp","owner","description") VALUES($1,$2,$3,$4,$5) RETURNING "id"`
 	err := dal.db.QueryRow(sqlInsertVipApp, vipAppName, listenPort, isTCP, owner, description).Scan(&newID)
-	utils.CheckError("InsertVipApp", err)
+	if err != nil {
+		utils.DebugPrintln("InsertVipApp", err)
+	}
 	return newID
 }
 
@@ -56,7 +60,9 @@ func (dal *MyDAL) InsertVipApp(vipAppName string, listenPort int64, isTCP bool, 
 func (dal *MyDAL) UpdateVipAppByID(vipAppName string, listenPort int64, isTCP bool, owner string, description string, vipAppID int64) error {
 	const sqlUpdateVipApp = `UPDATE "vip_apps" SET "name"=$1,"listen_port"=$2,"is_tcp"=$3,"owner"=$4,"description"=$5 WHERE "id"=$6`
 	_, err := dal.db.Exec(sqlUpdateVipApp, vipAppName, listenPort, isTCP, owner, description, vipAppID)
-	utils.CheckError("InsertVipApp", err)
+	if err != nil {
+		utils.DebugPrintln("InsertVipApp", err)
+	}
 	return err
 }
 
@@ -64,6 +70,8 @@ func (dal *MyDAL) UpdateVipAppByID(vipAppName string, listenPort int64, isTCP bo
 func (dal *MyDAL) DeleteVipAppByID(id int64) error {
 	const sqlDeleteVipAppByID = `DELETE FROM "vip_apps" WHERE "id"=$1`
 	_, err := dal.db.Exec(sqlDeleteVipAppByID, id)
-	utils.CheckError("DeleteVipAppByID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteVipAppByID", err)
+	}
 	return err
 }

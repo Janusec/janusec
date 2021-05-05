@@ -78,8 +78,11 @@ func GetDBNodeIndex(nodeID int64) int {
 // DeleteNodeByID ...
 func DeleteNodeByID(id int64) error {
 	dbNode, err := GetDBNodeByID(id)
+	if err != nil {
+		utils.DebugPrintln("DeleteNodeByID", err)
+		return err
+	}
 	nodesMap.Delete(dbNode.LastIP)
-	utils.CheckError("DeleteNodeByID", err)
 	err = data.DAL.DeleteNodeByID(id)
 	i := GetDBNodeIndex(id)
 	dbNodes = append(dbNodes[:i], dbNodes[i+1:]...)

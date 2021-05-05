@@ -61,8 +61,8 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// {"app_id":"cli_slkdasd", "app_secret":"dskLLdkasdKK"}
 	// accessTokenURL := "https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/"
 	body := fmt.Sprintf(`{"app_id":"%s", "app_secret":"%s"}`,
-		data.AuthConfig.Feishu.AppID,
-		data.AuthConfig.Feishu.AppSecret)
+		data.NodeSetting.AuthConfig.Feishu.AppID,
+		data.NodeSetting.AuthConfig.Feishu.AppSecret)
 	request, _ := http.NewRequest("POST",
 		"https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/",
 		bytes.NewReader([]byte(body)))

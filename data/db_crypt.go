@@ -41,11 +41,9 @@ func (dal *MyDAL) LoadInstanceKey() {
 			utils.DebugPrintln("LoadInstanceKey SaveStringSetting", err)
 		}
 	} else {
-		hexEncryptedKey, err := dal.SelectStringSetting("instance_key")
-		utils.CheckError("LoadInstanceKey", err)
+		hexEncryptedKey := dal.SelectStringSetting("instance_key")
 		decodeEncryptedKey, _ := hex.DecodeString(hexEncryptedKey)
-		instanceKey, err = AES256Decrypt(decodeEncryptedKey, true)
-		utils.CheckError("LoadInstanceKey AES256Decrypt", err)
+		instanceKey, _ = AES256Decrypt(decodeEncryptedKey, true)
 	}
 }
 
@@ -61,11 +59,12 @@ func (dal *MyDAL) LoadNodesKey() {
 		}
 	} else {
 		var err error
-		HexEncryptedNodesKey, err = dal.SelectStringSetting("nodes_key")
-		utils.CheckError("LoadNodesKey", err)
+		HexEncryptedNodesKey = dal.SelectStringSetting("nodes_key")
 		decodeEncryptedKey, _ := hex.DecodeString(HexEncryptedNodesKey)
 		NodesKey, err = AES256Decrypt(decodeEncryptedKey, true)
-		utils.CheckError("LoadNodesKey AES256Decrypt", err)
+		if err != nil {
+			utils.DebugPrintln("LoadNodesKey AES256Decrypt", err)
+		}
 	}
 }
 
@@ -79,7 +78,7 @@ func GetHexEncryptedNodesKey() *models.NodesKey {
 func GenRandomAES256Key() []byte {
 	key := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, key); err != nil {
-		utils.CheckError("GenRandomAES256Key", err)
+		utils.DebugPrintln("GenRandomAES256Key", err)
 	}
 	return key
 }
@@ -87,12 +86,18 @@ func GenRandomAES256Key() []byte {
 // EncryptWithKey ...
 func EncryptWithKey(plaintext []byte, key []byte) []byte {
 	block, err := aes.NewCipher(key)
-	utils.CheckError("EncryptWithKey NewCipher", err)
+	if err != nil {
+		utils.DebugPrintln("EncryptWithKey NewCipher", err)
+	}
 	nonce := make([]byte, 12)
 	_, err = io.ReadFull(rand.Reader, nonce)
-	utils.CheckError("EncryptWithKey ReadFull", err)
+	if err != nil {
+		utils.DebugPrintln("EncryptWithKey ReadFull", err)
+	}
 	aesgcm, err := cipher.NewGCM(block)
-	utils.CheckError("EncryptWithKey NewGCM", err)
+	if err != nil {
+		utils.DebugPrintln("EncryptWithKey NewGCM", err)
+	}
 	ciphertext := aesgcm.Seal(nonce, nonce, plaintext, nil)
 	return ciphertext
 }
@@ -112,19 +117,19 @@ func DecryptWithKey(ciphertext []byte, key []byte) ([]byte, error) {
 	var block cipher.Block
 	var err error
 	block, err = aes.NewCipher(key)
-	utils.CheckError("DecryptWithKey NewCipher", err)
 	if err != nil {
+		utils.DebugPrintln("DecryptWithKey NewCipher", err)
 		return []byte{}, err
 	}
 	aesgcm, err := cipher.NewGCM(block)
-	utils.CheckError("DecryptWithKey NewGCM", err)
 	if err != nil {
+		utils.DebugPrintln("DecryptWithKey NewGCM", err)
 		return []byte{}, err
 	}
 	nonce, ciphertext := ciphertext[:12], ciphertext[12:]
 	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
-	utils.CheckError("DecryptWithKey Open", err)
 	if err != nil {
+		utils.DebugPrintln("DecryptWithKey Open", err)
 		return []byte{}, err
 	}
 	return plaintext, nil
@@ -137,6 +142,9 @@ func AES256Decrypt(ciphertext []byte, useRootkey bool) ([]byte, error) {
 		key = RootKey
 	}
 	plaintext, err := DecryptWithKey(ciphertext, key)
+	if err != nil {
+		utils.DebugPrintln("AES256Decrypt", err)
+	}
 	return plaintext, err
 }
 
@@ -144,7 +152,9 @@ func AES256Decrypt(ciphertext []byte, useRootkey bool) ([]byte, error) {
 func GetRandomSaltString() string {
 	salt := make([]byte, 16)
 	_, err := io.ReadFull(rand.Reader, salt)
-	utils.CheckError("GetRandomSaltString", err)
+	if err != nil {
+		utils.DebugPrintln("GetRandomSaltString", err)
+	}
 	saltStr := fmt.Sprintf("%x", salt)
 	return saltStr
 }
@@ -163,9 +173,13 @@ func SHA256Hash(plaintext string) string {
 // NodeHexKeyToCryptKey ...
 func NodeHexKeyToCryptKey(hexKey string) []byte {
 	encrptedKey, err := hex.DecodeString(hexKey)
-	utils.CheckError("NodeHexKeyToCryptKey DecodeString", err)
+	if err != nil {
+		utils.DebugPrintln("NodeHexKeyToCryptKey DecodeString", err)
+	}
 	key, err := AES256Decrypt(encrptedKey, true)
-	utils.CheckError("NodeHexKeyToCryptKey AES256Decrypt", err)
+	if err != nil {
+		utils.DebugPrintln("NodeHexKeyToCryptKey AES256Decrypt", err)
+	}
 	return key
 }
 

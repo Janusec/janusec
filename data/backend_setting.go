@@ -33,32 +33,46 @@ const (
 func (dal *MyDAL) ExistsSetting(name string) bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsSetting, name).Scan(&exist)
-	utils.CheckError("ExistsSetting", err)
+	if err != nil {
+		utils.DebugPrintln("Check ExistsSetting: "+name, err)
+	}
 	return exist != 0
 }
 
 // SelectBoolSetting ...
-func (dal *MyDAL) SelectBoolSetting(name string) (value bool, err error) {
-	err = dal.db.QueryRow(sqlSelectBoolSetting, name).Scan(&value)
-	return value, err
+func (dal *MyDAL) SelectBoolSetting(name string) (value bool) {
+	err := dal.db.QueryRow(sqlSelectBoolSetting, name).Scan(&value)
+	if err != nil {
+		utils.DebugPrintln("SelectBoolSetting: "+name, err)
+	}
+	return value
 }
 
 // SelectIntSetting ...
-func (dal *MyDAL) SelectIntSetting(name string) (value int64, err error) {
-	err = dal.db.QueryRow(sqlSelectIntSetting, name).Scan(&value)
-	return value, err
+func (dal *MyDAL) SelectIntSetting(name string) (value int64) {
+	err := dal.db.QueryRow(sqlSelectIntSetting, name).Scan(&value)
+	if err != nil {
+		utils.DebugPrintln("SelectIntSetting: "+name, err)
+	}
+	return value
 }
 
 // SelectFloatSetting ...
-func (dal *MyDAL) SelectFloatSetting(name string) (value float64, err error) {
-	err = dal.db.QueryRow(sqlSelectFloatSetting, name).Scan(&value)
-	return value, err
+func (dal *MyDAL) SelectFloatSetting(name string) (value float64) {
+	err := dal.db.QueryRow(sqlSelectFloatSetting, name).Scan(&value)
+	if err != nil {
+		utils.DebugPrintln("SelectFloatSetting: "+name, err)
+	}
+	return value
 }
 
 // SelectStringSetting ...
-func (dal *MyDAL) SelectStringSetting(name string) (value string, err error) {
-	err = dal.db.QueryRow(sqlSelectStringSetting, name).Scan(&value)
-	return value, err
+func (dal *MyDAL) SelectStringSetting(name string) (value string) {
+	err := dal.db.QueryRow(sqlSelectStringSetting, name).Scan(&value)
+	if err != nil {
+		utils.DebugPrintln("SelectStringSetting: "+name, err)
+	}
+	return value
 }
 
 // SaveBoolSetting ...
@@ -67,6 +81,9 @@ func (dal *MyDAL) SaveBoolSetting(name string, value bool) (err error) {
 		_, err = dal.db.Exec(sqlUpdateBoolSetting, value, name)
 	} else {
 		_, err = dal.db.Exec(sqlInsertBoolSetting, name, value)
+	}
+	if err != nil {
+		utils.DebugPrintln("SaveBoolSetting: "+name, err)
 	}
 	return err
 }
@@ -78,7 +95,9 @@ func (dal *MyDAL) SaveIntSetting(name string, value int64) (err error) {
 	} else {
 		_, err = dal.db.Exec(sqlInsertIntSetting, name, value)
 	}
-	utils.CheckError("SaveIntSetting", err)
+	if err != nil {
+		utils.DebugPrintln("SaveIntSetting: "+name, err)
+	}
 	return err
 }
 
@@ -88,6 +107,9 @@ func (dal *MyDAL) SaveFloatSetting(name string, value float64) (err error) {
 		_, err = dal.db.Exec(sqlUpdateFloatSetting, value, name)
 	} else {
 		_, err = dal.db.Exec(sqlInsertFloatSetting, name, value)
+	}
+	if err != nil {
+		utils.DebugPrintln("SaveFloatSetting: "+name, err)
 	}
 	return err
 }
@@ -99,12 +121,18 @@ func (dal *MyDAL) SaveStringSetting(name string, value string) (err error) {
 	} else {
 		_, err = dal.db.Exec(sqlInsertStringSetting, name, value)
 	}
+	if err != nil {
+		utils.DebugPrintln("SaveStringSetting: "+name, err)
+	}
 	return err
 }
 
 // CreateTableIfNotExistsSettings ...
 func (dal *MyDAL) CreateTableIfNotExistsSettings() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsSettings)
+	if err != nil {
+		utils.DebugPrintln("CreateTableIfNotExistsSettings", err)
+	}
 	return err
 }
 
@@ -112,6 +140,8 @@ func (dal *MyDAL) CreateTableIfNotExistsSettings() error {
 func (dal *MyDAL) CountSettings() int64 {
 	var settingsCount int64
 	err := dal.db.QueryRow(sqlCountSettings).Scan(&settingsCount)
-	utils.CheckError("CountSettings", err)
+	if err != nil {
+		utils.DebugPrintln("CountSettings", err)
+	}
 	return settingsCount
 }

@@ -33,7 +33,9 @@ func (dal *MyDAL) DeleteCCPolicy(appID int64) error {
 	stmt, _ := dal.db.Prepare(sqlDeleteCCPolicy)
 	defer stmt.Close()
 	_, err := stmt.Exec(appID)
-	utils.CheckError("DeleteCCPolicy", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteCCPolicy", err)
+	}
 	return err
 }
 
@@ -44,7 +46,9 @@ func (dal *MyDAL) UpdateCCPolicy(IntervalMilliSeconds float64, maxCount int64, b
 	defer stmt.Close()
 	_, err := stmt.Exec(IntervalMilliSeconds, maxCount, blockSeconds, action,
 		statByURL, statByUA, statByCookie, isEnabled, appID)
-	utils.CheckError("UpdateCCPolicy", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateCCPolicy", err)
+	}
 	return err
 }
 
@@ -52,7 +56,9 @@ func (dal *MyDAL) UpdateCCPolicy(IntervalMilliSeconds float64, maxCount int64, b
 func (dal *MyDAL) ExistsCCPolicy() bool {
 	var existCCPolicy int
 	err := dal.db.QueryRow(sqlExistsCCPolicy).Scan(&existCCPolicy)
-	utils.CheckError("ExistsCCPolicy", err)
+	if err != nil {
+		utils.DebugPrintln("ExistsCCPolicy", err)
+	}
 	return existCCPolicy != 0
 }
 
@@ -60,7 +66,9 @@ func (dal *MyDAL) ExistsCCPolicy() bool {
 func (dal *MyDAL) ExistsCCPolicyByAppID(appID int64) bool {
 	var existCCPolicy int
 	err := dal.db.QueryRow(sqlExistsCCPolicyByAppID, appID).Scan(&existCCPolicy)
-	utils.CheckError("ExistsCCPolicyByAppID", err)
+	if err != nil {
+		utils.DebugPrintln("ExistsCCPolicyByAppID", err)
+	}
 	return existCCPolicy != 0
 }
 
@@ -69,7 +77,9 @@ func (dal *MyDAL) InsertCCPolicy(appID int64, IntervalMilliSeconds float64, maxC
 	action models.PolicyAction, statByURL bool, statByUA bool, statByCookie bool, isEnabled bool) error {
 	_, err := dal.db.Exec(sqlInsertCCPolicy, appID, IntervalMilliSeconds, maxCount, blockSeconds,
 		action, statByURL, statByUA, statByCookie, isEnabled)
-	utils.CheckError("InsertCCPolicy", err)
+	if err != nil {
+		utils.DebugPrintln("InsertCCPolicy", err)
+	}
 	return err
 }
 
@@ -77,7 +87,9 @@ func (dal *MyDAL) InsertCCPolicy(appID int64, IntervalMilliSeconds float64, maxC
 func (dal *MyDAL) SelectCCPolicies() []*models.CCPolicy {
 	ccPolicies := []*models.CCPolicy{}
 	rows, err := dal.db.Query(sqlSelectCCPolicies)
-	utils.CheckError("SelectCCPolicies", err)
+	if err != nil {
+		utils.DebugPrintln("SelectCCPolicies", err)
+	}
 	defer rows.Close()
 	for rows.Next() {
 		ccPolicy := &models.CCPolicy{}

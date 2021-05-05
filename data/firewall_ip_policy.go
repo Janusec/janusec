@@ -47,7 +47,9 @@ func (dal *MyDAL) DeleteIPPolicyByID(id int64) error {
 func (dal *MyDAL) LoadIPPolicies() []*models.IPPolicy {
 	const sqlSelectAllowList = `SELECT "id","ip_addr","is_allow","apply_to_waf","apply_to_cc" FROM "ip_policies"`
 	rows, err := dal.db.Query(sqlSelectAllowList)
-	utils.CheckError("GetIPPolicies", err)
+	if err != nil {
+		utils.DebugPrintln("GetIPPolicies", err)
+	}
 	defer rows.Close()
 	var ipPolicies = []*models.IPPolicy{}
 	for rows.Next() {

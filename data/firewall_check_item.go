@@ -23,17 +23,23 @@ const (
 // CreateTableIfNotExistCheckItems ...
 func (dal *MyDAL) CreateTableIfNotExistCheckItems() error {
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistCheckItems)
-	utils.CheckError("CreateTableIfNotExistCheckItems", err)
+	if err != nil {
+		utils.DebugPrintln("CreateTableIfNotExistCheckItems", err)
+	}
 	return err
 }
 
 // InsertCheckItem ...
 func (dal *MyDAL) InsertCheckItem(checkPoint models.ChkPoint, operation models.Operation, keyName string, regexPolicy string, groupPolicyID int64) (newID int64, err error) {
 	stmt, err := dal.db.Prepare(sqlInsertCheckItem)
-	utils.CheckError("sqlInsertCheckItem Prepare", err)
+	if err != nil {
+		utils.DebugPrintln("sqlInsertCheckItem Prepare", err)
+	}
 	defer stmt.Close()
 	err = stmt.QueryRow(checkPoint, operation, keyName, regexPolicy, groupPolicyID).Scan(&newID)
-	utils.CheckError("sqlInsertCheckItem Scan", err)
+	if err != nil {
+		utils.DebugPrintln("sqlInsertCheckItem Scan", err)
+	}
 	return newID, err
 }
 
@@ -41,15 +47,17 @@ func (dal *MyDAL) InsertCheckItem(checkPoint models.ChkPoint, operation models.O
 func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) ([]*models.DBCheckItem, error) {
 	checkItems := []*models.DBCheckItem{}
 	rows, err := dal.db.Query(sqlSelectCheckItemsByGroupID, groupPolicyID)
-	utils.CheckError("SelectCheckItemsByGroupID", err)
 	if err != nil {
+		utils.DebugPrintln("SelectCheckItemsByGroupID", err)
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		checkItem := &models.DBCheckItem{}
 		err = rows.Scan(&checkItem.ID, &checkItem.CheckPoint, &checkItem.Operation, &checkItem.KeyName, &checkItem.RegexPolicy)
-		utils.CheckError("SelectCheckItemsByGroupID Scan", err)
+		if err != nil {
+			utils.DebugPrintln("SelectCheckItemsByGroupID Scan", err)
+		}
 		checkItems = append(checkItems, checkItem)
 	}
 	return checkItems, nil
@@ -58,16 +66,22 @@ func (dal *MyDAL) SelectCheckItemsByGroupID(groupPolicyID int64) ([]*models.DBCh
 // DeleteCheckItemByID ...
 func (dal *MyDAL) DeleteCheckItemByID(id int64) error {
 	_, err := dal.db.Exec(sqlDeleteCheckItemByID, id)
-	utils.CheckError("DeleteCheckItemByID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteCheckItemByID", err)
+	}
 	return err
 }
 
 // UpdateCheckItemByID ...
 func (dal *MyDAL) UpdateCheckItemByID(checkPoint models.ChkPoint, operation models.Operation, keyName string, regexPolicy string, groupPolicyID int64, checkItemID int64) error {
 	stmt, err := dal.db.Prepare(sqlUpdateCheckItemByID)
-	utils.CheckError("UpdateCheckItemByID Prepare", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateCheckItemByID Prepare", err)
+	}
 	defer stmt.Close()
 	_, err = stmt.Exec(checkPoint, operation, keyName, regexPolicy, groupPolicyID, checkItemID)
-	utils.CheckError("UpdateCheckItemByID Exec", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateCheckItemByID Exec", err)
+	}
 	return err
 }

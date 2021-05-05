@@ -21,12 +21,12 @@ func RPCSelectGroupPolicies() (groupPolicies []*models.GroupPolicy) {
 		Action: "get_group_policies", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
-		utils.CheckError("RPCSelectGroupPolicies GetResponse", err)
+		utils.DebugPrintln("RPCSelectGroupPolicies GetResponse", err)
 		return nil
 	}
 	rpcGroupPolicies := &models.RPCGroupPolicies{}
 	if err := json.Unmarshal(resp, rpcGroupPolicies); err != nil {
-		utils.CheckError("RPCSelectGroupPolicies Unmarshal", err)
+		utils.DebugPrintln("RPCSelectGroupPolicies Unmarshal", err)
 		return nil
 	}
 	groupPolicies = rpcGroupPolicies.Object

@@ -33,7 +33,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "1.1.0"
+	Version = "1.2.0"
 	// NodeKey share with all nodes
 	NodeKey []byte
 )
@@ -92,6 +92,8 @@ func (dal *MyDAL) ExistColumnInTable(tableName string, columnName string) bool {
 	var count int64
 	const sql = `select count(1) from information_schema.columns where table_name=$1 and column_name=$2`
 	err := dal.db.QueryRow(sql, tableName, columnName).Scan(&count)
-	utils.CheckError("ExistColumnInTable QueryRow", err)
+	if err != nil {
+		utils.DebugPrintln("ExistColumnInTable QueryRow", err)
+	}
 	return count > 0
 }

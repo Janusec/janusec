@@ -123,12 +123,12 @@ func RPCLoadIPPolicies() []*models.IPPolicy {
 		Action: "get_ip_policies", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
-		utils.CheckError("RPCLoadIPPolicies GetResponse", err)
+		utils.DebugPrintln("RPCLoadIPPolicies GetResponse", err)
 		return nil
 	}
 	rpcIPPolicies := &models.RPCIPPolicies{}
 	if err := json.Unmarshal(resp, rpcIPPolicies); err != nil {
-		utils.CheckError("RPCLoadIPPolicies Unmarshal", err)
+		utils.DebugPrintln("RPCLoadIPPolicies Unmarshal", err)
 		return nil
 	}
 	ipPolicies := rpcIPPolicies.Object

@@ -24,15 +24,19 @@ type Application struct {
 	// {"/abc/": ["192.168.1.1:8800", "192.168.1.2:8800"], ".php": [...], "/": [...]}
 	Route sync.Map `json:"-"`
 
-	Domains        []*Domain `json:"domains"`
-	RedirectHTTPS  bool      `json:"redirect_https"`
-	HSTSEnabled    bool      `json:"hsts_enabled"`
-	WAFEnabled     bool      `json:"waf_enabled"`
-	ClientIPMethod IPMethod  `json:"ip_method"`
-	Description    string    `json:"description"`
-	OAuthRequired  bool      `json:"oauth_required"`
-	SessionSeconds int64     `json:"session_seconds"`
-	Owner          string    `json:"owner"`
+	Domains       []*Domain `json:"domains"`
+	RedirectHTTPS bool      `json:"redirect_https"`
+	HSTSEnabled   bool      `json:"hsts_enabled"`
+	WAFEnabled    bool      `json:"waf_enabled"`
+
+	// 5-second shield, v1.2.0
+	ShieldEnabled bool `json:"shield_enabled"`
+
+	ClientIPMethod IPMethod `json:"ip_method"`
+	Description    string   `json:"description"`
+	OAuthRequired  bool     `json:"oauth_required"`
+	SessionSeconds int64    `json:"session_seconds"`
+	Owner          string   `json:"owner"`
 
 	// CSP (Content Security Policy) v0.9.11
 	CSPEnabled bool   `json:"csp_enabled"`
@@ -41,12 +45,16 @@ type Application struct {
 
 // DBApplication for storage in database
 type DBApplication struct {
-	ID             int64    `json:"id"`
-	Name           string   `json:"name"`
-	InternalScheme string   `json:"internal_scheme"` // http, https
-	RedirectHTTPS  bool     `json:"redirect_https"`
-	HSTSEnabled    bool     `json:"hsts_enabled"`
-	WAFEnabled     bool     `json:"waf_enabled"`
+	ID             int64  `json:"id"`
+	Name           string `json:"name"`
+	InternalScheme string `json:"internal_scheme"` // http, https
+	RedirectHTTPS  bool   `json:"redirect_https"`
+	HSTSEnabled    bool   `json:"hsts_enabled"`
+	WAFEnabled     bool   `json:"waf_enabled"`
+
+	// 5-second shield, v1.2.0
+	ShieldEnabled bool `json:"shield_enabled"`
+
 	ClientIPMethod IPMethod `json:"ip_method"`
 	Description    string   `json:"description"`
 	OAuthRequired  bool     `json:"oauth_required"`
@@ -185,31 +193,12 @@ type TOTP struct {
 }
 
 // Setting mainly used for replica nodes
+/*
 type Setting struct {
 	Name  string      `json:"name"`
 	Value interface{} `json:"value"`
 }
-
-// GlobalSettings used for admin configuration
-type GlobalSettings struct {
-	// AuthEnabled for SSO Authentication
-	AuthEnabled bool `json:"auth_enabled"`
-
-	// AuthProvider such as wxwork, dingtalk, feishu, lark, ldap, cas2
-	AuthProvider string `json:"auth_provider"`
-
-	// WebSSHEnabled for Web-based SSH
-	WebSSHEnabled bool `json:"webssh_enabled"`
-
-	// WAFLogDays for WAF logs
-	WAFLogDays int64 `json:"waf_log_days"`
-
-	// CCLogDays for CC logs
-	CCLogDays int64 `json:"cc_log_days"`
-
-	// AccessLogDays for log files
-	AccessLogDays int64 `json:"access_log_days"`
-}
+*/
 
 type IPMethod int64
 

@@ -111,6 +111,7 @@ func GetCCPolicyRespByAppID(appID int64) (*models.CCPolicy, error) {
 // IsCCAttack to judge a request is CC attack, return IsCC, CCPolicy, ClientID, NeedLog
 func IsCCAttack(r *http.Request, app *models.Application, srcIP string) (bool, *models.CCPolicy, string, bool) {
 	isCC := false
+	/* v1.2.0 move to before CC check
 	if app.ClientIPMethod == models.IPMethod_REMOTE_ADDR {
 		// First check whether it has IP Policy
 		ipPolicy := GetIPPolicyByIPAddr(srcIP)
@@ -124,6 +125,7 @@ func IsCCAttack(r *http.Request, app *models.Application, srcIP string) (bool, *
 			}
 		}
 	}
+	*/
 	ccPolicy := GetCCPolicyByAppID(app.ID)
 	if !ccPolicy.IsEnabled {
 		return false, nil, "", false

@@ -21,12 +21,12 @@ func RPCSelectVulntypes() (vulnTypes []*models.VulnType) {
 		Action: "get_vuln_types", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
-		utils.CheckError("RPCSelectVulntypes GetResponse", err)
+		utils.DebugPrintln("RPCSelectVulntypes GetResponse", err)
 		return nil
 	}
 	rpcVulnTypes := &models.RPCVulntypes{}
 	if err := json.Unmarshal(resp, rpcVulnTypes); err != nil {
-		utils.CheckError("RPCSelectVulntypes Unmarshal", err)
+		utils.DebugPrintln("RPCSelectVulntypes Unmarshal", err)
 		return nil
 	}
 	vulnTypes = rpcVulnTypes.Object

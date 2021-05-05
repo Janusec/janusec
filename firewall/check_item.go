@@ -110,7 +110,9 @@ func LoadCheckItems() {
 		var err error
 		if data.IsPrimary {
 			dbCheckItems, err = data.DAL.SelectCheckItemsByGroupID(groupPolicy.ID)
-			utils.CheckError("LoadCheckItems", err)
+			if err != nil {
+				utils.DebugPrintln("LoadCheckItems", err)
+			}
 			for _, dbCheckItem := range dbCheckItems {
 				var keyName = ""
 				if dbCheckItem.KeyName.Valid {

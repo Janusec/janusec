@@ -47,97 +47,165 @@ func InitGroupPolicy() {
 			}
 			curTime := time.Now().Unix()
 			groupPolicyID, err := data.DAL.InsertGroupPolicy("Code Leakage", 0, 100, int64(models.ChkPointURLPath), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLPath, models.OperationRegexMatch, "", `(?i)/\.(git|svn)/`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			// r.Form get nil when query use % instead for %25, so check it in url query
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("SQL Injection with Search", 0, 200, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)%\s+(and|or|procedure)\s+`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			// Multiple Sentences SQL Injection  ;\s*(declare|use|drop|create|exec)\s
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("SQL Injection with Multiple Sentences", 0, 200, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i);\s*(declare|use|drop|create|exec)\s`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			//  SQL Injection Function
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Functions", 0, 200, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(updatexml|extractvalue|ascii|ord|char|chr|count|concat|rand|floor|substr|length|len|user|database|benchmark|analyse)\s?\(`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			//  SQL Injection Case When
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Case When", 0, 200, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)\(case\s+when\s+[\w\p{L}]+=[\w\p{L}]+\s+then\s+`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Attempt", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|procedure)\s+[\w\p{L}]+=[\w\p{L}]+(\s|$|--|#)`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Attempt 2", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|rlike)\s+(select|case)\s+`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Attempt 3", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|rlike)\s+(if|updatexml)\(`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Comment", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)/\*(!|\x00)`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Union SQL Injection", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)union[\s/\*]+select`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Command Injection", 0, 210, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(^|\&\s*|\|\s*|\;\s*)(pwd|ls|ll|whoami|net\s+user)$`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Web Shell", 0, 500, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)(eval|system|exec|execute|passthru|shell_exec|phpinfo)\(`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Upload", 0, 510, int64(models.ChkPointUploadFileExt), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointUploadFileExt, models.OperationRegexMatch, "", `(?i)\.(php|jsp|aspx|asp|exe|asa)`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			// XSS Tags
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic XSS Tags", 0, 300, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)<(script|iframe)`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			// XSS Functions
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic XSS Functions", 0, 300, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(alert|eval|prompt)\(`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			// XSS Event
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic XSS Event", 0, 300, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(onmouseover|onerror|onload|onclick)\s*=`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 			// Path Traversal
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic Path Traversal", 0, 400, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
-			utils.CheckError("InitGroupPolicy InsertGroupPolicy", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `\.\./\.\./|/etc/passwd$`, groupPolicyID)
-			utils.CheckError("InitGroupPolicy InsertCheckItem", err)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
 
 		}
 		// Load Policies
@@ -219,10 +287,11 @@ func UpdateGroupPolicy(r *http.Request, userID int64, clientIP string, authUser 
 	var setGroupPolicyRequest models.RPCSetGroupPolicy
 	err := json.NewDecoder(r.Body).Decode(&setGroupPolicyRequest)
 	if err != nil {
+
+		utils.DebugPrintln("UpdateGroupPolicy Decode", err)
 		return nil, errors.New("decode body error")
 	}
 	defer r.Body.Close()
-	utils.CheckError("UpdateGroupPolicy Decode", err)
 	curGroupPolicy := setGroupPolicyRequest.Object
 	if curGroupPolicy == nil {
 		return nil, errors.New("updateGroupPolicy parse body null")
@@ -250,7 +319,9 @@ func UpdateGroupPolicy(r *http.Request, userID int64, clientIP string, authUser 
 		go utils.OperationLog(clientIP, authUser.Username, "Add Group Policy", curGroupPolicy.Description)
 	} else {
 		groupPolicy, err := GetGroupPolicyByID(curGroupPolicy.ID)
-		utils.CheckError("UpdateGroupPolicy GetGroupPolicyByID", err)
+		if err != nil {
+			utils.DebugPrintln("UpdateGroupPolicy GetGroupPolicyByID", err)
+		}
 		_ = data.DAL.UpdateGroupPolicy(curGroupPolicy.Description, curGroupPolicy.AppID, curGroupPolicy.VulnID, curGroupPolicy.HitValue, curGroupPolicy.Action, curGroupPolicy.IsEnabled, curGroupPolicy.UserID, curTime, groupPolicy.ID)
 		groupPolicy.Description = curGroupPolicy.Description
 		groupPolicy.AppID = curGroupPolicy.AppID
@@ -298,37 +369,51 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 			switch checkItem.Operation {
 			case models.OperationRegexMatch:
 				hit, err = regexp.MatchString(checkItem.RegexPolicy, value)
-				utils.CheckError("IsMatchGroupPolicy MatchString", err)
+				if err != nil {
+					utils.DebugPrintln("IsMatchGroupPolicy MatchString", err)
+				}
 			case models.OperationEqualsStringCaseInsensitive:
 				if strings.EqualFold(checkItem.RegexPolicy, value) {
 					hit = true
 				}
 			case models.OperationGreaterThanInteger:
 				policyValue, err := strconv.ParseInt(checkItem.RegexPolicy, 10, 64)
-				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
+				if err != nil {
+					utils.DebugPrintln("IsMatchGroupPolicy ParseInt", err)
+				}
 				checkValue, err := strconv.ParseInt(value, 10, 64)
-				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
+				if err != nil {
+					utils.DebugPrintln("IsMatchGroupPolicy ParseInt", err)
+				}
 				if checkValue > policyValue {
 					hit = true
 				}
 			case models.OperationEqualsInteger:
 				policyValue, err := strconv.ParseInt(checkItem.RegexPolicy, 10, 64)
-				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
+				if err != nil {
+					utils.DebugPrintln("IsMatchGroupPolicy ParseInt", err)
+				}
 				checkValue, err := strconv.ParseInt(value, 10, 64)
-				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
+				if err != nil {
+					utils.DebugPrintln("IsMatchGroupPolicy ParseInt", err)
+				}
 				if checkValue == policyValue {
 					hit = true
 				}
 			case models.OperationLengthGreaterThanInteger:
 				policyValue, err := strconv.ParseInt(checkItem.RegexPolicy, 10, 64)
-				utils.CheckError("IsMatchGroupPolicy ParseInt", err)
+				if err != nil {
+					utils.DebugPrintln("IsMatchGroupPolicy ParseInt", err)
+				}
 				if (int64(len(value)) > policyValue) && (policyValue > 0) {
 					hit = true
 				}
 			case models.OperationRegexNotMatch:
 				notHit, err := regexp.MatchString(checkItem.RegexPolicy, value)
 				hit = !notHit
-				utils.CheckError("IsMatchGroupPolicy NotMatchString", err)
+				if err != nil {
+					utils.DebugPrintln("IsMatchGroupPolicy NotMatchString", err)
+				}
 			}
 			if hit {
 				hitValueInterface, _ := hitValueMap.LoadOrStore(groupPolicy.ID, int64(0))

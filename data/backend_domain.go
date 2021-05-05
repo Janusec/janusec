@@ -31,7 +31,9 @@ func (dal *MyDAL) CreateTableIfNotExistsDomains() error {
 // SelectDomains ...
 func (dal *MyDAL) SelectDomains() []*models.DBDomain {
 	rows, err := dal.db.Query(sqlSelectDomains)
-	utils.CheckError("SelectDomains", err)
+	if err != nil {
+		utils.DebugPrintln("SelectDomains", err)
+	}
 	defer rows.Close()
 	dbDomains := []*models.DBDomain{}
 	for rows.Next() {
@@ -46,21 +48,27 @@ func (dal *MyDAL) SelectDomains() []*models.DBDomain {
 func (dal *MyDAL) SelectDomainsCountByCertID(certID int64) int64 {
 	var certDomainsCount int64
 	err := dal.db.QueryRow(sqlSelectDomainsCountByCertID, certID).Scan(&certDomainsCount)
-	utils.CheckError("SelectDomainsCountByCertID", err)
+	if err != nil {
+		utils.DebugPrintln("SelectDomainsCountByCertID", err)
+	}
 	return certDomainsCount
 }
 
 // InsertDomain ...
 func (dal *MyDAL) InsertDomain(name string, appID int64, certID int64, redirect bool, location string) (newID int64) {
 	err := dal.db.QueryRow(sqlInsertDomain, name, appID, certID, redirect, location).Scan(&newID)
-	utils.CheckError("InsertDomain", err)
+	if err != nil {
+		utils.DebugPrintln("InsertDomain", err)
+	}
 	return newID
 }
 
 // UpdateDomain ...
 func (dal *MyDAL) UpdateDomain(name string, appID int64, certID int64, redirect bool, location string, domainID int64) error {
 	_, err := dal.db.Exec(sqlUpdateDomain, name, appID, certID, redirect, location, domainID)
-	utils.CheckError("UpdateDomain", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateDomain", err)
+	}
 	return err
 }
 
@@ -69,7 +77,9 @@ func (dal *MyDAL) DeleteDomainByDomainID(domainID int64) error {
 	stmt, _ := dal.db.Prepare(sqlDeleteDomainByDomainID)
 	defer stmt.Close()
 	_, err := stmt.Exec(domainID)
-	utils.CheckError("DeleteDomainByDomainID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteDomainByDomainID", err)
+	}
 	return err
 }
 
@@ -78,6 +88,8 @@ func (dal *MyDAL) DeleteDomainByAppID(appID int64) error {
 	stmt, _ := dal.db.Prepare(sqlDeleteDomainByAppID)
 	defer stmt.Close()
 	_, err := stmt.Exec(appID)
-	utils.CheckError("DeleteDomainByAppID", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteDomainByAppID", err)
+	}
 	return err
 }

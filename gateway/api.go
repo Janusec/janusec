@@ -32,6 +32,9 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var param map[string]interface{}
 	err := decoder.Decode(&param)
+	if err != nil {
+		utils.DebugPrintln("AdminAPIHandlerFunc Decode", err)
+	}
 	defer r.Body.Close()
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	action := param["action"]
@@ -50,7 +53,9 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if utils.Debug {
 		dump, err := httputil.DumpRequest(r, true)
-		utils.CheckError("AdminAPIHandlerFunc DumpRequest", err)
+		if err != nil {
+			utils.DebugPrintln("AdminAPIHandlerFunc DumpRequest", err)
+		}
 		fmt.Println(string(dump))
 	}
 
@@ -187,10 +192,10 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = GetTodayPopularContent(param)
 	case "get_gateway_health":
 		obj, err = GetGatewayHealth()
-	case "get_global_settings":
-		obj, err = data.GetGlobalSettings(authUser)
-	case "update_global_settings":
-		obj, err = data.UpdateGlobalSettings(param, authUser)
+	case "get_primary_setting":
+		obj, err = data.GetPrimarySetting(authUser)
+	case "update_primary_setting":
+		obj, err = data.UpdatePrimarySetting(r, param, clientIP, authUser)
 	case "get_wxwork_config":
 		obj = data.GetWxworkConfig()
 		err = nil
@@ -238,6 +243,9 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var param map[string]interface{}
 	err := decoder.Decode(&param)
+	if err != nil {
+		utils.DebugPrintln("ReplicaAPIHandlerFunc Decode", err)
+	}
 	defer r.Body.Close()
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
 	action := param["action"]
@@ -245,7 +253,7 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	var authUser *models.AuthUser
 	if authKey != nil {
 		// For replica nodes
-		if backend.IsValidAuthKey(r, param) == false {
+		if !backend.IsValidAuthKey(r, param) {
 			GenResponseByObject(w, nil, errors.New("authkey invalid"))
 			return
 		}
@@ -263,7 +271,9 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if utils.Debug {
 		dump, err := httputil.DumpRequest(r, true)
-		utils.CheckError("ReplicaAPIHandlerFunc DumpRequest", err)
+		if err != nil {
+			utils.DebugPrintln("ReplicaAPIHandlerFunc DumpRequest", err)
+		}
 		fmt.Println(string(dump))
 	}
 	var obj interface{}
@@ -286,8 +296,8 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = firewall.GetIPPolicies()
 	case "get_vuln_types":
 		obj, err = firewall.GetVulnTypes()
-	case "get_settings":
-		obj, err = data.GetSettings()
+	case "get_node_setting":
+		obj, err = data.GetNodeSetting(), nil
 	case "get_oauth_conf":
 		obj, err = usermgmt.GetOAuthConfig()
 	case "log_group_hit":
@@ -310,7 +320,8 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		//mapReferer := param["object"]
 		err = RPCUpdateRefererStat(r)
 	default:
-		//fmt.Println("undefined action")
+		//fmt.Println("undefined action:", action)
+		utils.DebugPrintln("undefined action:", action)
 		obj = nil
 		err = errors.New("undefined")
 	}

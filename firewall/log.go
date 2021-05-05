@@ -39,7 +39,9 @@ func LogCCRequest(r *http.Request, appID int64, clientIP string, policy *models.
 	contentType := r.Header.Get("Content-Type")
 	cookies := r.Header.Get("Cookie")
 	rawRequestBytes, err := httputil.DumpRequest(r, true)
-	utils.CheckError("LogGroupHitRequest DumpRequest", err)
+	if err != nil {
+		utils.DebugPrintln("LogGroupHitRequest DumpRequest", err)
+	}
 	maxRawSize := len(rawRequestBytes)
 	if maxRawSize > 16384 {
 		maxRawSize = 16384
@@ -77,7 +79,9 @@ func LogGroupHitRequest(r *http.Request, appID int64, clientIP string, policy *m
 	contentType := r.Header.Get("Content-Type")
 	cookies := r.Header.Get("Cookie")
 	rawRequestBytes, err := httputil.DumpRequest(r, true)
-	utils.CheckError("LogGroupHitRequest DumpRequest", err)
+	if err != nil {
+		utils.DebugPrintln("LogGroupHitRequest DumpRequest", err)
+	}
 	maxRawSize := len(rawRequestBytes)
 	if maxRawSize > 16384 {
 		maxRawSize = 16384
@@ -112,8 +116,10 @@ func LogGroupHitRequest(r *http.Request, appID int64, clientIP string, policy *m
 func LogCCRequestAPI(r *http.Request) error {
 	var ccLogReq models.RPCCCLogRequest
 	err := json.NewDecoder(r.Body).Decode(&ccLogReq)
+	if err != nil {
+		utils.DebugPrintln("LogCCRequestAPI Decode", err)
+	}
 	defer r.Body.Close()
-	utils.CheckError("LogCCRequestAPI Decode", err)
 	ccLog := ccLogReq.Object
 	if ccLog == nil {
 		return errors.New("LogCCRequestAPI parse body null")
@@ -125,8 +131,10 @@ func LogCCRequestAPI(r *http.Request) error {
 func LogGroupHitRequestAPI(r *http.Request) error {
 	var regexHitLogReq models.RPCGroupHitLogRequest
 	err := json.NewDecoder(r.Body).Decode(&regexHitLogReq)
+	if err != nil {
+		utils.DebugPrintln("LogGroupHitRequestAPI Decode", err)
+	}
 	defer r.Body.Close()
-	utils.CheckError("LogGroupHitRequestAPI Decode", err)
 	regexHitLog := regexHitLogReq.Object
 	if regexHitLog == nil {
 		return errors.New("LogGroupHitRequestAPI parse body null")
@@ -164,6 +172,9 @@ func GetVulnStat(param map[string]interface{}) (vulnStat []*models.VulnStat, err
 	} else {
 		vulnStat, err = data.DAL.SelectVulnStatByAppID(appID, startTime, endTime)
 	}
+	if err != nil {
+		utils.DebugPrintln("GetVulnStat", err)
+	}
 	return vulnStat, err
 }
 
@@ -178,22 +189,30 @@ func GetWeekStat(param map[string]interface{}) (weekStat []int64, err error) {
 		if appID == 0 {
 			if vulnID == 0 {
 				dayCount, err := data.DAL.SelectAllGroupHitLogsCount(dayStartTime, dayEndTime)
-				utils.CheckError("GetWeekStat SelectAllGroupHitLogsCount", err)
+				if err != nil {
+					utils.DebugPrintln("GetWeekStat SelectAllGroupHitLogsCount", err)
+				}
 				weekStat = append(weekStat, dayCount)
 			} else {
 				dayCount, err := data.DAL.SelectAllGroupHitLogsCountByVulnID(vulnID, dayStartTime, dayEndTime)
-				utils.CheckError("GetWeekStat SelectAllGroupHitLogsCountByVulnID", err)
+				if err != nil {
+					utils.DebugPrintln("GetWeekStat SelectAllGroupHitLogsCountByVulnID", err)
+				}
 				weekStat = append(weekStat, dayCount)
 			}
 
 		} else {
 			if vulnID == 0 {
 				dayCount, err := data.DAL.SelectGroupHitLogsCount(appID, dayStartTime, dayEndTime)
-				utils.CheckError("GetWeekStat SelectGroupHitLogsCount", err)
+				if err != nil {
+					utils.DebugPrintln("GetWeekStat SelectGroupHitLogsCount", err)
+				}
 				weekStat = append(weekStat, dayCount)
 			} else {
 				dayCount, err := data.DAL.SelectGroupHitLogsCountByVulnID(appID, vulnID, dayStartTime, dayEndTime)
-				utils.CheckError("GetWeekStat SelectGroupHitLogsCountByVulnID", err)
+				if err != nil {
+					utils.DebugPrintln("GetWeekStat SelectGroupHitLogsCountByVulnID", err)
+				}
 				weekStat = append(weekStat, dayCount)
 			}
 		}

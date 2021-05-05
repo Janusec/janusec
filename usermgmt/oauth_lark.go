@@ -61,8 +61,8 @@ func LarkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// {"app_id":"cli_slkdasd", "app_secret":"dskLLdkasdKK"}
 	// accessTokenURL := "https://open.larksuite.com/open-apis/auth/v3/app_access_token/internal/"
 	body := fmt.Sprintf(`{"app_id":"%s", "app_secret":"%s"}`,
-		data.AuthConfig.Lark.AppID,
-		data.AuthConfig.Lark.AppSecret)
+		data.NodeSetting.AuthConfig.Lark.AppID,
+		data.NodeSetting.AuthConfig.Lark.AppSecret)
 	request, _ := http.NewRequest("POST",
 		"https://open.larksuite.com/open-apis/auth/v3/app_access_token/internal",
 		bytes.NewReader([]byte(body)))

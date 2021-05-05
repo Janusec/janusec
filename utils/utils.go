@@ -9,6 +9,7 @@ package utils
 
 import (
 	"log"
+	"net/smtp"
 	"os"
 	"regexp"
 	"strings"
@@ -116,5 +117,29 @@ func OperationLog(ip string, username string, operation string, object string) {
 	log.Printf("[%s] [%s] [%s] [%s]\n", ip, username, operation, object)
 	if err := f.Close(); err != nil {
 		log.Printf("error closing file: %s\n", err.Error())
+	}
+}
+
+// SendEmail for notification
+func SendEmail(host string, port string, username string, password string, recipients string, subject string, body string) {
+	// Set up authentication information.
+	auth := smtp.PlainAuth("", username, password, host)
+
+	// recipients example: abc@janusec.com;xyz@janusec.com
+	to := strings.Split(recipients, ";")
+
+	msg := []byte("To: " + recipients + "\r\n" +
+		"From: " + username + "\r\n" +
+		"Subject: " + subject + "\r\n" +
+		"Content-Type: text/html; charset=UTF-8\r\n\r\n" +
+		"<html><body><p>" +
+		body + "\r\n" +
+		"</p><hr><p><small>Send by Janusec Application Gateway</small></p>" +
+		"</body></html>\r\n")
+	err := smtp.SendMail(host+":"+port, auth, username, to, msg)
+	if err != nil {
+		DebugPrintln("SendEmail error:", err)
+	} else {
+		DebugPrintln("SendEmail OK to "+recipients, subject)
 	}
 }

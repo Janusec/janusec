@@ -42,16 +42,22 @@ func SSH(sshInput *io.WriteCloser, sshOutput *io.Reader, host *HostInfo, errChan
 	})
 	if err != nil {
 		errChan <- err
-		utils.CheckError("errChan", err)
+		utils.DebugPrintln("errChan", err)
 		return
 	}
 	sshSession, err := sshClient.NewSession()
-	utils.CheckError("new ssh session", err)
+	if err != nil {
+		utils.DebugPrintln("new ssh session", err)
+	}
 	defer sshSession.Close()
 	*sshInput, err = sshSession.StdinPipe()
-	utils.CheckError("sshInput", err)
+	if err != nil {
+		utils.DebugPrintln("sshInput", err)
+	}
 	*sshOutput, err = sshSession.StdoutPipe()
-	utils.CheckError("sshOuput", err)
+	if err != nil {
+		utils.DebugPrintln("sshOuput", err)
+	}
 	errChan <- err
 	modes := ssh.TerminalModes{
 		ssh.ECHO:          1,
@@ -59,9 +65,13 @@ func SSH(sshInput *io.WriteCloser, sshOutput *io.Reader, host *HostInfo, errChan
 		ssh.TTY_OP_OSPEED: 14400,
 	}
 	err = sshSession.RequestPty("xterm", 25, 80, modes)
-	utils.CheckError("request pty", err)
+	if err != nil {
+		utils.DebugPrintln("request pty", err)
+	}
 	err = sshSession.Shell()
-	utils.CheckError("start shell", err)
+	if err != nil {
+		utils.DebugPrintln("start shell", err)
+	}
 	err = sshSession.Wait()
 	errChan <- err
 }
@@ -88,14 +98,20 @@ func RoutineOutput(outputTicker *time.Ticker, wsConn *websocket.Conn, sshOutput 
 func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	var isLogin bool
 	isLogin, _ = usermgmt.IsLogIn(w, r)
-	if isLogin == false {
+	if !isLogin {
 		GenResponseByObject(w, nil, errors.New("please login"))
 		return
 	}
 	username := usermgmt.GetLoginUsername(r)
 	var sshInput io.WriteCloser
 	var sshOutput io.Reader //bytes.Buffer
-	wsConn, err := websocket.Upgrade(w, r, nil, 1024, 1024*10)
+	upgrader := websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024 * 10,
+	}
+	wsConn, err := upgrader.Upgrade(w, r, nil)
+	// websocket.Upgrade deprecated, add upgrader.Upgrade above, v1.2.0
+	// wsConn, err := websocket.Upgrade(w, r, nil, 1024, 1024*10)
 	if err != nil {
 		log.Println("upgrade:", err)
 		return
@@ -104,10 +120,10 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// Read SSH Parameters
 	_, msg, err := wsConn.ReadMessage()
 	if err != nil {
-		utils.CheckError("ReadMessage SSH Parameters Error:", err)
+		utils.DebugPrintln("ReadMessage SSH Parameters Error:", err)
 		return
 	}
-	if data.GlobalSettings.WebSSHEnabled == false {
+	if !data.PrimarySetting.WebSSHEnabled {
 		err = wsConn.WriteMessage(websocket.TextMessage, []byte("WebSSH disabled in settings!\r\n"))
 		if err != nil {
 			utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err)

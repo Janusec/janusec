@@ -29,7 +29,9 @@ func (dal *MyDAL) CreateTableIfNotExistsVulnType() error {
 func (dal *MyDAL) ExistsVulnType() bool {
 	var exist int
 	err := dal.db.QueryRow(sqlExistsVulnType).Scan(&exist)
-	utils.CheckError("ExistsVulnType", err)
+	if err != nil {
+		utils.DebugPrintln("ExistsVulnType", err)
+	}
 	return exist != 0
 }
 
@@ -37,13 +39,16 @@ func (dal *MyDAL) ExistsVulnType() bool {
 func (dal *MyDAL) SelectVulnTypes() ([]*models.VulnType, error) {
 	vulnTypes := []*models.VulnType{}
 	rows, err := dal.db.Query(sqlSelectVulnTypes)
-	utils.CheckError("SelectVulnTypes", err)
+	if err != nil {
+		utils.DebugPrintln("SelectVulnTypes", err)
+	}
 	defer rows.Close()
 	for rows.Next() {
 		vulnType := &models.VulnType{}
 		err = rows.Scan(&vulnType.ID, &vulnType.Name)
-		utils.CheckError("SelectVulnTypes rows.Scan", err)
 		if err != nil {
+
+			utils.DebugPrintln("SelectVulnTypes rows.Scan", err)
 			return vulnTypes, err
 		}
 		vulnTypes = append(vulnTypes, vulnType)
@@ -54,6 +59,8 @@ func (dal *MyDAL) SelectVulnTypes() ([]*models.VulnType, error) {
 // InsertVulnType ...
 func (dal *MyDAL) InsertVulnType(id int64, name string) (err error) {
 	_, err = dal.db.Exec(sqlInsertVulnType, id, name)
-	utils.CheckError("InsertVulnType", err)
+	if err != nil {
+		utils.DebugPrintln("InsertVulnType", err)
+	}
 	return err
 }

@@ -23,18 +23,20 @@ func RPCSelectCertificates() []*models.CertItem {
 		Action: "get_certs", Object: nil}
 	resp, err := data.GetRPCResponse(rpcRequest)
 	if err != nil {
-		utils.CheckError("RPCSelectCertificates GetResponse", err)
+		utils.DebugPrintln("RPCSelectCertificates GetResponse", err)
 		return certs
 	}
 	rpcCertItems := &models.RPCCertItems{}
 	if err = json.Unmarshal(resp, rpcCertItems); err != nil {
-		utils.CheckError("RPCSelectCertificates Unmarshal", err)
+		utils.DebugPrintln("RPCSelectCertificates Unmarshal", err)
 		return certs
 	}
 	certItems := rpcCertItems.Object
 	for _, certItem := range certItems {
 		certItem.TlsCert, err = tls.X509KeyPair([]byte(certItem.CertContent), []byte(certItem.PrivKeyContent))
-		utils.CheckError("RPCSelectCertificates X509KeyPair", err)
+		if err != nil {
+			utils.DebugPrintln("RPCSelectCertificates X509KeyPair", err)
+		}
 		certs = append(certs, certItem)
 	}
 	return certs

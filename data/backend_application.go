@@ -14,16 +14,19 @@ import (
 
 // CreateTableIfNotExistsApplications ...
 func (dal *MyDAL) CreateTableIfNotExistsApplications() error {
-	const sqlCreateTableIfNotExistsApplications = `CREATE TABLE IF NOT EXISTS "applications"("id" bigserial PRIMARY KEY,"name" VARCHAR(128) NOT NULL,"internal_scheme" VARCHAR(8) NOT NULL,"redirect_https" boolean,"hsts_enabled" boolean,"waf_enabled" boolean,"ip_method" bigint,"description" VARCHAR(256) NOT NULL,"oauth_required" boolean,"session_seconds" bigint default 7200,"owner" VARCHAR(128) NOT NULL,"csp_enabled" boolean default false,"csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self''')`
+	const sqlCreateTableIfNotExistsApplications = `CREATE TABLE IF NOT EXISTS "applications"("id" bigserial PRIMARY KEY,"name" VARCHAR(128) NOT NULL,"internal_scheme" VARCHAR(8) NOT NULL,"redirect_https" boolean,"hsts_enabled" boolean,"waf_enabled" boolean,"shield_enabled" boolean,"ip_method" bigint,"description" VARCHAR(256) NOT NULL,"oauth_required" boolean,"session_seconds" bigint default 7200,"owner" VARCHAR(128) NOT NULL,"csp_enabled" boolean default false,"csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self''')`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsApplications)
 	return err
 }
 
 // SelectApplications ...
 func (dal *MyDAL) SelectApplications() []*models.DBApplication {
-	const sqlSelectApplications = `SELECT "id","name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp" FROM "applications"`
+	const sqlSelectApplications = `SELECT "id","name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","shield_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp" FROM "applications"`
 	rows, err := dal.db.Query(sqlSelectApplications)
-	utils.CheckError("SelectApplications", err)
+	if err != nil {
+		utils.DebugPrintln("SelectApplications", err)
+		return []*models.DBApplication{}
+	}
 	defer rows.Close()
 	var dbApps []*models.DBApplication
 	for rows.Next() {
@@ -35,6 +38,7 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 			&dbApp.RedirectHTTPS,
 			&dbApp.HSTSEnabled,
 			&dbApp.WAFEnabled,
+			&dbApp.ShieldEnabled,
 			&dbApp.ClientIPMethod,
 			&dbApp.Description,
 			&dbApp.OAuthRequired,
@@ -51,20 +55,24 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 }
 
 // InsertApplication insert an Application to DB
-func (dal *MyDAL) InsertApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string) (newID int64) {
-	const sqlInsertApplication = `INSERT INTO "applications"("name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`
-	err := dal.db.QueryRow(sqlInsertApplication, appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp).Scan(&newID)
-	utils.CheckError("InsertApplication", err)
+func (dal *MyDAL) InsertApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, shieldEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string) (newID int64) {
+	const sqlInsertApplication = `INSERT INTO "applications"("name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","shield_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING "id"`
+	err := dal.db.QueryRow(sqlInsertApplication, appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp).Scan(&newID)
+	if err != nil {
+		utils.DebugPrintln("InsertApplication", err)
+	}
 	return newID
 }
 
 // UpdateApplication update an Application
-func (dal *MyDAL) UpdateApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string, appID int64) error {
-	const sqlUpdateApplication = `UPDATE "applications" SET "name"=$1,"internal_scheme"=$2,"redirect_https"=$3,"hsts_enabled"=$4,"waf_enabled"=$5,"ip_method"=$6,"description"=$7,"oauth_required"=$8,"session_seconds"=$9,"owner"=$10,"csp_enabled"=$11,"csp"=$12 WHERE "id"=$13`
+func (dal *MyDAL) UpdateApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, shieldEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string, appID int64) error {
+	const sqlUpdateApplication = `UPDATE "applications" SET "name"=$1,"internal_scheme"=$2,"redirect_https"=$3,"hsts_enabled"=$4,"waf_enabled"=$5,"shield_enabled"=$6,"ip_method"=$7,"description"=$8,"oauth_required"=$9,"session_seconds"=$10,"owner"=$11,"csp_enabled"=$12,"csp"=$13 WHERE "id"=$14`
 	stmt, _ := dal.db.Prepare(sqlUpdateApplication)
 	defer stmt.Close()
-	_, err := stmt.Exec(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
-	utils.CheckError("UpdateApplication", err)
+	_, err := stmt.Exec(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
+	if err != nil {
+		utils.DebugPrintln("UpdateApplication", err)
+	}
 	return err
 }
 
@@ -74,6 +82,8 @@ func (dal *MyDAL) DeleteApplication(appID int64) error {
 	stmt, _ := dal.db.Prepare(sqlDeleteApplication)
 	defer stmt.Close()
 	_, err := stmt.Exec(appID)
-	utils.CheckError("DeleteApplication", err)
+	if err != nil {
+		utils.DebugPrintln("DeleteApplication", err)
+	}
 	return err
 }

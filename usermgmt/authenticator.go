@@ -112,10 +112,12 @@ func GetTOTPByUID(uid string) (totpItem *models.TOTP, err error) {
 	rpcRequest := &models.RPCRequest{
 		Action: "get_totp_key", Object: totpItem}
 	resp, err := data.GetRPCResponse(rpcRequest)
-	utils.CheckError("GetTOTPByUID", err)
+	if err != nil {
+		utils.DebugPrintln("GetTOTPByUID", err)
+	}
 	rpcTOTP := new(models.RPCTOTP)
 	if err = json.Unmarshal(resp, rpcTOTP); err != nil {
-		utils.CheckError("RPC GetTOTPByUID Unmarshal", err)
+		utils.DebugPrintln("RPC GetTOTPByUID Unmarshal", err)
 	}
 	return rpcTOTP.Object, err
 }
@@ -147,6 +149,8 @@ func UpdateTOTPVerified(id int64) (*models.TOTP, error) {
 	rpcRequest := &models.RPCRequest{
 		Action: "update_totp", ObjectID: id, Object: nil}
 	_, err := data.GetRPCResponse(rpcRequest)
-	utils.CheckError("UpdateTOTPVerified", err)
+	if err != nil {
+		utils.DebugPrintln("UpdateTOTPVerified", err)
+	}
 	return nil, nil
 }

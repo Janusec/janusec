@@ -112,7 +112,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 	}
 
 	// HSTS
-	if (app.HSTSEnabled == true) && (r.TLS != nil) {
+	if (app.HSTSEnabled) && (r.TLS != nil) {
 		resp.Header.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 	}
 
@@ -157,15 +157,15 @@ func rewriteResponse(resp *http.Response) (err error) {
 		contentEncoding := resp.Header.Get("Content-Encoding")
 		switch contentEncoding {
 		case "gzip":
-			reader, err := gzip.NewReader(bytes.NewBuffer(bodyBuf))
+			reader, _ := gzip.NewReader(bytes.NewBuffer(bodyBuf))
 			defer reader.Close()
 			decompressedBodyBuf, err := ioutil.ReadAll(reader)
 			if err != nil {
 				utils.DebugPrintln("Gzip decompress Error", err)
 			}
-			err = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
+			_ = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
 		default:
-			err = ioutil.WriteFile(targetFile, bodyBuf, 0600)
+			_ = ioutil.WriteFile(targetFile, bodyBuf, 0600)
 		}
 		if err != nil {
 			utils.DebugPrintln("Cache File Error", targetFile, err)

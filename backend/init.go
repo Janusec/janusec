@@ -121,6 +121,15 @@ func InitDatabase() {
 	//if err != nil {
 	//utils.DebugPrintln("InitDatabase ALTER TABLE ccpolicies ALTER COLUMN block_seconds", err)
 	//}
+
+	// v1.2.0 add shield_enabled to application
+	if !dal.ExistColumnInTable("applications", "shield_enabled") {
+		// v1.2.0+ required
+		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "shield_enabled" boolean default false`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE applications add shield_enabled", err)
+		}
+	}
 }
 
 // LoadAppConfiguration ...

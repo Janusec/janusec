@@ -13,40 +13,35 @@ import (
 	"janusec/backend"
 	"janusec/data"
 	"janusec/firewall"
+	"janusec/utils"
 )
 
 var (
-	updateTicker *time.Ticker
+	// syncTicker used for check update from primary node
+	syncTicker *time.Ticker
 )
 
-// UpdateTimeTick Get Settings from Primary Node
-func UpdateTimeTick() {
-	updateTicker = time.NewTicker(data.SyncSeconds * time.Second)
-	for range updateTicker.C {
-		//fmt.Println("UpdateTimeTick:", time.Now())
-		settingItems := data.RPCGetSettings()
-		for _, settingItem := range settingItems {
-			switch settingItem.Name {
-			case "backend_last_modified":
-				newBackendLastModified := int64(settingItem.Value.(float64))
-				if data.BackendLastModified < newBackendLastModified {
-					data.BackendLastModified = newBackendLastModified
-					go backend.LoadAppConfiguration()
-				}
-			case "firewall_last_modified":
-				newFirewallLastModified := int64(settingItem.Value.(float64))
-				if data.FirewallLastModified < newFirewallLastModified {
-					data.FirewallLastModified = newFirewallLastModified
-					go firewall.InitFirewall()
-				}
-			case "sync_seconds":
-				newSyncSeconds := time.Duration(settingItem.Value.(float64))
-				if data.SyncSeconds != newSyncSeconds {
-					data.SyncSeconds = newSyncSeconds
-					updateTicker.Stop()
-					updateTicker = time.NewTicker(data.SyncSeconds * time.Second)
-				}
-			}
+// SyncTimeTick let replica nodes get/sync NodeSettings from Primary Node
+func SyncTimeTick() {
+	utils.DebugPrintln("SyncTimeTick init:", data.NodeSetting.SyncInterval)
+	syncTicker = time.NewTicker(data.NodeSetting.SyncInterval)
+	for range syncTicker.C {
+		//fmt.Println("SyncTimeTick:", time.Now())
+		lastBackendModified := data.NodeSetting.BackendLastModified
+		lastFirewallModified := data.NodeSetting.FirewallLastModified
+		lastSyncInterval := data.NodeSetting.SyncInterval
+		data.NodeSetting = data.RPCGetNodeSetting()
+		// Check update
+		if lastBackendModified < data.NodeSetting.BackendLastModified {
+			go backend.LoadAppConfiguration()
+		}
+		if lastFirewallModified < data.NodeSetting.FirewallLastModified {
+			go firewall.InitFirewall()
+		}
+		if lastSyncInterval != data.NodeSetting.SyncInterval {
+			syncTicker.Stop()
+			syncTicker = time.NewTicker(data.NodeSetting.SyncInterval)
+			utils.DebugPrintln("SyncTimeTick change sync interval to:", data.NodeSetting.SyncInterval)
 		}
 	}
 }

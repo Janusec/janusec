@@ -38,7 +38,7 @@ func CAS2CallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	ticket := r.FormValue("ticket")
 	// Step 2.2 validate: http://192.168.100.109:8080/cas/serviceValidate?service=http://iknow.janusec.com&ticket=ST-1-1uYs7tNVYUEjpyJOHwLTZ6Cxv0ICentOS8X
-	validateURL := fmt.Sprintf("%s/serviceValidate?service=%s?state=%s&ticket=%s", data.AuthConfig.CAS2.Entrance, data.AuthConfig.CAS2.Callback, state, ticket)
+	validateURL := fmt.Sprintf("%s/serviceValidate?service=%s?state=%s&ticket=%s", data.NodeSetting.AuthConfig.CAS2.Entrance, data.NodeSetting.AuthConfig.CAS2.Callback, state, ticket)
 	request, _ := http.NewRequest("GET", validateURL, nil)
 	resp, err := GetResponse(request)
 	if err != nil {
