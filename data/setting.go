@@ -51,25 +51,8 @@ func InitDefaultSettings() {
 	DAL.LoadInstanceKey()
 	DAL.LoadNodesKey()
 	var err error
-	if !DAL.ExistsSetting("backend_last_modified") {
-		_ = DAL.SaveIntSetting("backend_last_modified", 0)
-	}
-	if !DAL.ExistsSetting("firewall_last_modified") {
-		_ = DAL.SaveIntSetting("firewall_last_modified", 0)
-	}
-	//if !DAL.ExistsSetting("sync_seconds") {
-	// v1.2.0, change from 10 minutes to 2 minutes
-	err = DAL.SaveIntSetting("sync_seconds", 120)
-	//}
-	if !DAL.ExistsSetting("skip_se_enabled") {
-		// used for 5-second shield, v1.2.0
-		err = DAL.SaveBoolSetting("skip_se_enabled", true)
-	}
-	if !DAL.ExistsSetting("search_engines") {
-		// used for 5-second shield, v1.2.0
-		err = DAL.SaveStringSetting("search_engines", "Google|Baidu|MicroMessenger|miniprogram|bing|sogou|Yisou|360spider|soso|duckduck|Yandex|Yahoo|AOL|teoma")
-	}
 
+	// Init PrimarySetting
 	if !DAL.ExistsSetting("auth_enabled") {
 		err = DAL.SaveBoolSetting("auth_enabled", false)
 	}
@@ -79,7 +62,6 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("webssh_enabled") {
 		err = DAL.SaveBoolSetting("webssh_enabled", false)
 	}
-
 	if !DAL.ExistsSetting("waf_log_days") {
 		err = DAL.SaveIntSetting("waf_log_days", 7)
 	}
@@ -91,6 +73,14 @@ func InitDefaultSettings() {
 	}
 	if !DAL.ExistsSetting("smtp_enabled") {
 		err = DAL.SaveBoolSetting("smtp_enabled", false)
+	}
+	if !DAL.ExistsSetting("skip_se_enabled") {
+		// used for 5-second shield, v1.2.0, shared with NodeSetting
+		err = DAL.SaveBoolSetting("skip_se_enabled", true)
+	}
+	if !DAL.ExistsSetting("search_engines") {
+		// used for 5-second shield, v1.2.0
+		err = DAL.SaveStringSetting("search_engines", "Google|Baidu|MicroMessenger|miniprogram|bing|sogou|Yisou|360spider|soso|duckduck|Yandex|Yahoo|AOL|teoma")
 	}
 	if !DAL.ExistsSetting("smtp_server") {
 		err = DAL.SaveStringSetting("smtp_server", "smtp.example.com")
@@ -104,6 +94,106 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("smtp_password") {
 		err = DAL.SaveStringSetting("smtp_password", "******")
 	}
+
+	// NodeSetting
+	if !DAL.ExistsSetting("backend_last_modified") {
+		_ = DAL.SaveIntSetting("backend_last_modified", 0)
+	}
+	if !DAL.ExistsSetting("firewall_last_modified") {
+		_ = DAL.SaveIntSetting("firewall_last_modified", 0)
+	}
+	// v1.2.0, sync interval change from 10 minutes to 2 minutes
+	err = DAL.SaveIntSetting("sync_seconds", 120)
+
+	// skip_se_enabled shared with PrimarySetting
+	// search_engines_pattern is generated based on search_engines
+	// SMTP shared with PrimarySetting
+	// AuthConfig wxwork
+	if !DAL.ExistsSetting("wxwork_display_name") {
+		DAL.SaveStringSetting("wxwork_display_name", "Login with WeChat Work")
+	}
+	if !DAL.ExistsSetting("wxwork_callback") {
+		DAL.SaveStringSetting("wxwork_callback", "http://www.example.com/oauth/wxwork")
+	}
+	if !DAL.ExistsSetting("wxwork_corpid") {
+		DAL.SaveStringSetting("wxwork_corpid", "wwd03be1f8")
+	}
+	if !DAL.ExistsSetting("wxwork_agentid") {
+		DAL.SaveStringSetting("wxwork_agentid", "1000002")
+	}
+	if !DAL.ExistsSetting("wxwork_corpsecret") {
+		DAL.SaveStringSetting("wxwork_corpsecret", "BgZtz_hssdZV5em-AyGhOgLlm18rU_NdZI")
+	}
+	// AuthConfig dingtalk
+	if !DAL.ExistsSetting("dingtalk_display_name") {
+		DAL.SaveStringSetting("dingtalk_display_name", "Login with Dingtalk")
+	}
+	if !DAL.ExistsSetting("dingtalk_callback") {
+		DAL.SaveStringSetting("dingtalk_callback", "http://www.example.com/oauth/dingtalk")
+	}
+	if !DAL.ExistsSetting("dingtalk_appid") {
+		DAL.SaveStringSetting("dingtalk_appid", "dingoa8xvc")
+	}
+	if !DAL.ExistsSetting("dingtalk_appsecret") {
+		DAL.SaveStringSetting("dingtalk_appsecret", "crrALdXUIj4T0zBekYh4u9sU_T1GZT")
+	}
+	// AuthConfig feishu
+	if !DAL.ExistsSetting("feishu_display_name") {
+		DAL.SaveStringSetting("feishu_display_name", "Login with Feishu")
+	}
+	if !DAL.ExistsSetting("feishu_callback") {
+		DAL.SaveStringSetting("feishu_callback", "http://www.example.com/oauth/feishu")
+	}
+	if !DAL.ExistsSetting("feishu_appid") {
+		DAL.SaveStringSetting("feishu_appid", "cli_9ef21d00e")
+	}
+	if !DAL.ExistsSetting("feishu_appsecret") {
+		DAL.SaveStringSetting("feishu_appsecret", "ihUBspRAG1PtNdDLUZ")
+	}
+	// AuthConfig lark
+	if !DAL.ExistsSetting("lark_display_name") {
+		DAL.SaveStringSetting("lark_display_name", "Login with Lark")
+	}
+	if !DAL.ExistsSetting("lark_callback") {
+		DAL.SaveStringSetting("lark_callback", "http://www.example.com/oauth/lark")
+	}
+	if !DAL.ExistsSetting("lark_appid") {
+		DAL.SaveStringSetting("lark_appid", "cli_9ef21d00e")
+	}
+	if !DAL.ExistsSetting("lark_appsecret") {
+		DAL.SaveStringSetting("lark_appsecret", "ihUBspRAG1PtNdDLUZ")
+	}
+	// AuthConfig LDAP
+	if !DAL.ExistsSetting("ldap_display_name") {
+		DAL.SaveStringSetting("ldap_display_name", "Login with LDAP")
+	}
+	if !DAL.ExistsSetting("ldap_entrance") {
+		DAL.SaveStringSetting("ldap_entrance", "http://www.example.com/ldap/login")
+	}
+	if !DAL.ExistsSetting("ldap_address") {
+		DAL.SaveStringSetting("ldap_address", "your_ldap_domain.com:389")
+	}
+	if !DAL.ExistsSetting("ldap_dn") {
+		DAL.SaveStringSetting("ldap_dn", "uid={uid},ou=People,dc=your_domain,dc=com")
+	}
+	if !DAL.ExistsSetting("ldap_using_tls") {
+		err = DAL.SaveBoolSetting("ldap_using_tls", false)
+	}
+	if !DAL.ExistsSetting("ldap_authenticator_enabled") {
+		err = DAL.SaveBoolSetting("ldap_authenticator_enabled", false)
+	}
+	// AuthConfig cas2
+	if !DAL.ExistsSetting("cas2_display_name") {
+		DAL.SaveStringSetting("cas2_display_name", "Login with CAS 2.0")
+	}
+	if !DAL.ExistsSetting("cas2_entrance") {
+		DAL.SaveStringSetting("cas2_entrance", "https://cas_server/cas")
+	}
+	if !DAL.ExistsSetting("cas2_callback") {
+		DAL.SaveStringSetting("cas2_callback", "http://www.example.com/oauth/cas2")
+	}
+
+	// Other
 	if !DAL.ExistsSetting("init_time") {
 		// 0.9.13 +
 		err = DAL.SaveIntSetting("init_time", time.Now().Unix())
@@ -191,25 +281,10 @@ func GetGlobalSettings2() *models.PrimarySetting {
 // GetWxworkConfig return Auth Wxwork config
 func GetWxworkConfig() *models.WxworkConfig {
 	displayName := DAL.SelectStringSetting("wxwork_display_name")
-	if len(displayName) == 0 {
-		displayName = "Login with WeChat Work"
-	}
 	callback := DAL.SelectStringSetting("wxwork_callback")
-	if len(callback) == 0 {
-		callback = "http://your_domain.com/oauth/wxwork"
-	}
 	corpID := DAL.SelectStringSetting("wxwork_corpid")
-	if len(corpID) == 0 {
-		corpID = "wwd03be1f8"
-	}
 	agentID := DAL.SelectStringSetting("wxwork_agentid")
-	if len(agentID) == 0 {
-		agentID = "1000002"
-	}
 	corpSecret := DAL.SelectStringSetting("wxwork_corpsecret")
-	if len(corpSecret) == 0 {
-		corpSecret = "BgZtz_hssdZV5em-AyGhOgLlm18rU_NdZI"
-	}
 	wxworkConfig := &models.WxworkConfig{
 		DisplayName: displayName,
 		Callback:    callback,
@@ -251,21 +326,9 @@ func UpdateWxworkConfig(param map[string]interface{}, clientIP string, authUser 
 // GetDingtalkConfig return Auth Dingtalk config
 func GetDingtalkConfig() *models.DingtalkConfig {
 	displayName := DAL.SelectStringSetting("dingtalk_display_name")
-	if len(displayName) == 0 {
-		displayName = "Login with Dingtalk"
-	}
 	callback := DAL.SelectStringSetting("dingtalk_callback")
-	if len(callback) == 0 {
-		callback = "http://your_domain.com/oauth/dingtalk"
-	}
 	appID := DAL.SelectStringSetting("dingtalk_appid")
-	if len(appID) == 0 {
-		appID = "dingoa8xvc"
-	}
 	appSecret := DAL.SelectStringSetting("dingtalk_appsecret")
-	if len(appSecret) == 0 {
-		appSecret = "crrALdXUIj4T0zBekYh4u9sU_T1GZT"
-	}
 	dingtalkConfig := &models.DingtalkConfig{
 		DisplayName: displayName,
 		Callback:    callback,
@@ -303,21 +366,9 @@ func UpdateDingtalkConfig(param map[string]interface{}, clientIP string, authUse
 // GetFeishuConfig ...
 func GetFeishuConfig() *models.FeishuConfig {
 	displayName := DAL.SelectStringSetting("feishu_display_name")
-	if len(displayName) == 0 {
-		displayName = "Login with Feishu"
-	}
 	callback := DAL.SelectStringSetting("feishu_callback")
-	if len(callback) == 0 {
-		callback = "http://your_domain.com/oauth/feishu"
-	}
 	appID := DAL.SelectStringSetting("feishu_appid")
-	if len(appID) == 0 {
-		appID = "cli_9ef21d00e"
-	}
 	appSecret := DAL.SelectStringSetting("feishu_appsecret")
-	if len(appSecret) == 0 {
-		appSecret = "ihUBspRAG1PtNdDLUZ"
-	}
 	feishuConfig := &models.FeishuConfig{
 		DisplayName: displayName,
 		Callback:    callback,
@@ -355,21 +406,9 @@ func UpdateFeishuConfig(param map[string]interface{}, clientIP string, authUser 
 // GetLarkConfig ...
 func GetLarkConfig() *models.LarkConfig {
 	displayName := DAL.SelectStringSetting("lark_display_name")
-	if len(displayName) == 0 {
-		displayName = "Login with Lark"
-	}
 	callback := DAL.SelectStringSetting("lark_callback")
-	if len(callback) == 0 {
-		callback = "http://your_domain.com/oauth/lark"
-	}
 	appID := DAL.SelectStringSetting("lark_appid")
-	if len(appID) == 0 {
-		appID = "cli_9ef21d00e"
-	}
 	appSecret := DAL.SelectStringSetting("lark_appsecret")
-	if len(appSecret) == 0 {
-		appSecret = "ihUBspRAG1PtNdDLUZ"
-	}
 	larkConfig := &models.LarkConfig{
 		DisplayName: displayName,
 		Callback:    callback,
@@ -407,21 +446,9 @@ func UpdateLarkConfig(param map[string]interface{}, clientIP string, authUser *m
 // GetLDAPConfig ...
 func GetLDAPConfig() *models.LDAPConfig {
 	displayName := DAL.SelectStringSetting("ldap_display_name")
-	if len(displayName) == 0 {
-		displayName = "Login with LDAP"
-	}
 	entrance := DAL.SelectStringSetting("ldap_entrance")
-	if len(entrance) == 0 {
-		entrance = "http://your_domain.com/ldap/login"
-	}
 	address := DAL.SelectStringSetting("ldap_address")
-	if len(address) == 0 {
-		address = "your_ldap_domain.com:389"
-	}
 	dn := DAL.SelectStringSetting("ldap_dn")
-	if len(dn) == 0 {
-		dn = "uid={uid},ou=People,dc=your_domain,dc=com"
-	}
 	usingTLS := DAL.SelectBoolSetting("ldap_using_tls")
 	authenticatorEnabled := DAL.SelectBoolSetting("ldap_authenticator_enabled")
 
@@ -470,17 +497,8 @@ func UpdateLDAPConfig(param map[string]interface{}, clientIP string, authUser *m
 // GetCAS2Config ...
 func GetCAS2Config() *models.CAS2Config {
 	displayName := DAL.SelectStringSetting("cas2_display_name")
-	if len(displayName) == 0 {
-		displayName = "Login with CAS 2.0"
-	}
 	entrance := DAL.SelectStringSetting("cas2_entrance")
-	if len(entrance) == 0 {
-		entrance = "https://cas_server/cas"
-	}
 	callback := DAL.SelectStringSetting("cas2_callback")
-	if len(callback) == 0 {
-		callback = "http://your_domain.com/oauth/cas2"
-	}
 	cas2Config := &models.CAS2Config{
 		DisplayName: displayName,
 		Entrance:    entrance,
