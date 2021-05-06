@@ -240,11 +240,19 @@ func SetOSEnv() {
 	cmd := exec.Command("/usr/sbin/sysctl", "-w", "net.core.somaxconn=65535")
 	err = cmd.Run()
 	if err != nil {
-		utils.DebugPrintln("sysctl set net.core.somaxconn error:", err)
+		cmd = exec.Command("/sbin/sysctl", "-w", "net.core.somaxconn=65535")
+		err = cmd.Run()
+		if err != nil {
+			utils.DebugPrintln("sysctl set net.core.somaxconn error:", err)
+		}
 	}
 	cmd = exec.Command("/usr/sbin/sysctl", "-w", "net.ipv4.tcp_max_syn_backlog=1024000")
 	err = cmd.Run()
 	if err != nil {
-		utils.DebugPrintln("sysctl set net.ipv4.tcp_max_syn_backlog error:", err)
+		cmd = exec.Command("/sbin/sysctl", "-w", "net.ipv4.tcp_max_syn_backlog=1024000")
+		err = cmd.Run()
+		if err != nil {
+			utils.DebugPrintln("sysctl set net.ipv4.tcp_max_syn_backlog error:", err)
+		}
 	}
 }

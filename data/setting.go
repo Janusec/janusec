@@ -69,6 +69,17 @@ func InitDefaultSettings() {
 		// used for 5-second shield, v1.2.0
 		err = DAL.SaveStringSetting("search_engines", "Google|Baidu|MicroMessenger|miniprogram|bing|sogou|Yisou|360spider|soso|duckduck|Yandex|Yahoo|AOL|teoma")
 	}
+
+	if !DAL.ExistsSetting("auth_enabled") {
+		err = DAL.SaveBoolSetting("auth_enabled", false)
+	}
+	if !DAL.ExistsSetting("auth_provider") {
+		err = DAL.SaveStringSetting("auth_provider", "wxwork")
+	}
+	if !DAL.ExistsSetting("webssh_enabled") {
+		err = DAL.SaveBoolSetting("webssh_enabled", false)
+	}
+
 	if !DAL.ExistsSetting("waf_log_days") {
 		err = DAL.SaveIntSetting("waf_log_days", 7)
 	}
