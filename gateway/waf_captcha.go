@@ -155,6 +155,8 @@ div {
 <div>
 
 <script>
+if(navigator.language=='zh-CN') window.location.hash = 'zh';
+
 function setSrcQuery(e, q) {
 	var src  = e.src;
 	var p = src.indexOf('?');

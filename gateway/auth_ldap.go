@@ -116,6 +116,8 @@ div {
   <a href="#zh">中文</a>
   <a href="#en">English</a>
 </div>
-
+<script>
+if(navigator.language=='zh-CN') window.location.hash = 'zh';
+</script>
 </body>
 </html>`

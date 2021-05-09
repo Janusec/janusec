@@ -170,5 +170,8 @@ a {
     <input type="submit" value="Verify">
   </form>  
 </div>
+<script>
+if(navigator.language=='zh-CN') window.location.hash = 'ch';
+</script>
 </body>
 </html>`
