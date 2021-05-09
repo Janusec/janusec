@@ -228,6 +228,8 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = data.UpdateCAS2Config(param, clientIP, authUser)
 	case "get_license":
 		obj, err = nil, nil
+	case "test_smtp":
+		obj, err = nil, TestSMTP(r)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

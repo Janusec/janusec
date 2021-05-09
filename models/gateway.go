@@ -159,3 +159,9 @@ type NodeShareSetting struct {
 	// SMTP
 	SMTP *SMTPSetting `json:"smtp"`
 }
+
+// SMTPTestRequest for SMTP test
+type SMTPTestRequest struct {
+	Action string          `json:"action"`
+	Object *SMTPSetting    `json:"object"`
+}

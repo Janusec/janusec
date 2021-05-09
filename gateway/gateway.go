@@ -10,6 +10,7 @@ package gateway
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -670,4 +671,26 @@ func sendOfflineNotification(app *models.Application, dest string) {
 // Test ...
 func Test(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Done"))
+}
+
+// TestSMTP ...
+func TestSMTP(r *http.Request) error {
+	var smtpTestReq models.SMTPTestRequest
+	err := json.NewDecoder(r.Body).Decode(&smtpTestReq)
+	if err != nil {
+		utils.DebugPrintln("TestSMTP Decode", err)
+	}
+	defer r.Body.Close()
+	smtpSetting := smtpTestReq.Object
+	if len(data.NodeSetting.SMTP.AdminEmails)==0 {
+		data.NodeSetting.SMTP.AdminEmails = data.DAL.GetAppAdminEmails()
+	}
+	go utils.SendEmail(smtpSetting.SMTPServer,
+		smtpSetting.SMTPPort,
+		smtpSetting.SMTPAccount,
+		smtpSetting.SMTPPassword,
+		data.NodeSetting.SMTP.AdminEmails,
+		"[JANUSEC] Test SMTP",
+		"This is a test email to application administrators.")
+	return nil
 }
