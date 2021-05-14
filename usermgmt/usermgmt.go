@@ -50,26 +50,66 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{},
 	appUser := data.DAL.SelectAppUserByName(username)
 
 	tmpHashpwd := data.SHA256Hash(password + appUser.Salt)
-	if tmpHashpwd == appUser.HashPwd {
-		authUser := &models.AuthUser{
-			UserID:        appUser.ID,
-			Username:      username,
-			Logged:        true,
-			IsSuperAdmin:  appUser.IsSuperAdmin,
-			IsCertAdmin:   appUser.IsCertAdmin,
-			IsAppAdmin:    appUser.IsAppAdmin,
-			NeedModifyPWD: appUser.NeedModifyPWD}
-		session, _ := store.Get(r, "sessionid")
-		session.Values["authuser"] = authUser
-		session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
-		err := session.Save(r, w)
-		if err != nil {
-			utils.DebugPrintln("session save error", err)
-		}
-		go utils.AuthLog(clientIP, username, "JANUSEC", "/janusec-admin/")
-		return authUser, nil
+	if tmpHashpwd != appUser.HashPwd {
+		return nil, errors.New("wrong authentication credentials")
 	}
-	return nil, errors.New("login failed")
+	// check auth code
+	if data.PrimarySetting.AuthenticatorEnabled {
+		totpItem, err := GetTOTPByUID(username)
+		if err != nil {
+			// Not exist totp item, means it is the First Login, Create totp key for current uid
+			totpKey := genKey()
+			_, err := data.DAL.InsertTOTPItem(username, totpKey, false)
+			if err != nil {
+				utils.DebugPrintln("InsertTOTPItem error", err)
+			}
+			authUser := &models.AuthUser{
+				UserID:       appUser.ID,
+				Username:     username,
+				Logged:       false,
+				TOTPKey:      totpKey,
+				TOTPVerified: false,
+			}
+			return authUser, nil
+		}
+		if !totpItem.TOTPVerified {
+			// TOTP Not Verified, redirect to register
+			authUser := &models.AuthUser{
+				UserID:       appUser.ID,
+				Username:     username,
+				Logged:       false,
+				TOTPKey:      totpItem.TOTPKey,
+				TOTPVerified: false,
+			}
+			return authUser, nil
+		}
+		// Verify TOTP Auth Code
+		totpCode := obj["totp_key"].(string)
+		totpCodeInt, _ := strconv.ParseUint(totpCode, 10, 32)
+		verifyOK := VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
+		if !verifyOK {
+			return nil, errors.New("wrong authentication credentials")
+		}
+	}
+
+	// auth code ok
+	authUser := &models.AuthUser{
+		UserID:        appUser.ID,
+		Username:      username,
+		Logged:        true,
+		IsSuperAdmin:  appUser.IsSuperAdmin,
+		IsCertAdmin:   appUser.IsCertAdmin,
+		IsAppAdmin:    appUser.IsAppAdmin,
+		NeedModifyPWD: appUser.NeedModifyPWD}
+	session, _ := store.Get(r, "sessionid")
+	session.Values["authuser"] = authUser
+	session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
+	err := session.Save(r, w)
+	if err != nil {
+		utils.DebugPrintln("session save error", err)
+	}
+	go utils.AuthLog(clientIP, username, "JANUSEC", "/janusec-admin/")
+	return authUser, nil
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) error {
@@ -215,4 +255,19 @@ func GetLoginUsername(r *http.Request) string {
 		return authUser.Username
 	}
 	return ""
+}
+
+// VerifyTOTP for janusec-admin
+func VerifyTOTP(uid string, code string) error {
+	totpItem, _ := GetTOTPByUID(uid)
+	totpCodeInt, _ := strconv.ParseUint(code, 10, 32)
+	verifyOK := VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
+	if verifyOK {
+		_, err := UpdateTOTPVerified(totpItem.ID)
+		if err != nil {
+			utils.DebugPrintln("VerifyTOTP error", err)
+		}
+		return nil
+	}
+	return errors.New("verify failed")
 }

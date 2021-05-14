@@ -158,6 +158,9 @@ type AuthUser struct {
 	IsCertAdmin   bool   `json:"is_cert_admin"`
 	IsAppAdmin    bool   `json:"is_app_admin"`
 	NeedModifyPWD bool   `json:"need_modify_pwd"`
+	// v1.2.2
+	TOTPKey      string `json:"totp_key"`
+	TOTPVerified bool   `json:"totp_verified"`
 }
 
 // AppUser used for DB Storage

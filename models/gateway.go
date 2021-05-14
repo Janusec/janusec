@@ -111,6 +111,9 @@ type SMTPSetting struct {
 
 // PrimarySetting used for admin configuration and primary node only
 type PrimarySetting struct {
+    // AuthenticatorEnabled for janusec-admin 2-factor authentication, v1.2.2
+    AuthenticatorEnabled bool `json:"authenticator_enabled"`
+
 	// AuthEnabled for SSO Authentication
 	AuthEnabled bool `json:"auth_enabled"`
 

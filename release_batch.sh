@@ -2,7 +2,7 @@ printf "Creating installation package\n"
 printf "Checklist:\n"
 printf "* Angular Admin Version Check. \n"
 printf "* Janusec Version Check. \n"
-version="1.2.1"
+version="1.2.2"
 printf "Version: ${version} \n"
 
 read -r -p "Are You Sure? [Y/n] " option
