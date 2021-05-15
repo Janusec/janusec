@@ -20,6 +20,9 @@ type OAuthInfo struct {
 	UseOAuth    bool   `json:"use_oauth"`
 	DisplayName string `json:"display_name"`
 	EntranceURL string `json:"entrance_url"`
+
+	// AuthenticatorEnabled added in v1.2.2, for janusec-admin login
+	AuthenticatorEnabled bool `json:"authenticator_enabled"`
 }
 
 // WxworkCallBackHandleFunc for Wxwork CallBack
@@ -61,6 +64,7 @@ func OAuthGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 // GetOAuthInfo Get OAuth Information
 func GetOAuthInfo() (*OAuthInfo, error) {
 	oauthInfo := OAuthInfo{}
+	oauthInfo.AuthenticatorEnabled = data.PrimarySetting.AuthenticatorEnabled
 	if !data.NodeSetting.AuthConfig.Enabled {
 		return &oauthInfo, nil
 	}

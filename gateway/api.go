@@ -42,7 +42,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	var authUser *models.AuthUser
 
 	// For administrators and OAuth users
-	if action != "login" {
+	if (action != "login") && (action != "verify_totp") {
 		authUser, err = usermgmt.GetAuthUser(w, r)
 		if authUser == nil {
 			GenResponseByObject(w, nil, err)
@@ -230,6 +230,10 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = nil, nil
 	case "test_smtp":
 		obj, err = nil, TestSMTP(r)
+	case "verify_totp":
+		uid := param["uid"].(string)
+		code := param["code"].(string)
+		obj, err = nil, usermgmt.VerifyTOTP(uid, code)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

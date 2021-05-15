@@ -53,46 +53,50 @@ func InitDefaultSettings() {
 	var err error
 
 	// Init PrimarySetting
+	if !DAL.ExistsSetting("authenticator_enabled") {
+		// for janusec-admin 2-factor authentication
+		_ = DAL.SaveBoolSetting("authenticator_enabled", false)
+	}
 	if !DAL.ExistsSetting("auth_enabled") {
-		err = DAL.SaveBoolSetting("auth_enabled", false)
+		_ = DAL.SaveBoolSetting("auth_enabled", false)
 	}
 	if !DAL.ExistsSetting("auth_provider") {
-		err = DAL.SaveStringSetting("auth_provider", "wxwork")
+		_ = DAL.SaveStringSetting("auth_provider", "wxwork")
 	}
 	if !DAL.ExistsSetting("webssh_enabled") {
-		err = DAL.SaveBoolSetting("webssh_enabled", false)
+		_ = DAL.SaveBoolSetting("webssh_enabled", false)
 	}
 	if !DAL.ExistsSetting("waf_log_days") {
-		err = DAL.SaveIntSetting("waf_log_days", 7)
+		_ = DAL.SaveIntSetting("waf_log_days", 7)
 	}
 	if !DAL.ExistsSetting("cc_log_days") {
-		err = DAL.SaveIntSetting("cc_log_days", 7)
+		_ = DAL.SaveIntSetting("cc_log_days", 7)
 	}
 	if !DAL.ExistsSetting("access_log_days") {
-		err = DAL.SaveIntSetting("access_log_days", 180)
+		_ = DAL.SaveIntSetting("access_log_days", 180)
 	}
 	if !DAL.ExistsSetting("smtp_enabled") {
-		err = DAL.SaveBoolSetting("smtp_enabled", false)
+		_ = DAL.SaveBoolSetting("smtp_enabled", false)
 	}
 	if !DAL.ExistsSetting("skip_se_enabled") {
 		// used for 5-second shield, v1.2.0, shared with NodeSetting
-		err = DAL.SaveBoolSetting("skip_se_enabled", true)
+		_ = DAL.SaveBoolSetting("skip_se_enabled", true)
 	}
 	if !DAL.ExistsSetting("search_engines") {
 		// used for 5-second shield, v1.2.0
-		err = DAL.SaveStringSetting("search_engines", "Google|Baidu|MicroMessenger|miniprogram|bing|sogou|Yisou|360spider|soso|duckduck|Yandex|Yahoo|AOL|teoma")
+		_ = DAL.SaveStringSetting("search_engines", "Google|Baidu|MicroMessenger|miniprogram|bing|sogou|Yisou|360spider|soso|duckduck|Yandex|Yahoo|AOL|teoma")
 	}
 	if !DAL.ExistsSetting("smtp_server") {
-		err = DAL.SaveStringSetting("smtp_server", "smtp.example.com")
+		_ = DAL.SaveStringSetting("smtp_server", "smtp.example.com")
 	}
 	if !DAL.ExistsSetting("smtp_port") {
-		err = DAL.SaveStringSetting("smtp_port", "587")
+		_ = DAL.SaveStringSetting("smtp_port", "587")
 	}
 	if !DAL.ExistsSetting("smtp_account") {
-		err = DAL.SaveStringSetting("smtp_account", "account@example.com")
+		_ = DAL.SaveStringSetting("smtp_account", "account@example.com")
 	}
 	if !DAL.ExistsSetting("smtp_password") {
-		err = DAL.SaveStringSetting("smtp_password", "******")
+		_ = DAL.SaveStringSetting("smtp_password", "******")
 	}
 
 	// NodeSetting
@@ -103,7 +107,7 @@ func InitDefaultSettings() {
 		_ = DAL.SaveIntSetting("firewall_last_modified", 0)
 	}
 	// v1.2.0, sync interval change from 10 minutes to 2 minutes
-	err = DAL.SaveIntSetting("sync_seconds", 120)
+	_ = DAL.SaveIntSetting("sync_seconds", 120)
 
 	// skip_se_enabled shared with PrimarySetting
 	// search_engines_pattern is generated based on search_engines
@@ -177,10 +181,10 @@ func InitDefaultSettings() {
 		DAL.SaveStringSetting("ldap_dn", "uid={uid},ou=People,dc=your_domain,dc=com")
 	}
 	if !DAL.ExistsSetting("ldap_using_tls") {
-		err = DAL.SaveBoolSetting("ldap_using_tls", false)
+		_ = DAL.SaveBoolSetting("ldap_using_tls", false)
 	}
 	if !DAL.ExistsSetting("ldap_authenticator_enabled") {
-		err = DAL.SaveBoolSetting("ldap_authenticator_enabled", false)
+		_ = DAL.SaveBoolSetting("ldap_authenticator_enabled", false)
 	}
 	// AuthConfig cas2
 	if !DAL.ExistsSetting("cas2_display_name") {
@@ -196,7 +200,7 @@ func InitDefaultSettings() {
 	// Other
 	if !DAL.ExistsSetting("init_time") {
 		// 0.9.13 +
-		err = DAL.SaveIntSetting("init_time", time.Now().Unix())
+		_ = DAL.SaveIntSetting("init_time", time.Now().Unix())
 	}
 	if err != nil {
 		utils.DebugPrintln("InitDefaultSettings error", err)
@@ -208,6 +212,7 @@ func LoadSettings() {
 	if IsPrimary {
 		PrimarySetting = &models.PrimarySetting{}
 		// 1.0.0 add
+		PrimarySetting.AuthenticatorEnabled = DAL.SelectBoolSetting("authenticator_enabled") // v1.2.2
 		PrimarySetting.AuthEnabled = DAL.SelectBoolSetting("auth_enabled")
 		PrimarySetting.AuthProvider = DAL.SelectStringSetting("auth_provider")
 		if len(PrimarySetting.AuthProvider) == 0 {
@@ -541,6 +546,7 @@ func UpdatePrimarySetting(r *http.Request, param map[string]interface{}, clientI
 	}
 	defer r.Body.Close()
 	PrimarySetting = settingReq.Object
+	DAL.SaveBoolSetting("authenticator_enabled", PrimarySetting.AuthenticatorEnabled) // v1.2.2
 	DAL.SaveBoolSetting("auth_enabled", PrimarySetting.AuthEnabled)
 	DAL.SaveStringSetting("auth_provider", PrimarySetting.AuthProvider)
 	NodeSetting.AuthConfig.Enabled = PrimarySetting.AuthEnabled
