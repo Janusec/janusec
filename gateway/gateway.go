@@ -116,6 +116,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				} else {
 					// Block IP 15 minutes
 					go firewall.AddIP2NFTables(srcIP, 900.0)
+					return
 				}
 			}
 		}
@@ -144,50 +145,51 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			}
 			// search engine, or authorization ok, continue
 		}
-
 	}
 
 	// Check CC
-	isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app, srcIP)
-	if isCC {
-		targetURL := r.URL.Path
-		if len(r.URL.RawQuery) > 0 {
-			targetURL += "?" + r.URL.RawQuery
-		}
-		hitInfo := &models.HitInfo{TypeID: 1,
-			PolicyID:  ccPolicy.AppID,
-			VulnName:  "CC",
-			Action:    ccPolicy.Action,
-			ClientID:  clientID,
-			TargetURL: targetURL,
-			BlockTime: nowTimeStamp}
-		switch ccPolicy.Action {
-		case models.Action_Block_100:
-			if needLog {
-				go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+	if !isAllowIP {
+		isCC, ccPolicy, clientID, needLog := firewall.IsCCAttack(r, app, srcIP)
+		if isCC {
+			targetURL := r.URL.Path
+			if len(r.URL.RawQuery) > 0 {
+				targetURL += "?" + r.URL.RawQuery
 			}
-			if app.ClientIPMethod == models.IPMethod_REMOTE_ADDR {
-				go firewall.AddIP2NFTables(srcIP, ccPolicy.BlockSeconds)
+			hitInfo := &models.HitInfo{TypeID: 1,
+				PolicyID:  ccPolicy.AppID,
+				VulnName:  "CC",
+				Action:    ccPolicy.Action,
+				ClientID:  clientID,
+				TargetURL: targetURL,
+				BlockTime: nowTimeStamp}
+			switch ccPolicy.Action {
+			case models.Action_Block_100:
+				if needLog {
+					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+				}
+				if app.ClientIPMethod == models.IPMethod_REMOTE_ADDR {
+					go firewall.AddIP2NFTables(srcIP, ccPolicy.BlockSeconds)
+				}
+				GenerateBlockPage(w, hitInfo)
+				return
+			case models.Action_BypassAndLog_200:
+				if needLog {
+					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+				}
+			case models.Action_CAPTCHA_300:
+				if needLog {
+					go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
+				}
+				captchaHitInfo.Store(hitInfo.ClientID, hitInfo)
+				captchaURL := CaptchaEntrance + "?id=" + hitInfo.ClientID
+				http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
+				return
 			}
-			GenerateBlockPage(w, hitInfo)
-			return
-		case models.Action_BypassAndLog_200:
-			if needLog {
-				go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
-			}
-		case models.Action_CAPTCHA_300:
-			if needLog {
-				go firewall.LogCCRequest(r, app.ID, srcIP, ccPolicy)
-			}
-			captchaHitInfo.Store(hitInfo.ClientID, hitInfo)
-			captchaURL := CaptchaEntrance + "?id=" + hitInfo.ClientID
-			http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
-			return
 		}
 	}
 
 	// WAF Check
-	if app.WAFEnabled {
+	if !isAllowIP && app.WAFEnabled {
 		if isHit, policy := firewall.IsRequestHitPolicy(r, app.ID, srcIP); isHit {
 			switch policy.Action {
 			case models.Action_Block_100:
@@ -682,7 +684,7 @@ func TestSMTP(r *http.Request) error {
 	}
 	defer r.Body.Close()
 	smtpSetting := smtpTestReq.Object
-	if len(data.NodeSetting.SMTP.AdminEmails)==0 {
+	if len(data.NodeSetting.SMTP.AdminEmails) == 0 {
 		data.NodeSetting.SMTP.AdminEmails = data.DAL.GetAppAdminEmails()
 	}
 	go utils.SendEmail(smtpSetting.SMTPServer,
