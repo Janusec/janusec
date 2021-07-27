@@ -101,6 +101,12 @@ func (dal *MyDAL) CreateTableIfNotExistsRefererStats() error {
 
 // UpdateRefererStat ...
 func (dal *MyDAL) UpdateRefererStat(appID int64, host string, path string, clientID string, deltaCount int64, dateTimestamp int64) error {
+	if len(host) > 250 {
+		host = host[:250]
+	}
+	if len(path) > 250 {
+		path = path[:250]
+	}
 	const sqlUpdateReferStat = `INSERT INTO "referer_stats"("app_id", "host", "url", "client_id", "count", "date_timestamp") VALUES($1, $2, $3, $4, $5, $6) ON CONFLICT ("app_id", "host", "url", "client_id", "date_timestamp") DO UPDATE SET "count"="referer_stats"."count"+$5`
 	_, err := dal.db.Exec(sqlUpdateReferStat, appID, host, path, clientID, deltaCount, dateTimestamp)
 	return err
@@ -156,8 +162,8 @@ func (dal *MyDAL) GetRefererURLs(appID int64, host string, statTime int64) (topR
 	rows, _ := dal.db.Query(sqlStatByAPPID, appID, host, statTime)
 	for rows.Next() {
 		var RefererURL = &models.RefererURL{}
-			_ = rows.Scan(&RefererURL.URL, &RefererURL.PV, &RefererURL.UV)
-			topRefererURLs = append(topRefererURLs, RefererURL)
+		_ = rows.Scan(&RefererURL.URL, &RefererURL.PV, &RefererURL.UV)
+		topRefererURLs = append(topRefererURLs, RefererURL)
 	}
 	return topRefererURLs, nil
 }

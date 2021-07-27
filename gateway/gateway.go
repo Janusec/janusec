@@ -461,13 +461,21 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 							if err != nil {
 								utils.DebugPrintln("CDN WriteFile", targetFile, err)
 							}
-							lastModified, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
-							if err != nil {
-								utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
-							}
-							err = os.Chtimes(targetFile, now, lastModified)
-							if err != nil {
-								utils.DebugPrintln("CDN Chtimes", targetFile, err)
+							lastModifiedStr := resp.Header.Get("Last-Modified")
+							if len(lastModifiedStr) == 0 {
+								err = os.Chtimes(targetFile, now, now)
+								if err != nil {
+									utils.DebugPrintln("CDN Chtimes", targetFile, err)
+								}
+							} else {
+								lastModified, err := time.Parse(http.TimeFormat, lastModifiedStr)
+								if err != nil {
+									utils.DebugPrintln("CDN Parse Last-Modified", targetFile, err)
+								}
+								err = os.Chtimes(targetFile, now, lastModified)
+								if err != nil {
+									utils.DebugPrintln("CDN Chtimes", targetFile, err)
+								}
 							}
 						} else if resp.StatusCode == http.StatusNotModified {
 							//fmt.Println("304", backendAddr)
