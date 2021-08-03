@@ -554,7 +554,7 @@ func RedirectRequest(w http.ResponseWriter, r *http.Request, location string) {
 	if len(r.URL.RawQuery) > 0 {
 		location += "?" + r.URL.RawQuery
 	}
-	http.Redirect(w, r, location, http.StatusMovedPermanently)
+	http.Redirect(w, r, location, http.StatusPermanentRedirect)
 }
 
 // GenClientID generate unique client id

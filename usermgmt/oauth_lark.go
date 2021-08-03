@@ -127,7 +127,7 @@ func LarkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 			utils.DebugPrintln("LarkCallbackWithCode session save error", err)
 		}
 		RecordAuthLog(r, authUser.Username, "Lark", data.CFG.PrimaryNode.Admin.Portal)
-		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
+		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusTemporaryRedirect)
 		return
 	}
 	// Gateway OAuth for employees and internal application
