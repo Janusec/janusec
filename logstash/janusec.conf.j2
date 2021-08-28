@@ -1,0 +1,47 @@
+input {
+  file {
+    path => "/usr/local/janusec/log/*.log"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+  }
+
+  file {
+    path => "/usr/local/janusec/log/*.log"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+  }
+
+}
+
+filter {
+    grok {
+      match => { "message" => "%{SYSLOGPROG:date} %{TIME:time} \[%{GREEDYDATA:IP}\] %{WORD:method} \[%{GREEDYDATA:path}\] UA:%{GREEDYDATA:navegador}" }
+
+    }
+    date {
+    match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]
+  }
+  geoip {
+      source => ["IP"]
+      target => "geoip"
+      fields => ["continent_code", "longitude", "city_name", "region_code", "country_name", "location", "ip", "latitude"]
+      add_field => [ "[geoip][coordinates]", "%{[geoip][longitude]}" ]
+      add_field => [ "[geoip][coordinates]", "%{[geoip][latitude]}" ]
+    }
+    mutate {
+      convert => [ "[geoip][coordinates]", "float"  ]
+    }
+}
+
+output {
+  elasticsearch {
+    hosts => ["ELASTIC_SRV:9200"]
+		user => "elastic"
+		password => "changeme"		
+		manage_template => false
+    index => "janusec-%{+YYYY.MM.dd}"
+	} 
+  stdout { codec => rubydebug }
+}
+
+
