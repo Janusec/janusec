@@ -14,33 +14,40 @@ import (
 
 // CreateTableIfNotExistsAccessStats create statistics table
 func (dal *MyDAL) CreateTableIfNotExistsAccessStats() error {
-	const sqlCreateTableIfNotExistsStats = `CREATE TABLE IF NOT EXISTS "access_stats"("id" bigserial PRIMARY KEY, "app_id" bigint, "url_path" VARCHAR(256) NOT NULL, "stat_date" VARCHAR(16) NOT NULL, "amount" bigint, "update_time" bigint)`
+	const sqlCreateTableIfNotExistsStats = `CREATE TABLE IF NOT EXISTS "access_stats"("id" bigserial PRIMARY KEY, "app_id" bigint, "url_path" VARCHAR(256) NOT NULL, "stat_date" VARCHAR(16) NOT NULL, "amount" bigint, "update_time" bigint,  CONSTRAINT "stat_id" unique ("app_id","url_path","stat_date"))`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsStats)
 	return err
 }
 
 // IncAmount update access statistics
 func (dal *MyDAL) IncAmount(appID int64, urlPath string, statDate string, delta int64, updateTime int64) error {
-	var id, amount int64
+	//var id, amount int64
 	if len(urlPath) > 255 {
 		urlPath = urlPath[0:255]
 	}
-	const sql = `select "id","amount" from "access_stats" where "app_id"=$1 and "url_path"=$2 and "stat_date"=$3 LIMIT 1`
-	err := dal.db.QueryRow(sql, appID, urlPath, statDate).Scan(&id, &amount)
+	const sql = `INSERT INTO "access_stats"("app_id","url_path","stat_date","amount","update_time") VALUES($1,$2,$3,$4,$5) ON CONFLICT ("app_id","url_path","stat_date") DO UPDATE SET "amount"="access_stats"."amount"+$4,"update_time"=$5`
+	_, err := dal.db.Exec(sql, appID, urlPath, statDate, delta, updateTime)
 	if err != nil {
-		// Not existed before
-		const sqlInsert = `INSERT INTO "access_stats"("app_id","url_path","stat_date","amount","update_time") VALUES($1,$2,$3,$4,$5)`
-		_, err = dal.db.Exec(sqlInsert, appID, urlPath, statDate, delta, updateTime)
+		utils.DebugPrintln("IncAmount insert", err)
+	}
+	/*
+		const sql = `select "id","amount" from "access_stats" where "app_id"=$1 and "url_path"=$2 and "stat_date"=$3 LIMIT 1`
+		err := dal.db.QueryRow(sql, appID, urlPath, statDate).Scan(&id, &amount)
 		if err != nil {
-			utils.DebugPrintln("IncAmount insert", err)
+			// Not existed before
+			const sqlInsert = `INSERT INTO "access_stats"("app_id","url_path","stat_date","amount","update_time") VALUES($1,$2,$3,$4,$5)`
+			_, err = dal.db.Exec(sqlInsert, appID, urlPath, statDate, delta, updateTime)
+			if err != nil {
+				utils.DebugPrintln("IncAmount insert", err)
+			}
+			return err
 		}
-		return err
-	}
-	const sqlUpdate = `UPDATE "access_stats" SET "amount"=$1,"update_time"=$2 WHERE "id"=$3`
-	_, err = dal.db.Exec(sqlUpdate, amount+delta, updateTime, id)
-	if err != nil {
-		utils.DebugPrintln("IncAmount update", err)
-	}
+		const sqlUpdate = `UPDATE "access_stats" SET "amount"=$1,"update_time"=$2 WHERE "id"=$3`
+		_, err = dal.db.Exec(sqlUpdate, amount+delta, updateTime, id)
+		if err != nil {
+			utils.DebugPrintln("IncAmount update", err)
+		}
+	*/
 	return err
 }
 

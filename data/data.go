@@ -33,7 +33,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "1.2.3"
+	Version = "1.2.4"
 	// NodeKey share with all nodes
 	NodeKey []byte
 )
@@ -94,6 +94,17 @@ func (dal *MyDAL) ExistColumnInTable(tableName string, columnName string) bool {
 	err := dal.db.QueryRow(sql, tableName, columnName).Scan(&count)
 	if err != nil {
 		utils.DebugPrintln("ExistColumnInTable QueryRow", err)
+	}
+	return count > 0
+}
+
+// ExistConstraint ...
+func (dal *MyDAL) ExistConstraint(tableName string, constraintName string) bool {
+	var count int64
+	const sql = `SELECT count(1) FROM information_schema.constraint_column_usage WHERE table_name=$1 and constraint_name=$2`
+	err := dal.db.QueryRow(sql, tableName, constraintName).Scan(&count)
+	if err != nil {
+		utils.DebugPrintln("ExistConstraint QueryRow", err)
 	}
 	return count > 0
 }
