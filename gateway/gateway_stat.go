@@ -231,8 +231,12 @@ func GetTodayPopularContent(param map[string]interface{}) (topPaths []*models.Po
 
 // IncRefererStat increase referer statistics
 func IncRefererStat(appID int64, referer string, srcIP string, userAgent string) {
+	refererURL, err := url.Parse(referer)
+	if err != nil {
+		// Invalid referer
+		return
+	}
 	hostMapI, _ := refererMap.LoadOrStore(appID, &sync.Map{})
-	refererURL, _ := url.Parse(referer)
 	pathMapI, _ := hostMapI.(*sync.Map).LoadOrStore(refererURL.Host, &sync.Map{})
 	clientMapI, _ := pathMapI.(*sync.Map).LoadOrStore(referer, &sync.Map{})
 	clientID := data.SHA256Hash(srcIP + userAgent)

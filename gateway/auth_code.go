@@ -43,10 +43,10 @@ func AuthCodeVerifyFunc(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			utils.DebugPrintln("UpdateTOTPVerified error", err)
 		}
-		http.Redirect(w, r, "/", http.StatusFound)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	http.Redirect(w, r, "/oauth/code/register?uid="+uid, http.StatusFound)
+	http.Redirect(w, r, "/oauth/code/register?uid="+uid, http.StatusTemporaryRedirect)
 }
 
 // ShowAuthCodeRegisterUI used for Authenticator Code register UI

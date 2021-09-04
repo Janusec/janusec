@@ -7,3 +7,4 @@
 *.zip
 *.tar.gz
 /static/cdncache
+/certs

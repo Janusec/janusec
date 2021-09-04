@@ -130,6 +130,14 @@ func InitDatabase() {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications add shield_enabled", err)
 		}
 	}
+
+	// v1.2.4 add constraint to access_stats
+	if !dal.ExistConstraint("access_stats", "stat_id") {
+		err = dal.ExecSQL(`ALTER TABLE "access_stats" ADD CONSTRAINT "stat_id" unique ("app_id","url_path","stat_date")`)
+		if err != nil {
+			//utils.DebugPrintln("InitDatabase ALTER TABLE access_stats add constraint", err)
+		}
+	}
 }
 
 // LoadAppConfiguration ...

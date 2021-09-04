@@ -57,7 +57,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 			entrance = "/ldap/login?state=" + state
 		}
 		// Go to LDAP login page
-		http.Redirect(w, r, entrance, http.StatusFound)
+		http.Redirect(w, r, entrance, http.StatusTemporaryRedirect)
 		return
 	}
 	// TOTP Auth
@@ -71,12 +71,12 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 				utils.DebugPrintln("InsertTOTPItem error", err)
 			}
 			// redirect to qrcode scaning page to register in Mobile APP
-			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
+			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusTemporaryRedirect)
 			return
 		}
 		if !totpItem.TOTPVerified {
 			// TOTP Not Verified, redirect to register
-			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusFound)
+			http.Redirect(w, r, "/oauth/code/register?uid="+username, http.StatusTemporaryRedirect)
 			return
 		}
 		// Verify TOTP Auth Code
@@ -84,7 +84,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		totpCodeInt, _ := strconv.ParseUint(totpCode, 10, 32)
 		verifyOK := VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
 		if !verifyOK {
-			http.Redirect(w, r, "/ldap/login", http.StatusFound)
+			http.Redirect(w, r, "/ldap/login", http.StatusTemporaryRedirect)
 			return
 		}
 	}
@@ -115,7 +115,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		RecordAuthLog(r, authUser.Username, "LDAP", data.CFG.PrimaryNode.Admin.Portal)
-		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
+		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusTemporaryRedirect)
 		return
 	}
 	// Gateway OAuth for employees and internal application
@@ -126,8 +126,8 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		oauthState.AccessToken = "N/A"
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
 		RecordAuthLog(r, oauthState.UserID, "LDAP", oauthState.CallbackURL)
-		http.Redirect(w, r, oauthState.CallbackURL, http.StatusFound)
+		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

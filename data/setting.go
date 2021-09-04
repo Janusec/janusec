@@ -604,5 +604,10 @@ func RPCGetNodeSetting() *models.NodeShareSetting {
 	if err = json.Unmarshal(resp, rpcObject); err != nil {
 		utils.DebugPrintln("RPCGetNodeSetting Unmarshal", err)
 	}
+	if rpcObject.Object == nil {
+		rpcObject.Object = &models.NodeShareSetting{
+			SyncInterval: time.Duration(120) * time.Second,
+		}
+	}
 	return rpcObject.Object
 }
