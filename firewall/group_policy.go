@@ -341,7 +341,7 @@ func UpdateGroupPolicy(r *http.Request, userID int64, clientIP string, authUser 
 }
 
 // IsMatchGroupPolicy ...
-func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkPoint models.ChkPoint, designatedKey string, needDecode bool) (bool, *models.GroupPolicy) {
+func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkPoint models.ChkPoint, headerKey string, needDecode bool) (bool, *models.GroupPolicy) {
 	if len(value) == 0 && checkPoint != models.ChkPointReferer {
 		// Exclude referer, because some cases require that Referer exists, such as CSRF detection
 		return false, nil
@@ -361,7 +361,7 @@ func IsMatchGroupPolicy(hitValueMap *sync.Map, appID int64, value string, checkP
 			continue
 		}
 		if groupPolicy.AppID == 0 || groupPolicy.AppID == appID {
-			if len(designatedKey) > 0 && (checkItem.KeyName != designatedKey) {
+			if len(checkItem.KeyName) > 0 && (checkItem.KeyName != headerKey) {
 				continue
 			}
 			hit := false
