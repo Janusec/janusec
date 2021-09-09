@@ -607,7 +607,8 @@ func RPCGetNodeSetting() *models.NodeShareSetting {
 	if rpcObject.Object == nil {
 		rpcObject.Object = &models.NodeShareSetting{
 			SyncInterval: time.Duration(120) * time.Second,
-		}
+		}		
+		utils.DebugPrintln("RPCGetNodeSetting failed, please check config.json and server time")
 	}
 	return rpcObject.Object
 }
