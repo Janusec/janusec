@@ -9,6 +9,7 @@ package gateway
 
 import (
 	"bytes"
+	"compress/flate"
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
@@ -20,6 +21,8 @@ import (
 
 	//"net/http/httputil"
 	"strings"
+
+	"github.com/andybalholm/brotli"
 
 	"janusec/backend"
 	"janusec/data"
@@ -162,6 +165,21 @@ func rewriteResponse(resp *http.Response) (err error) {
 			decompressedBodyBuf, err := ioutil.ReadAll(reader)
 			if err != nil {
 				utils.DebugPrintln("Gzip decompress Error", err)
+			}
+			_ = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
+		case "br":
+			reader := brotli.NewReader(bytes.NewBuffer(bodyBuf))
+			decompressedBodyBuf, err := ioutil.ReadAll(reader)
+			if err != nil {
+				utils.DebugPrintln("Brotli decompress Error", err)
+			}
+			_ = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
+		case "deflate":
+			reader := flate.NewReader(bytes.NewBuffer(bodyBuf))
+			defer reader.Close()
+			decompressedBodyBuf, err := ioutil.ReadAll(reader)
+			if err != nil {
+				utils.DebugPrintln("deflate decompress Error", err)
 			}
 			_ = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
 		default:
