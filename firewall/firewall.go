@@ -9,6 +9,7 @@ package firewall
 
 import (
 	"bytes"
+	"compress/flate"
 	"compress/gzip"
 	"encoding/json"
 	"io"
@@ -23,6 +24,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/andybalholm/brotli"
 
 	"janusec/models"
 	"janusec/utils"
@@ -315,7 +318,8 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 	}
 	contentEncoding := resp.Header.Get("Content-Encoding")
 	var body1 string
-	if contentEncoding == "gzip" {
+	switch contentEncoding {
+	case "gzip":
 		reader, _ := gzip.NewReader(bytes.NewBuffer(bodyBuf))
 		defer reader.Close()
 		decompressedBodyBuf, err := ioutil.ReadAll(reader)
@@ -323,7 +327,22 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 			utils.DebugPrintln("Gzip decompress Error", err)
 		}
 		body1 = string(decompressedBodyBuf)
-	} else {
+	case "br":
+		reader := brotli.NewReader(bytes.NewBuffer(bodyBuf))
+		decompressedBodyBuf, err := ioutil.ReadAll(reader)
+		if err != nil {
+			utils.DebugPrintln("Brotli decompress Error", err)
+		}
+		body1 = string(decompressedBodyBuf)
+	case "deflate":
+		reader := flate.NewReader(bytes.NewBuffer(bodyBuf))
+		defer reader.Close()
+		decompressedBodyBuf, err := ioutil.ReadAll(reader)
+		if err != nil {
+			utils.DebugPrintln("deflate decompress Error", err)
+		}
+		body1 = string(decompressedBodyBuf)
+	default:
 		body1 = string(bodyBuf)
 	}
 	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
