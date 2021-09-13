@@ -138,6 +138,14 @@ func InitDatabase() {
 			//utils.DebugPrintln("InitDatabase ALTER TABLE access_stats add constraint", err)
 		}
 	}
+
+	if !dal.ExistColumnInTable("applications", "cache_enabled") {
+		// v1.2.5+ required
+		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "cache_enabled" boolean default true`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE applications add cache_enabled", err)
+		}
+	}
 }
 
 // LoadAppConfiguration ...
