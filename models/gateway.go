@@ -7,7 +7,11 @@
 
 package models
 
-import "time"
+import (
+	"io"
+	"net/http"
+	"time"
+)
 
 type HitInfo struct {
 	TypeID    int64 // 1: CCPolicy  2:GroupPolicy
@@ -167,4 +171,15 @@ type NodeShareSetting struct {
 type SMTPTestRequest struct {
 	Action string          `json:"action"`
 	Object *SMTPSetting    `json:"object"`
+}
+
+// ZipResponseWriter used for compress static files by brotli or gzip
+type ZipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+// Write method
+func (w ZipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
 }

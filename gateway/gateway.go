@@ -8,6 +8,7 @@
 package gateway
 
 import (
+	"compress/gzip"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -31,6 +32,7 @@ import (
 	"janusec/usermgmt"
 	"janusec/utils"
 
+	"github.com/andybalholm/brotli"
 	"github.com/gorilla/sessions"
 	"github.com/patrickmn/go-cache"
 	"github.com/yookoala/gofast"
@@ -486,11 +488,34 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 						}
 					}
 				}
-				http.ServeFile(w, r, targetFile)
+				acceptEncoding := r.Header.Get("Accept-Encoding")
+				if strings.Contains(acceptEncoding, "br") {
+					w.Header().Set("Content-Encoding", "br")
+					brWriter := brotli.NewWriter(w)
+					defer brWriter.Close()
+					zipResponseWriter := models.ZipResponseWriter {
+						Writer: brWriter,
+						ResponseWriter: w,
+					}
+					http.ServeFile(zipResponseWriter, r, targetFile)
+				} else if strings.Contains(acceptEncoding, "gzip") {
+					w.Header().Set("Content-Encoding", "gzip")
+					gzWriter := gzip.NewWriter(w)
+					defer gzWriter.Close()
+					zipResponseWriter := models.ZipResponseWriter {
+						Writer: gzWriter,
+						ResponseWriter: w,
+					}
+					http.ServeFile(zipResponseWriter, r, targetFile)
+				} else {
+					http.ServeFile(w, r, targetFile)
+				}				
 				return
 			}
 		}
 		// Has Range Header, or resource Not Found, Continue
+		// For static files, disable compression between gateway and backend 
+		r.Header.Set("Accept-Encoding", "")
 	}
 
 	// Reverse Proxy
