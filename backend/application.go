@@ -162,6 +162,7 @@ func LoadApps() {
 				Owner:          dbApp.Owner,
 				CSPEnabled:     dbApp.CSPEnabled,
 				CSP:            dbApp.CSP,
+				CacheEnabled:   dbApp.CacheEnabled,
 			}
 			Apps = append(Apps, app)
 		}
@@ -340,11 +341,12 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 	if csp, ok = application["csp"].(string); !ok {
 		csp = ""
 	}
+	cacheEnabled := application["cache_enabled"].(bool)
 	owner := application["owner"].(string)
 	var app *models.Application
 	if appID == 0 {
 		// new application
-		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp)
+		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled)
 		app = &models.Application{
 			ID: newID, Name: appName,
 			InternalScheme: internalScheme,
@@ -361,13 +363,14 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 			SessionSeconds: sessionSeconds,
 			Owner:          owner,
 			CSPEnabled:     cspEnabled,
-			CSP:            csp}
+			CSP:            csp, 
+			CacheEnabled: cacheEnabled}
 		Apps = append(Apps, app)
 		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
-			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, appID)
+			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled, appID)
 			if err != nil {
 				utils.DebugPrintln("UpdateApplication", err)
 			}
@@ -384,6 +387,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 			app.Owner = owner
 			app.CSPEnabled = cspEnabled
 			app.CSP = csp
+			app.CacheEnabled = cacheEnabled
 			go utils.OperationLog(clientIP, authUser.Username, "Update Application", app.Name)
 		} else {
 			return nil, errors.New("application not found")

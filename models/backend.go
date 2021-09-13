@@ -41,6 +41,9 @@ type Application struct {
 	// CSP (Content Security Policy) v0.9.11
 	CSPEnabled bool   `json:"csp_enabled"`
 	CSP        string `json:"csp"`
+
+	// CacheEnabled cache static files v1.2.5 
+	CacheEnabled bool `json:"cache_enabled"`
 }
 
 // DBApplication for storage in database
@@ -63,6 +66,8 @@ type DBApplication struct {
 	// CSP (Content Security Policy) v0.9.11
 	CSPEnabled bool   `json:"csp_enabled"`
 	CSP        string `json:"csp"`
+	// CacheEnabled cache static files v1.2.5 
+	CacheEnabled bool `json:"cache_enabled"`
 }
 
 type DomainRelation struct {

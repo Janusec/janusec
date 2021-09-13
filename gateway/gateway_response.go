@@ -145,7 +145,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 	// Static Cache
 	if resp.StatusCode == http.StatusOK && firewall.IsStaticResource(r) {
 		if resp.ContentLength < 0 || resp.ContentLength > 1024*1024*10 {
-			// Not cache big files which size bigger than 10MB or unkonwn
+			// Not cache big files which size bigger than 10MB or unknown
 			return nil
 		}
 		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
