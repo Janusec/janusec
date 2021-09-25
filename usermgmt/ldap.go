@@ -9,6 +9,7 @@ package usermgmt
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -46,20 +47,68 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
-	dn := strings.Replace(data.NodeSetting.AuthConfig.LDAP.DN, "{uid}", username, 1)
-	err = conn.Bind(dn, password)
-	if err != nil {
-		utils.DebugPrintln("AuthWithLDAP Auth Error", username, err)
-		var entrance string
-		if state == "admin" {
-			entrance = data.NodeSetting.AuthConfig.LDAP.Entrance + "?state=" + state
-		} else {
-			entrance = "/ldap/login?state=" + state
+
+	if data.NodeSetting.AuthConfig.LDAP.BindRequired {
+		// First bind to administrator
+		bindDN := strings.Replace(data.NodeSetting.AuthConfig.LDAP.DN, "{uid}", data.NodeSetting.AuthConfig.LDAP.BindUsername, 1)
+		_, err = conn.SimpleBind(&ldap.SimpleBindRequest{
+			Username: bindDN,
+			Password: data.NodeSetting.AuthConfig.LDAP.BindPassword,
+		})
+		if err != nil {
+			utils.DebugPrintln("AuthWithLDAP SimpleBind", err)
+			return
 		}
-		// Go to LDAP login page
-		http.Redirect(w, r, entrance, http.StatusTemporaryRedirect)
-		return
+		// Second Search user
+		filter := fmt.Sprintf("(&(objectClass=person)(sAMAccountName=%s))", username)
+		searchRequest := ldap.NewSearchRequest(
+			data.NodeSetting.AuthConfig.LDAP.BaseDN,
+			ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+			filter,
+			[]string{"dn", "cn"},
+			nil,
+		)
+		sr, err := conn.Search(searchRequest)
+		if err != nil {
+			utils.DebugPrintln("AuthWithLDAP Search Error", err)
+		}
+		if len(sr.Entries) == 0 {
+			utils.DebugPrintln("AuthWithLDAP not found", username)
+			return
+		}
+		// bind to user
+		userDN := sr.Entries[0].DN
+		err = conn.Bind(userDN, password)
+		if err != nil {
+			utils.DebugPrintln("AuthWithLDAP Auth Error", username, err)
+			var entrance string
+			if state == "admin" {
+				entrance = data.NodeSetting.AuthConfig.LDAP.Entrance + "?state=" + state
+			} else {
+				entrance = "/ldap/login?state=" + state
+			}
+			// Go to LDAP login page
+			http.Redirect(w, r, entrance, http.StatusFound)
+			return
+		}
+	} else {
+		// Anonymous Bind
+		dn := strings.Replace(data.NodeSetting.AuthConfig.LDAP.DN, "{uid}", username, 1)
+		err = conn.Bind(dn, password)
+		if err != nil {
+			utils.DebugPrintln("AuthWithLDAP Auth Error", username, err)
+			var entrance string
+			if state == "admin" {
+				entrance = data.NodeSetting.AuthConfig.LDAP.Entrance + "?state=" + state
+			} else {
+				entrance = "/ldap/login?state=" + state
+			}
+			// Go to LDAP login page
+			http.Redirect(w, r, entrance, http.StatusFound)
+			return
+		}
 	}
+
 	// TOTP Auth
 	if data.NodeSetting.AuthConfig.LDAP.AuthenticatorEnabled {
 		totpItem, err := GetTOTPByUID(username)
@@ -115,7 +164,7 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		RecordAuthLog(r, authUser.Username, "LDAP", data.CFG.PrimaryNode.Admin.Portal)
-		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, data.CFG.PrimaryNode.Admin.Portal, http.StatusFound)
 		return
 	}
 	// Gateway OAuth for employees and internal application
@@ -126,8 +175,8 @@ func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 		oauthState.AccessToken = "N/A"
 		OAuthCache.Set(state, oauthState, cache.DefaultExpiration)
 		RecordAuthLog(r, oauthState.UserID, "LDAP", oauthState.CallbackURL)
-		http.Redirect(w, r, oauthState.CallbackURL, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, oauthState.CallbackURL, http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
