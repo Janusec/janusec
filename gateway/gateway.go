@@ -184,7 +184,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				}
 				captchaHitInfo.Store(hitInfo.ClientID, hitInfo)
 				captchaURL := CaptchaEntrance + "?id=" + hitInfo.ClientID
-				http.Redirect(w, r, captchaURL, http.StatusTemporaryRedirect)
+				http.Redirect(w, r, captchaURL, http.StatusFound)
 				return
 			}
 		}
@@ -346,6 +346,12 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, targetFile)
 			return
 		}
+		targetFile := dest.BackendRoute + strings.Replace(r.URL.Path, dest.RequestRoute, "", 1)
+		if _, err := os.Stat(targetFile); os.IsNotExist(err) {
+			// targetFile not exists
+			http.Redirect(w, r, dest.RequestRoute, http.StatusFound)
+			return
+		}
 		http.StripPrefix(dest.RequestRoute, staticHandler).ServeHTTP(w, r)
 		return
 	} else if dest.RouteType == models.FastCGIRoute {
@@ -494,8 +500,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 						w.Header().Set("Content-Encoding", "br")
 						brWriter := brotli.NewWriter(w)
 						defer brWriter.Close()
-						zipResponseWriter := models.ZipResponseWriter {
-							Writer: brWriter,
+						zipResponseWriter := models.ZipResponseWriter{
+							Writer:         brWriter,
 							ResponseWriter: w,
 						}
 						http.ServeFile(zipResponseWriter, r, targetFile)
@@ -503,19 +509,19 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 						w.Header().Set("Content-Encoding", "gzip")
 						gzWriter := gzip.NewWriter(w)
 						defer gzWriter.Close()
-						zipResponseWriter := models.ZipResponseWriter {
-							Writer: gzWriter,
+						zipResponseWriter := models.ZipResponseWriter{
+							Writer:         gzWriter,
 							ResponseWriter: w,
 						}
 						http.ServeFile(zipResponseWriter, r, targetFile)
 					} else {
 						http.ServeFile(w, r, targetFile)
-					}				
+					}
 					return
 				}
 			}
 			// Has Range Header, or resource Not Found, Continue
-			// For static files, disable compression between gateway and backend 
+			// For static files, disable compression between gateway and backend
 			r.Header.Set("Accept-Encoding", "")
 		}
 	}
