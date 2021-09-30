@@ -8,6 +8,7 @@
 package data
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -186,6 +187,17 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("ldap_authenticator_enabled") {
 		_ = DAL.SaveBoolSetting("ldap_authenticator_enabled", false)
 	}
+	// v1.2.6
+	if !DAL.ExistsSetting("ldap_bind_required") {
+		_ = DAL.SaveBoolSetting("ldap_bind_required", false)
+	}
+	if !DAL.ExistsSetting("ldap_base_dn") {
+		DAL.SaveStringSetting("ldap_base_dn", "CN=Users,DC=your_domain,DC=com")
+	}
+	if !DAL.ExistsSetting("ldap_bind_username") {
+		DAL.SaveStringSetting("ldap_bind_username", "administrator")
+	}
+
 	// AuthConfig cas2
 	if !DAL.ExistsSetting("cas2_display_name") {
 		DAL.SaveStringSetting("cas2_display_name", "Login with CAS 2.0")
@@ -456,6 +468,18 @@ func GetLDAPConfig() *models.LDAPConfig {
 	dn := DAL.SelectStringSetting("ldap_dn")
 	usingTLS := DAL.SelectBoolSetting("ldap_using_tls")
 	authenticatorEnabled := DAL.SelectBoolSetting("ldap_authenticator_enabled")
+	bindRequired := DAL.SelectBoolSetting("ldap_bind_required")
+	baseDN := DAL.SelectStringSetting("ldap_base_dn")
+	bindUsername := DAL.SelectStringSetting("ldap_bind_username")
+	hexBindPassword := DAL.SelectStringSetting("ldap_bind_password")
+	var bindPassword string
+	if len(hexBindPassword) == 0 {
+		bindPassword = ""
+	} else {
+		encryptedBindPassword, _ := hex.DecodeString(hexBindPassword)
+		bindPasswordByte, _ := AES256Decrypt(encryptedBindPassword, false)
+		bindPassword = string(bindPasswordByte)
+	}
 
 	ldapConfig := &models.LDAPConfig{
 		DisplayName:          displayName,
@@ -464,6 +488,10 @@ func GetLDAPConfig() *models.LDAPConfig {
 		DN:                   dn,
 		UsingTLS:             usingTLS,
 		AuthenticatorEnabled: authenticatorEnabled,
+		BindRequired:         bindRequired,
+		BaseDN:               baseDN,
+		BindUsername:         bindUsername,
+		BindPassword:         bindPassword,
 	}
 	return ldapConfig
 }
@@ -480,12 +508,29 @@ func UpdateLDAPConfig(param map[string]interface{}, clientIP string, authUser *m
 	dn := ldapConfig["dn"].(string)
 	usingTLS := ldapConfig["using_tls"].(bool)
 	authenticatorEnabled := ldapConfig["authenticator_enabled"].(bool)
+	bindRequired := ldapConfig["bind_required"].(bool)
+	baseDN := ldapConfig["base_dn"].(string)
+	bindUsername := ldapConfig["bind_username"].(string)
+	bindPassword := ldapConfig["bind_password"].(string)
+
 	DAL.SaveStringSetting("ldap_display_name", displayName)
 	DAL.SaveStringSetting("ldap_entrance", entrance)
 	DAL.SaveStringSetting("ldap_address", address)
 	DAL.SaveStringSetting("ldap_dn", dn)
 	DAL.SaveBoolSetting("ldap_using_tls", usingTLS)
 	DAL.SaveBoolSetting("ldap_authenticator_enabled", authenticatorEnabled)
+	DAL.SaveBoolSetting("ldap_bind_required", bindRequired)
+	DAL.SaveStringSetting("ldap_base_dn", baseDN)
+	DAL.SaveStringSetting("ldap_bind_username", bindUsername)
+	var encrypedBindPassword string
+	if len(bindPassword) == 0 {
+		encrypedBindPassword = ""
+	} else {
+		encryptedPasswordBytes := AES256Encrypt([]byte(bindPassword), false)
+		encrypedBindPassword = hex.EncodeToString(encryptedPasswordBytes)
+	}
+	DAL.SaveStringSetting("ldap_bind_password", encrypedBindPassword)
+
 	newLDAPConfig := &models.LDAPConfig{
 		DisplayName:          displayName,
 		Entrance:             entrance,
@@ -493,6 +538,10 @@ func UpdateLDAPConfig(param map[string]interface{}, clientIP string, authUser *m
 		DN:                   dn,
 		UsingTLS:             usingTLS,
 		AuthenticatorEnabled: authenticatorEnabled,
+		BindRequired:         bindRequired,
+		BaseDN:               baseDN,
+		BindUsername:         bindUsername,
+		BindPassword:         bindPassword,
 	}
 	NodeSetting.AuthConfig.LDAP = newLDAPConfig
 	go utils.OperationLog(clientIP, authUser.Username, "Update LDAP Config", displayName)
@@ -607,7 +656,7 @@ func RPCGetNodeSetting() *models.NodeShareSetting {
 	if rpcObject.Object == nil {
 		rpcObject.Object = &models.NodeShareSetting{
 			SyncInterval: time.Duration(120) * time.Second,
-		}		
+		}
 		utils.DebugPrintln("RPCGetNodeSetting failed, please check config.json and server time")
 	}
 	return rpcObject.Object

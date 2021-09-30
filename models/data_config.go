@@ -30,8 +30,6 @@ type OAuthConfig struct {
 type PrimaryNodeConfig struct {
 	Admin    AdminConfig `json:"admin"`
 	Database DBConfig    `json:"database"`
-	// OAuth removed from v1.0.0
-	// OAuth OAuthConfig `json:"oauth"`
 }
 
 type ReplicaNodeConfig struct {
@@ -105,4 +103,13 @@ type LDAPConfig struct {
 	DN                   string `json:"dn"`
 	UsingTLS             bool   `json:"using_tls"`
 	AuthenticatorEnabled bool   `json:"authenticator_enabled"`
+
+	// BindRequired v1.2.6, for active directory, usually bind an adminitrator account
+	BindRequired bool `json:"bind_required"`
+	// BaseDN
+	BaseDN string `json:"base_dn"`
+	// BindUsername v1.2.6
+	BindUsername string `json:"bind_username"`
+	// BindPassword v1.2.6
+	BindPassword string `json:"bind_password"`
 }
