@@ -88,7 +88,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		staticHandler.ServeHTTP(w, r)
 		return
 	}
-	if (r.TLS == nil) && (app.RedirectHTTPS) {
+	if (r.TLS == nil) && (app.RedirectHTTPS || app.HSTSEnabled) {
 		if data.CFG.ListenHTTPS == ":443" {
 			RedirectRequest(w, r, "https://"+domainStr+r.URL.Path)
 		} else {

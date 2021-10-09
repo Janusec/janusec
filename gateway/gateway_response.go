@@ -115,7 +115,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 	}
 
 	// HSTS
-	if (app.HSTSEnabled) && (r.TLS != nil) {
+	if app.HSTSEnabled {
 		resp.Header.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 	}
 

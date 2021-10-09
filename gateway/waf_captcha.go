@@ -52,13 +52,13 @@ func ValidateCaptchaHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			captchaHitInfo.Delete(clientID)
 			if hitInfo.TypeID == 1 {
 				firewall.ClearCCStatByClientID(hitInfo.PolicyID, clientID)
-				http.Redirect(w, r, hitInfo.TargetURL, http.StatusPermanentRedirect)
+				http.Redirect(w, r, hitInfo.TargetURL, http.StatusFound)
 			} else {
-				http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+				http.Redirect(w, r, "/", http.StatusFound)
 			}
 			return
 		}
-		http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
 
