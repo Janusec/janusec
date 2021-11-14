@@ -6,11 +6,9 @@ After=postgresql.service
  
 [Service]
 Type=simple
-ExecStart=/usr/local/janusec/janusec
-StandardOutput=append:/usr/local/janusec/log/error.log
-StandardError=append:/usr/local/janusec/log/error.log
+ExecStart=/bin/bash -c '/usr/local/janusec/janusec >> /usr/local/janusec/log/error.log 2>&1'
 Restart=always
- 
+
 [Install]
 WantedBy=multi-user.target
 

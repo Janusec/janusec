@@ -713,9 +713,11 @@ func sendOfflineNotification(app *models.Application, dest string) {
 
 // Test ...
 func Test(w http.ResponseWriter, r *http.Request) {
-	//fmt.Println("Test, please remove this line!")
-	//w.Write([]byte("Done"))
-	//panic("Test panic")
+	if utils.Debug {
+		fmt.Println("Test only, please remove reference before release!")
+		w.Write([]byte("Done"))
+		//panic("Test panic")
+	}
 }
 
 // TestSMTP ...
