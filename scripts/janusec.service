@@ -7,6 +7,8 @@ After=postgresql.service
 [Service]
 Type=simple
 ExecStart=/usr/local/janusec/janusec
+StandardOutput=append:/usr/local/janusec/log/error.log
+StandardError=append:/usr/local/janusec/log/error.log
 Restart=always
  
 [Install]
