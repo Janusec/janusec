@@ -34,6 +34,9 @@ func GenerateRSACertificate(param map[string]interface{}) (selfSignedCert *SelfS
 		org = org[dotIndex+1:]
 	}
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, err
+	}
 	notBefore := time.Now()
 	notAfter := notBefore.Add(3653 * 24 * time.Hour)
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
