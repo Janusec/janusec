@@ -8,7 +8,9 @@
 package utils
 
 import (
+	"crypto/tls"
 	"log"
+	"net"
 	"net/smtp"
 	"os"
 	"regexp"
@@ -121,25 +123,91 @@ func OperationLog(ip string, username string, operation string, object string) {
 }
 
 // SendEmail for notification
-func SendEmail(host string, port string, username string, password string, recipients string, subject string, body string) {
+func SendEmail(host string, port string, from string, password string, recipients string, subject string, body string) {
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", username, password, host)
+	auth := smtp.PlainAuth("", from, password, host)
 
 	// recipients example: abc@janusec.com;xyz@janusec.com
 	to := strings.Split(recipients, ";")
 
 	msg := []byte("To: " + recipients + "\r\n" +
-		"From: " + username + "\r\n" +
+		"From: " + from + "\r\n" +
 		"Subject: " + subject + "\r\n" +
 		"Content-Type: text/html; charset=UTF-8\r\n\r\n" +
 		"<html><body><p>" +
 		body + "\r\n" +
 		"</p><hr><p><small>Send by Janusec Application Gateway</small></p>" +
 		"</body></html>\r\n")
-	err := smtp.SendMail(host+":"+port, auth, username, to, msg)
+	var err error
+	if port == "465" {
+		// v1.2.7 add port 465 support
+		err = SendMailUsingTLS(host+":"+port, auth, from, to, msg)
+	} else {
+		// SMTP 25, 587
+		err = smtp.SendMail(host+":"+port, auth, from, to, msg)
+	}
+
 	if err != nil {
 		DebugPrintln("SendEmail error:", err)
 	} else {
 		DebugPrintln("SendEmail OK to "+recipients, subject)
 	}
+}
+
+//return a smtp client, 465 only
+func SMTPDial(addr string) (*smtp.Client, error) {
+	conn, err := tls.Dial("tcp", addr, nil)
+	if err != nil {
+		log.Println("Dialing Error:", err)
+		return nil, err
+	}
+	host, _, _ := net.SplitHostPort(addr)
+	return smtp.NewClient(conn, host)
+}
+
+// SendMailUsingTLS uses port 465 only
+func SendMailUsingTLS(addr string, auth smtp.Auth, from string, to []string, msg []byte) (err error) {
+	//create smtp client
+	c, err := SMTPDial(addr)
+	if err != nil {
+		DebugPrintln("SendMailUsingTLS SMTPDial:", err)
+		return err
+	}
+	defer c.Close()
+
+	if auth != nil {
+		if ok, _ := c.Extension("AUTH"); ok {
+			if err = c.Auth(auth); err != nil {
+				DebugPrintln("SendMailUsingTLS AUTH", err)
+				return err
+			}
+		}
+	}
+
+	if err = c.Mail(from); err != nil {
+		return err
+	}
+
+	for _, addr := range to {
+		if err = c.Rcpt(addr); err != nil {
+			return err
+		}
+	}
+
+	w, err := c.Data()
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(msg)
+	if err != nil {
+		return err
+	}
+
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+
+	return c.Quit()
 }
