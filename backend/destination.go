@@ -31,14 +31,14 @@ func CheckOfflineDestinations(nowTimeStamp int64) {
 	for _, app := range Apps {
 		for _, dest := range app.Destinations {
 			if dest.RouteType == models.ReverseProxyRoute && !dest.Online {
-				go func() {
+				go func(dest *models.Destination) {
 					conn, err := net.DialTimeout("tcp", dest.Destination, time.Second)
 					if err == nil {
 						defer conn.Close()
 						dest.Online = true
 						dest.CheckTime = nowTimeStamp
 					}
-				}()
+				}(dest)
 			}
 		}
 	}
