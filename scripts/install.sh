@@ -69,6 +69,12 @@ if [ ! -d ${install_dir}/static/welcome ]; then
     \cp -R ./static/welcome ${install_dir}/static/welcome -T
 fi
 
+# copy keepalived files
+if [ ! -f ${install_dir}/check_pid.sh ]; then
+    \cp ./check_pid.sh ${install_dir}/check_pid.sh
+    \cp ./keepalived.conf ${install_dir}/keepalived.conf
+fi
+
 # Check OS from /etc/os-release, ID="centos" or ID=debian or ID="rhel"
 os=`cat /etc/os-release | grep "^ID\=" | awk -F "=" '{print $2}' | sed 's/\"//g'`
 full_service_path=/lib/systemd/system/janusec.service
