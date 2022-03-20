@@ -186,6 +186,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 				captchaURL := CaptchaEntrance + "?id=" + hitInfo.ClientID
 				http.Redirect(w, r, captchaURL, http.StatusFound)
 				return
+			default:
+				// models.Action_Pass_400 do nothing
 			}
 		}
 	}
