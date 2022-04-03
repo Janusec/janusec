@@ -136,8 +136,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj = nil
 		err = firewall.UpdateCCPolicy(param, clientIP, authUser)
 	case "get_group_policies":
-		appID := int64(param["id"].(float64))
-		obj, err = firewall.GetGroupPolicies(appID)
+		obj, err = firewall.GetGroupPolicies()
 	case "get_group_policy":
 		id := int64(param["id"].(float64))
 		obj, err = firewall.GetGroupPolicyByID(id)
@@ -296,8 +295,7 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_cc_policies":
 		obj, err = firewall.GetCCPolicies()
 	case "get_group_policies":
-		appID := int64(param["id"].(float64))
-		obj, err = firewall.GetGroupPolicies(appID)
+		obj, err = firewall.GetGroupPolicies()
 	case "get_ip_policies":
 		obj, err = firewall.GetIPPolicies()
 	case "get_vuln_types":
