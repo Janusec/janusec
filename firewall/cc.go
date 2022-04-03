@@ -110,14 +110,9 @@ func GetCCPolicyRespByAppID(appID int64) (*models.CCPolicy, error) {
 
 // IsCCAttack to judge a request is CC attack, return IsCC, CCPolicy, ClientID, NeedLog
 func IsCCAttack(r *http.Request, app *models.Application, srcIP string) (bool, *models.CCPolicy, string, bool) {
-	isCC := false
 	ccPolicy := GetCCPolicyByAppID(app.ID)
-	if !ccPolicy.IsEnabled {
+	if !ccPolicy.IsEnabled || ccPolicy.Action == models.Action_Pass_400 {
 		return false, nil, "", false
-	}
-	if isCC {
-		clientID := data.SHA256Hash(srcIP)
-		return isCC, ccPolicy, clientID, false
 	}
 	ccAppID := app.ID
 	if ccPolicy.AppID == 0 {

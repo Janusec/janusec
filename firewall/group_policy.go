@@ -231,7 +231,7 @@ func InitGroupPolicy() {
 }
 
 // GetGroupPolicies ...
-func GetGroupPolicies(appID int64) ([]*models.GroupPolicy, error) {
+func GetGroupPolicies() ([]*models.GroupPolicy, error) {
 	return groupPolicies, nil
 }
 
