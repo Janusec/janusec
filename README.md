@@ -128,11 +128,8 @@ Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-
 * 产品网站 [https://doc.janusec.com/cn/](https://doc.janusec.com/cn/)   
 * 官方网站: [https://www.janusec.com/](https://www.janusec.com/)  
 * Email: `support#janusec.com`  
-* QQ群: 776900157  , @[U2](https://github.com/zhyale)     
+* QQ群: 776900157  
 
-* 作者微信公众号： 数据安全架构与治理（Data-Security）  
-
-![数据安全架构与治理（Data-Security）](Data-Security.png)  
 
 ---  
 
@@ -259,4 +256,4 @@ Janusec Application Gateway source files are made available under the terms of t
 * Product: [https://janusec.github.io/](https://janusec.github.io/)   
 * Official site : [https://www.janusec.com/](https://www.janusec.com/)  
 * Email: `support#janusec.com`  
-* QQ Group: 776900157  , @[U2](https://github.com/zhyale) (The Author)  
+* QQ Group: 776900157 
