@@ -340,11 +340,15 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		go IncRefererStat(app.ID, referer, srcIP, ua)
 	}
 
+	// targetDest indicate the real backend IP:Port of a service or a K8S Pod
+	// targetDest will change with different requests for K8S
+	targetDest := dest.Destination
+
 	if dest.RouteType == models.StaticRoute {
 		// Static Web site
 		staticHandler := http.FileServer(http.Dir(dest.BackendRoute))
 		if strings.HasSuffix(r.URL.Path, "/") {
-			targetFile := dest.BackendRoute + strings.Replace(r.URL.Path, dest.RequestRoute, "", 1) + dest.Destination
+			targetFile := dest.BackendRoute + strings.Replace(r.URL.Path, dest.RequestRoute, "", 1) + targetDest
 			http.ServeFile(w, r, targetFile)
 			return
 		}
@@ -358,7 +362,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if dest.RouteType == models.FastCGIRoute {
 		// FastCGI
-		connFactory := gofast.SimpleConnFactory("tcp", dest.Destination)
+		connFactory := gofast.SimpleConnFactory("tcp", targetDest)
 		urlPath := utils.GetRoutePath(r.URL.Path)
 		newPath := r.URL.Path
 		if urlPath != "/" {
@@ -370,6 +374,35 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		)
 		fastCGIHandler.ServeHTTP(w, r)
 		return
+	} else if dest.RouteType == models.K8S_Ingress {
+		// parse pod ip, added on 2023.01.22
+		if len(dest.Pods) == 0 || (nowTimeStamp-dest.CheckTime) > int64(60*time.Second) {
+			// check k8s api
+			request, _ := http.NewRequest("GET", dest.PodsAPI, nil)
+			request.Header.Set("Content-Type", "application/json")
+			resp, err := utils.GetResponse(request)
+			if err != nil {
+				utils.DebugPrintln("Check K8S API GetResponse", err)
+				dest.CheckTime = nowTimeStamp
+				dest.Online = false
+			}
+			pods := models.PODS{}
+			err = json.Unmarshal(resp, &pods)
+			if err != nil {
+				utils.DebugPrintln("Unmarshal K8S API", err)
+			}
+			dest.Pods = ""
+			for _, podItem := range pods.Items {
+				if podItem.Status.Phase == "Running" {
+					if len(dest.Pods) > 0 {
+						dest.Pods += "|"
+					}
+					dest.Pods += podItem.Status.PodIP + ":" + dest.PodPort
+				}
+			}
+		}
+		// select target pod from dest.Pods directly
+		targetDest = backend.SelectPod(dest.Pods, srcIP, r)
 	}
 
 	// var transport http.RoundTripper
@@ -378,13 +411,13 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		IdleConnTimeout:       30 * time.Second,
 		ExpectContinueTimeout: 5 * time.Second,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			conn, err := net.Dial("tcp", dest.Destination)
+			conn, err := net.Dial("tcp", targetDest)
 			dest.CheckTime = nowTimeStamp
 			if err != nil {
 				dest.Online = false
 				utils.DebugPrintln("DialContext error", err)
 				if data.NodeSetting.SMTP.SMTPEnabled {
-					sendOfflineNotification(app, dest.Destination)
+					sendOfflineNotification(app, targetDest)
 				}
 				errInfo := &models.InternalErrorInfo{
 					Description: "Internal Server Offline",
@@ -394,14 +427,14 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			return conn, err
 		},
 		DialTLS: func(network, addr string) (net.Conn, error) {
-			conn, err := net.Dial("tcp", dest.Destination)
+			conn, err := net.Dial("tcp", targetDest)
 			dest.CheckTime = nowTimeStamp
 			if err != nil {
 				dest.Online = false
 				dest.CheckTime = nowTimeStamp
 				utils.DebugPrintln("DialContext error", err)
 				if data.NodeSetting.SMTP.SMTPEnabled {
-					sendOfflineNotification(app, dest.Destination)
+					sendOfflineNotification(app, targetDest)
 				}
 				errInfo := &models.InternalErrorInfo{
 					Description: "Internal Server Offline",
@@ -446,7 +479,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 					pastSeconds := now.Unix() - int64(fiStat.Ctim.Sec)
 					if pastSeconds > 1800 {
 						// check update
-						backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, dest.Destination, r.RequestURI)
+						backendAddr := fmt.Sprintf("%s://%s%s", app.InternalScheme, targetDest, r.RequestURI)
 						req, err := http.NewRequest("GET", backendAddr, nil)
 						if err != nil {
 							utils.DebugPrintln("Check Update NewRequest", err)

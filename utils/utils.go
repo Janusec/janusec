@@ -9,8 +9,10 @@ package utils
 
 import (
 	"crypto/tls"
+	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"net/smtp"
 	"os"
 	"regexp"
@@ -154,7 +156,7 @@ func SendEmail(host string, port string, from string, password string, recipient
 	}
 }
 
-//return a smtp client, 465 only
+// return a smtp client, 465 only
 func SMTPDial(addr string) (*smtp.Client, error) {
 	conn, err := tls.Dial("tcp", addr, nil)
 	if err != nil {
@@ -210,4 +212,17 @@ func SendMailUsingTLS(addr string, auth smtp.Auth, from string, to []string, msg
 	}
 
 	return c.Quit()
+}
+
+func GetResponse(request *http.Request) (respBytes []byte, err error) {
+	request.Header.Set("Accept", "application/json")
+	client := http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		DebugPrintln("GetResponse Do", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	respBytes, err = ioutil.ReadAll(resp.Body)
+	return respBytes, err
 }

@@ -45,7 +45,6 @@ func SelectDestination(app *models.Application) string {
 func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) *models.Destination {
 	routePath := utils.GetRoutePath(r.URL.Path)
 	var dests []*models.Destination
-	var onlineDests = []*models.Destination{}
 	hit := false
 	if routePath != "/" {
 		// First check /abc/
@@ -72,6 +71,7 @@ func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) 
 	}
 
 	// get online destinations
+	var onlineDests = []*models.Destination{}
 	for _, dest := range dests {
 		if dest.Online {
 			onlineDests = append(onlineDests, dest)
@@ -253,16 +253,18 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 		requestRoute := strings.TrimSpace(destMap["request_route"].(string))
 		backendRoute := strings.TrimSpace(destMap["backend_route"].(string))
 		destDest := strings.TrimSpace(destMap["destination"].(string))
+		podsAPI := strings.TrimSpace(destMap["pods_api"].(string))
+		podPort := strings.TrimSpace(destMap["pod_port"].(string))
 		appID := app.ID //int64(destMap["appID"].(float64))
 		nodeID := int64(destMap["node_id"].(float64))
 		var err error
 		if destID == 0 {
-			destID, err = data.DAL.InsertDestination(routeType, requestRoute, backendRoute, destDest, appID, nodeID)
+			destID, err = data.DAL.InsertDestination(routeType, requestRoute, backendRoute, destDest, podsAPI, podPort, appID, nodeID)
 			if err != nil {
 				utils.DebugPrintln("InsertDestination", err)
 			}
 		} else {
-			err = data.DAL.UpdateDestinationNode(routeType, requestRoute, backendRoute, destDest, appID, nodeID, destID)
+			err = data.DAL.UpdateDestinationNode(routeType, requestRoute, backendRoute, destDest, podsAPI, podPort, appID, nodeID, destID)
 			if err != nil {
 				utils.DebugPrintln("UpdateDestinationNode", err)
 			}
@@ -273,6 +275,8 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 			RequestRoute: requestRoute,
 			BackendRoute: backendRoute,
 			Destination:  destDest,
+			PodsAPI:      podsAPI,
+			PodPort:      podPort,
 			AppID:        appID,
 			NodeID:       nodeID,
 			Online:       true,
@@ -363,8 +367,8 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 			SessionSeconds: sessionSeconds,
 			Owner:          owner,
 			CSPEnabled:     cspEnabled,
-			CSP:            csp, 
-			CacheEnabled: cacheEnabled}
+			CSP:            csp,
+			CacheEnabled:   cacheEnabled}
 		Apps = append(Apps, app)
 		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {

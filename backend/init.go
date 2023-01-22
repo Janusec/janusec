@@ -86,6 +86,13 @@ func InitDatabase() {
 			utils.DebugPrintln("InitDatabase ALTER TABLE destinations", err)
 		}
 	}
+	if !dal.ExistColumnInTable("destinations", "pods_api") {
+		// v1.3.0+ required
+		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "pods_api" VARCHAR(512), ADD COLUMN "pod_port" VARCHAR(128), ADD COLUMN "pods" VARCHAR(1024)`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE destinations", err)
+		}
+	}
 	if dal.ExistColumnInTable("ccpolicies", "interval_seconds") {
 		// v0.9.9 interval_seconds, v0.9.10 interval_milliseconds
 		err = dal.ExecSQL(`ALTER TABLE "ccpolicies" RENAME COLUMN "interval_seconds" TO "interval_milliseconds"`)

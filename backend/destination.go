@@ -8,8 +8,13 @@
 package backend
 
 import (
+	"encoding/json"
+	"hash/fnv"
 	"janusec/models"
+	"janusec/utils"
 	"net"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -39,7 +44,46 @@ func CheckOfflineDestinations(nowTimeStamp int64) {
 						dest.CheckTime = nowTimeStamp
 					}
 				}(dest)
+			} else if dest.RouteType == models.K8S_Ingress && !dest.Online {
+				// check k8s api
+				request, _ := http.NewRequest("GET", dest.PodsAPI, nil)
+				request.Header.Set("Content-Type", "application/json")
+				resp, err := utils.GetResponse(request)
+				if err != nil {
+					continue
+				}
+				pods := models.PODS{}
+				err = json.Unmarshal(resp, &pods)
+				if err != nil {
+					utils.DebugPrintln("Unmarshal K8S API", err)
+				}
+				dest.Pods = ""
+				for _, podItem := range pods.Items {
+					if podItem.Status.Phase == "Running" {
+						if len(dest.Pods) > 0 {
+							dest.Pods += "|"
+						}
+						dest.Pods += podItem.Status.PodIP + ":" + dest.PodPort
+					}
+				}
+				dest.CheckTime = nowTimeStamp
+				dest.Online = true
 			}
 		}
 	}
+}
+
+// SelectPod select one pod as response backend
+// format IP:Port
+func SelectPod(pods string, srcIP string, r *http.Request) string {
+	dests := strings.Split(pods, "|")
+	// According to Hash(IP+UA)
+	h := fnv.New32a()
+	_, err := h.Write([]byte(srcIP + r.UserAgent()))
+	if err != nil {
+		utils.DebugPrintln("SelectBackendRoute h.Write", err)
+	}
+	hashUInt32 := h.Sum32()
+	destIndex := hashUInt32 % uint32(len(dests))
+	return dests[destIndex]
 }
