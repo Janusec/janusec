@@ -375,34 +375,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		fastCGIHandler.ServeHTTP(w, r)
 		return
 	} else if dest.RouteType == models.K8S_Ingress {
-		// parse pod ip, added on 2023.01.22
-		if len(dest.Pods) == 0 || (nowTimeStamp-dest.CheckTime) > int64(60*time.Second) {
-			// check k8s api
-			request, _ := http.NewRequest("GET", dest.PodsAPI, nil)
-			request.Header.Set("Content-Type", "application/json")
-			resp, err := utils.GetResponse(request)
-			if err != nil {
-				utils.DebugPrintln("Check K8S API GetResponse", err)
-				dest.CheckTime = nowTimeStamp
-				dest.Online = false
-			}
-			pods := models.PODS{}
-			err = json.Unmarshal(resp, &pods)
-			if err != nil {
-				utils.DebugPrintln("Unmarshal K8S API", err)
-			}
-			dest.Pods = ""
-			for _, podItem := range pods.Items {
-				if podItem.Status.Phase == "Running" {
-					if len(dest.Pods) > 0 {
-						dest.Pods += "|"
-					}
-					dest.Pods += podItem.Status.PodIP + ":" + dest.PodPort
-				}
-			}
-		}
-		// select target pod from dest.Pods directly
-		targetDest = backend.SelectPod(dest.Pods, srcIP, r)
+		// Get target Pod address
+		targetDest = backend.SelectPodFromDestination(dest, srcIP, r)
 	}
 
 	// var transport http.RoundTripper

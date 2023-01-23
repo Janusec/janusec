@@ -88,9 +88,21 @@ func InitDatabase() {
 	}
 	if !dal.ExistColumnInTable("destinations", "pods_api") {
 		// v1.3.0+ required
-		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "pods_api" VARCHAR(512), ADD COLUMN "pod_port" VARCHAR(128), ADD COLUMN "pods" VARCHAR(1024)`)
+		// alter table table_name alter column_name drop not null;
+		dal.ExecSQL(`ALTER TABLE "destinations" ALTER COLUMN "destination" DROP NOT NULL`)
+		dal.ExecSQL(`ALTER TABLE "destinations" ALTER COLUMN "destination" SET DEFAULT ''`)
+		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "pods_api" VARCHAR(512) DEFAULT '', ADD COLUMN "pod_port" VARCHAR(128) DEFAULT '', ADD COLUMN "pods" VARCHAR(1024) DEFAULT ''`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE destinations", err)
+		}
+	}
+	if !dal.ExistColumnInTable("vip_targets", "pods_api") {
+		// v1.3.0+ required
+		dal.ExecSQL(`ALTER TABLE "vip_targets" ALTER COLUMN "destination" DROP NOT NULL`)
+		dal.ExecSQL(`ALTER TABLE "vip_targets" ALTER COLUMN "destination" SET DEFAULT ''`)
+		err = dal.ExecSQL(`ALTER TABLE "vip_targets" ADD COLUMN "route_type" bigint default 1, ADD COLUMN "pods_api" VARCHAR(512) DEFAULT '', ADD COLUMN "pod_port" VARCHAR(128) DEFAULT '', ADD COLUMN "pods" VARCHAR(1024) DEFAULT ''`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE vip_targets", err)
 		}
 	}
 	if dal.ExistColumnInTable("ccpolicies", "interval_seconds") {

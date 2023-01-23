@@ -179,19 +179,25 @@ func TCPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
 		remoteAddr := proxy.RemoteAddr()
 		vipTarget := SelectVipTarget(vipApp, remoteAddr.String())
 		if vipTarget != nil {
-			target, err := net.Dial("tcp", vipTarget.Destination)
+			targetDest := vipTarget.Destination
+			// If K8S, get target Pod
+			if vipTarget.RouteType == models.K8S_Ingress {
+				targetDest = SelectPodFromVIPTarget(vipTarget, remoteAddr.String())
+			}
+			// Reverse Proxy
+			target, err := net.Dial("tcp", targetDest)
 			vipTarget.CheckTime = time.Now().Unix()
 			if err != nil {
-				utils.DebugPrintln("TCPForwarding could not connect to target", vipTarget.Destination, err)
+				utils.DebugPrintln("TCPForwarding could not connect to target", targetDest, err)
 				vipTarget.Online = false
 				if data.NodeSetting.SMTP.SMTPEnabled {
-					sendVIPOfflineNotification(vipApp, vipTarget.Destination)
+					sendVIPOfflineNotification(vipApp, targetDest)
 				}
 				continue
 			}
 			vipTarget.Online = true
 			// Log to file
-			utils.VipAccessLog(vipApp.Name, remoteAddr.String(), proxy.LocalAddr().String(), vipTarget.Destination)
+			utils.VipAccessLog(vipApp.Name, remoteAddr.String(), proxy.LocalAddr().String(), targetDest)
 			// stream copy
 			go func() {
 				io.Copy(target, proxy)
@@ -336,19 +342,23 @@ func UpdateTargets(vipApp *models.VipApp, targets []interface{}) {
 		}
 	}
 	var newTargets = []*models.VipTarget{}
+
 	for _, targetInterface := range targets {
 		// add new destinations to DB and app
 		targetMap := targetInterface.(map[string]interface{})
 		targetID := int64(targetMap["id"].(float64))
+		routeType := int64(targetMap["route_type"].(float64))
 		destination := strings.TrimSpace(targetMap["destination"].(string))
+		podsAPI := strings.TrimSpace(targetMap["pods_api"].(string))
+		podPort := strings.TrimSpace(targetMap["pod_port"].(string))
 		var err error
 		if targetID == 0 {
-			targetID, err = data.DAL.InsertVipTarget(vipApp.ID, destination)
+			targetID, err = data.DAL.InsertVipTarget(vipApp.ID, routeType, destination, podsAPI, podPort)
 			if err != nil {
 				utils.DebugPrintln("InsertVipTarget", err)
 			}
 		} else {
-			err = data.DAL.UpdateVipTarget(vipApp.ID, destination, targetID)
+			err = data.DAL.UpdateVipTarget(vipApp.ID, routeType, destination, podsAPI, podPort, targetID)
 			if err != nil {
 				utils.DebugPrintln("UpdateVipTarget", err)
 			}
@@ -356,7 +366,10 @@ func UpdateTargets(vipApp *models.VipApp, targets []interface{}) {
 		target := &models.VipTarget{
 			ID:          targetID,
 			VipAppID:    vipApp.ID,
+			RouteType:   models.RouteType(routeType),
 			Destination: destination,
+			PodsAPI:     podsAPI,
+			PodPort:     podPort,
 			Online:      true,
 		}
 		newTargets = append(newTargets, target)

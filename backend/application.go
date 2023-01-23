@@ -251,7 +251,13 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 		destID := int64(destMap["id"].(float64))
 		routeType := int64(destMap["route_type"].(float64))
 		requestRoute := strings.TrimSpace(destMap["request_route"].(string))
+		if strings.HasPrefix(requestRoute, "/") && !strings.HasSuffix(requestRoute, "/") {
+			requestRoute = strings.Trim(requestRoute, " ") + "/"
+		}
 		backendRoute := strings.TrimSpace(destMap["backend_route"].(string))
+		if strings.HasPrefix(backendRoute, "/") && !strings.HasSuffix(backendRoute, "/") {
+			backendRoute = strings.Trim(backendRoute, " ") + "/"
+		}
 		destDest := strings.TrimSpace(destMap["destination"].(string))
 		podsAPI := strings.TrimSpace(destMap["pods_api"].(string))
 		podPort := strings.TrimSpace(destMap["pod_port"].(string))

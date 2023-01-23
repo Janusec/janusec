@@ -218,6 +218,7 @@ func GetResponse(request *http.Request) (respBytes []byte, err error) {
 	request.Header.Set("Accept", "application/json")
 	client := http.Client{}
 	resp, err := client.Do(request)
+	//DebugPrintln("GetResponse:", request.URL.String())
 	if err != nil {
 		DebugPrintln("GetResponse Do", err)
 		return nil, err
