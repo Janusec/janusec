@@ -14,7 +14,7 @@ import (
 
 // CreateTableIfNotExistsVipTargets create vip_targets
 func (dal *MyDAL) CreateTableIfNotExistsVipTargets() error {
-	const sqlCreateTableIfNotExistsVipTargets = `CREATE TABLE IF NOT EXISTS "vip_targets"("id" bigserial PRIMARY KEY, "vip_app_id" bigint NOT NULL, "destination" VARCHAR(128) NOT NULL)`
+	const sqlCreateTableIfNotExistsVipTargets = `CREATE TABLE IF NOT EXISTS "vip_targets"("id" bigserial PRIMARY KEY, "vip_app_id" bigint NOT NULL,"route_type" bigint default 1, "destination" VARCHAR(128) DEFAULT '',"pods_api" VARCHAR(512) DEFAULT '',"pod_port" VARCHAR(128) DEFAULT '',"pods" VARCHAR(1024) DEFAULT '')`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsVipTargets)
 	return err
 }
@@ -22,18 +22,18 @@ func (dal *MyDAL) CreateTableIfNotExistsVipTargets() error {
 // SelectVipTargetsByAppID ...
 func (dal *MyDAL) SelectVipTargetsByAppID(vipAppID int64) []*models.VipTarget {
 	targets := []*models.VipTarget{}
-	const sqlSelectVipTargetsByAppID = `SELECT "id","destination" FROM "vip_targets" WHERE "vip_app_id"=$1`
+	const sqlSelectVipTargetsByAppID = `SELECT "id","route_type","destination","pods_api","pod_port" FROM "vip_targets" WHERE "vip_app_id"=$1`
 	rows, err := dal.db.Query(sqlSelectVipTargetsByAppID, vipAppID)
 	if err != nil {
-		utils.DebugPrintln("SelectDestinationsByAppID", err)
+		utils.DebugPrintln("SelectVipTargetsByAppID", err)
 		return targets
 	}
 	defer rows.Close()
 	for rows.Next() {
 		vipTarget := &models.VipTarget{VipAppID: vipAppID, Online: true}
-		err = rows.Scan(&vipTarget.ID, &vipTarget.Destination)
+		err = rows.Scan(&vipTarget.ID, &vipTarget.RouteType, &vipTarget.Destination, &vipTarget.PodsAPI, &vipTarget.PodPort)
 		if err != nil {
-			utils.DebugPrintln("SelectDestinationsByAppID rows.Scan", err)
+			utils.DebugPrintln("SelectVipTargetsByAppID rows.Scan", err)
 		}
 		targets = append(targets, vipTarget)
 	}
@@ -41,9 +41,9 @@ func (dal *MyDAL) SelectVipTargetsByAppID(vipAppID int64) []*models.VipTarget {
 }
 
 // UpdateVipTarget ... update port forwarding target
-func (dal *MyDAL) UpdateVipTarget(vipAppID int64, destination string, id int64) error {
-	const sqlUpdateTarget = `UPDATE "vip_targets" SET "vip_app_id"=$1,"destination"=$2 WHERE "id"=$3`
-	_, err := dal.db.Exec(sqlUpdateTarget, vipAppID, destination, id)
+func (dal *MyDAL) UpdateVipTarget(vipAppID int64, routeType int64, destination string, podsAPI string, podPort string, id int64) error {
+	const sqlUpdateTarget = `UPDATE "vip_targets" SET "vip_app_id"=$1,"route_type"=$2,"destination"=$3,"pods_api"=$4,"pod_port"=$5 WHERE "id"=$6`
+	_, err := dal.db.Exec(sqlUpdateTarget, vipAppID, routeType, destination, podsAPI, podPort, id)
 	if err != nil {
 		utils.DebugPrintln("UpdateVipTarget", err)
 	}
@@ -51,9 +51,9 @@ func (dal *MyDAL) UpdateVipTarget(vipAppID int64, destination string, id int64) 
 }
 
 // InsertVipTarget create new VipTarget
-func (dal *MyDAL) InsertVipTarget(vipAppID int64, destination string) (newID int64, err error) {
-	const sqlInsertTarget = `INSERT INTO "vip_targets"("vip_app_id", "destination") VALUES($1,$2) RETURNING "id"`
-	err = dal.db.QueryRow(sqlInsertTarget, vipAppID, destination).Scan(&newID)
+func (dal *MyDAL) InsertVipTarget(vipAppID int64, routeType int64, destination string, podsAPI string, podPort string) (newID int64, err error) {
+	const sqlInsertTarget = `INSERT INTO "vip_targets"("vip_app_id", "route_type", "destination", "pods_api", "pod_port") VALUES($1,$2,$3,$4,$5) RETURNING "id"`
+	err = dal.db.QueryRow(sqlInsertTarget, vipAppID, routeType, destination, podsAPI, podPort).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertVipTarget", err)
 	}

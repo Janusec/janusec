@@ -71,7 +71,7 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	body := fmt.Sprintf(`{"tmp_auth_code": "%s"}`, code)
 	request, _ := http.NewRequest("POST", accessTokenURL, bytes.NewReader([]byte(body)))
 	request.Header.Set("Content-Type", "application/json")
-	resp, err := GetResponse(request)
+	resp, err := utils.GetResponse(request)
 	if err != nil {
 		utils.DebugPrintln("DingtalkCallbackWithCode GetResponse", err)
 	}

@@ -8,7 +8,6 @@
 package usermgmt
 
 import (
-	"io/ioutil"
 	"net"
 	"net/http"
 
@@ -19,19 +18,6 @@ import (
 
 func GetOAuthConfig() (*models.OAuthConfig, error) {
 	return data.NodeSetting.AuthConfig, nil
-}
-
-func GetResponse(request *http.Request) (respBytes []byte, err error) {
-	request.Header.Set("Accept", "application/json")
-	client := http.Client{}
-	resp, err := client.Do(request)
-	if err != nil {
-		utils.DebugPrintln("GetResponse Do", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-	respBytes, err = ioutil.ReadAll(resp.Body)
-	return respBytes, err
 }
 
 // RecordAuthLog ...

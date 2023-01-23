@@ -52,7 +52,7 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	accessTokenURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
 		data.NodeSetting.AuthConfig.Wxwork.CorpID, data.NodeSetting.AuthConfig.Wxwork.CorpSecret)
 	request, _ := http.NewRequest("GET", accessTokenURL, nil)
-	resp, err := GetResponse(request)
+	resp, err := utils.GetResponse(request)
 	if err != nil {
 		utils.DebugPrintln("WxworkCallbackWithCode GetResponse", err)
 	}
@@ -64,7 +64,7 @@ func WxworkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	// Step 2.3: Get UserID, https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=ACCESS_TOKEN&code=CODE
 	userURL := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=%s&code=%s", tokenResponse.AccessToken, code)
 	request, _ = http.NewRequest("GET", userURL, nil)
-	resp, err = GetResponse(request)
+	resp, err = utils.GetResponse(request)
 	if err != nil {
 		utils.DebugPrintln("WxworkCallbackWithCode GetResponse", err)
 	}

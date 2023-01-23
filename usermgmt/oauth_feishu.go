@@ -66,7 +66,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	request, _ := http.NewRequest("POST",
 		"https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal/",
 		bytes.NewReader([]byte(body)))
-	resp, err := GetResponse(request)
+	resp, err := utils.GetResponse(request)
 	if err != nil {
 		utils.DebugPrintln("FeishuCallbackWithCode GetResponse", err)
 	}
@@ -87,7 +87,7 @@ func FeishuCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	request, _ = http.NewRequest("POST", userURL, bytes.NewReader(bytesData))
 	request.Header.Set("Content-Type", "application/json")
 
-	resp, err = GetResponse(request)
+	resp, err = utils.GetResponse(request)
 	if err != nil {
 		utils.DebugPrintln("FeishuCallbackWithCode GetResponse", err)
 	}

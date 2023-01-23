@@ -42,7 +42,7 @@ type Application struct {
 	CSPEnabled bool   `json:"csp_enabled"`
 	CSP        string `json:"csp"`
 
-	// CacheEnabled cache static files v1.2.5 
+	// CacheEnabled cache static files v1.2.5
 	CacheEnabled bool `json:"cache_enabled"`
 }
 
@@ -66,7 +66,7 @@ type DBApplication struct {
 	// CSP (Content Security Policy) v0.9.11
 	CSPEnabled bool   `json:"csp_enabled"`
 	CSP        string `json:"csp"`
-	// CacheEnabled cache static files v1.2.5 
+	// CacheEnabled cache static files v1.2.5
 	CacheEnabled bool `json:"cache_enabled"`
 }
 
@@ -109,6 +109,9 @@ const (
 
 	// StaticRoute used for static web server
 	StaticRoute RouteType = 1 << 2
+
+	// K8S_Ingress used for k8s pods, added on 2023.01.22
+	K8S_Ingress RouteType = 1 << 3
 )
 
 // Destination is used for backend routing
@@ -127,12 +130,33 @@ type Destination struct {
 	// Destination is backend IP:Port , or static directory
 	Destination string `json:"destination"`
 
+	// PodsAPI example: http://127.0.0.1:8080/api/v1/namespaces/default/pods
+	PodsAPI string `json:"pods_api"`
+	// PodPort: port of backend pods
+	PodPort string `json:"pod_port"`
+	// Pods are all destinations
+	Pods string `json:"pods"`
+
 	AppID  int64 `json:"app_id"`
 	NodeID int64 `json:"node_id"`
 
 	// Online status of Destination (IP:Port), added in V0.9.11
 	Online    bool  `json:"online"`
 	CheckTime int64 `json:"check_time"`
+}
+
+// PODS for k8s /api/v1/namespaces/default/pods
+type PODS struct {
+	Items []Item `json:"items"`
+}
+
+type Item struct {
+	Status PodStatus `json:"status"`
+}
+
+type PodStatus struct {
+	Phase string `json:"phase"`
+	PodIP string `json:"podIP"`
 }
 
 type CertItem struct {
@@ -249,8 +273,18 @@ type VipTarget struct {
 	ID       int64 `json:"id"`
 	VipAppID int64 `json:"vip_app_id"`
 
+	// RouteType: Reverse_Proxy, K8S_Ingress
+	RouteType RouteType `json:"route_type"`
+
 	// Destination is backend IP:Port
 	Destination string `json:"destination"`
+
+	// PodsAPI example: http://127.0.0.1:8080/api/v1/namespaces/default/pods
+	PodsAPI string `json:"pods_api"`
+	// PodPort: port of backend pods
+	PodPort string `json:"pod_port"`
+	// Pods are all destinations
+	Pods string `json:"pods"`
 
 	// Online status of Destination (IP:Port)
 	Online    bool  `json:"online"`
