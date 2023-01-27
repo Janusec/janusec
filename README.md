@@ -11,6 +11,15 @@
 
 介绍PPT： https://www.janusec.com/download/Janusec-Application-Gateway-CN.pdf   
 
+### 主要功能  
+
+JANUSEC应用网关的主要功能有：  
+
+* 向Web应用提供统一的安全接入，包括HTTPS、身份认证、安全防御（WAF/CC）等。如Web应用是通过K8S Pods部署的，该网关也可以作为K8S Ingress Controller使用，向Pods提供跟普通Web应用同样的接入和安全特性。  
+
+* 向非Web应用提供四层TCP/UDP路由转发（含K8S Pods）  
+
+* 提供ACME自动化证书（免费），用于支持用户HTTPS访问，证书到期时自动续期   
 
 ### 主要特性  
 
@@ -57,7 +66,7 @@ https://doc.janusec.com/cn/
 ## 需求   
 
 * PostgreSQL 10/11/12+ (开发环境，及生产环境主节点需要)  
-* Debian 9/10+, CentOS/RHEL 7/8+, 首选Debian 10+    
+* Debian 9/10/11+, CentOS/RHEL 7/8+, 首选Debian 10+    
 * systemd  
 * nftables  
 * Golang 1.15+ (仅开发环境需要)  
@@ -66,7 +75,7 @@ https://doc.janusec.com/cn/
 
 详细文档可在这里获取： [Janusec应用网关快速入门](https://doc.janusec.com/cn/quick-start/)  
 
-如希望快速体验，可尝试使用 [Docker镜像](https://www.janusec.com/articles/opensource/1615470598.html)    
+如希望快速体验，可尝试使用 [Docker镜像](https://doc.janusec.com/cn/appendix-docker/)    
 
 ## 开发快速指引   
 
@@ -139,6 +148,16 @@ Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-
 
 Introduction Slides: https://www.janusec.com/download/Janusec-Application-Gateway.pdf   
 
+### Main functions  
+
+The main functions of JANUSEC Application Gateway include:  
+
+* Provide unified security access to web applications, including HTTPS, OAuth Authentication, security defense (WAF/CC), etc. If the web application is deployed through K8S Pods, the gateway can also be used as K8S Ingress Controller to provide Pods with the same access and security features as ordinary web applications.  
+
+* Provide four-tier TCP/UDP forwarding to non-Web applications, including K8S Pods  
+
+* Provide ACME automation certificate (free) for HTTPS access, and automatically renew the certificate when it expires   
+
 ### Key Features   
 
 * Fast Delivery : Web-based Configuration    
@@ -186,7 +205,7 @@ https://janusec.github.io/
 ## Requirements    
 
 * PostgreSQL 10/11/12+ (Required by Development and Primary Node of Deployment)  
-* Debian 9/10+, CentOS/RHEL 7/8+, Debian 10+ is preferred       
+* Debian 9/10/11+, CentOS/RHEL 7/8+, Debian 10+ is preferred       
 * systemd  
 * nftables  
 * Golang 1.15+ (Required by Development Only)  
@@ -195,7 +214,7 @@ https://janusec.github.io/
 
 Detailed documentation is available at： [Janusec Application Gateway Quick Start](https://janusec.github.io/documentation/quick-start/).  
 
-You can also try it with [Docker Image](https://www.janusec.com/articles/opensource/1615470598.html)    
+You can also try it with [Docker Image](https://janusec.github.io/documentation/appendix-docker/)    
 
 ## Quick Start for Developer   
 
