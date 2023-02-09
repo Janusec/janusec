@@ -143,6 +143,10 @@ type Destination struct {
 	// Online status of Destination (IP:Port), added in V0.9.11
 	Online    bool  `json:"online"`
 	CheckTime int64 `json:"check_time"`
+
+	// added in 1.3.1, K8s routine updating and avoid race
+	Mutex      sync.RWMutex `json:"-"`
+	IsUpdating bool         `json:"-"`
 }
 
 // PODS for k8s /api/v1/namespaces/default/pods

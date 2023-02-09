@@ -9,6 +9,7 @@ package models
 
 import (
 	"database/sql"
+	"sync"
 )
 
 type PolicyKey string
@@ -137,6 +138,9 @@ type ClientStat struct {
 
 	// RemainSeconds used for block time frame
 	RemainSeconds float64 //time.Duration
+
+	// added v1.3.1
+	Mutex sync.Mutex
 }
 
 type VulnType struct {
