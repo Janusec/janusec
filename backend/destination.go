@@ -57,6 +57,7 @@ func CheckOfflineDestinations(nowTimeStamp int64) {
 					utils.DebugPrintln("Unmarshal K8S API", err)
 				}
 				dest.Mutex.Lock()
+				defer dest.Mutex.Unlock()
 				dest.Pods = ""
 				for _, podItem := range pods.Items {
 					if podItem.Status.Phase == "Running" {
@@ -68,7 +69,6 @@ func CheckOfflineDestinations(nowTimeStamp int64) {
 				}
 				dest.CheckTime = nowTimeStamp
 				dest.Online = true
-				dest.Mutex.Unlock()
 			}
 		}
 	}

@@ -20,6 +20,7 @@ import (
 func UpdatePods(dest *models.Destination, nowTimeStamp int64) {
 	dest.IsUpdating = true
 	dest.Mutex.Lock() // write lock
+	defer dest.Mutex.Unlock()
 	request, _ := http.NewRequest("GET", dest.PodsAPI, nil)
 	request.Header.Set("Content-Type", "application/json")
 	resp, err := utils.GetResponse(request)
@@ -42,7 +43,6 @@ func UpdatePods(dest *models.Destination, nowTimeStamp int64) {
 			dest.Pods += podItem.Status.PodIP + ":" + dest.PodPort
 		}
 	}
-	dest.Mutex.Unlock()
 	dest.IsUpdating = false
 }
 

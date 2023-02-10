@@ -389,8 +389,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			dest.CheckTime = nowTimeStamp
 			if err != nil {
 				dest.Mutex.Lock()
+				defer dest.Mutex.Unlock()
 				dest.Online = false
-				dest.Mutex.Unlock()
 				utils.DebugPrintln("DialContext error", err)
 				if data.NodeSetting.SMTP.SMTPEnabled {
 					sendOfflineNotification(app, targetDest)

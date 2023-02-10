@@ -54,6 +54,7 @@ func CCAttackTick(appID int64) {
 			stat := value.(*models.ClientStat)
 			//fmt.Println("CCAttackTick:", appID, clientID, stat)
 			stat.Mutex.Lock()
+			defer stat.Mutex.Unlock()
 			if stat.IsBadIP {
 				stat.RemainSeconds -= ccPolicy.IntervalMilliSeconds / 1000.0
 				if stat.RemainSeconds <= 0 {
@@ -84,7 +85,6 @@ func CCAttackTick(appID int64) {
 			}
 			stat.SlowCount += stat.QuickCount
 			stat.QuickCount = 0
-			stat.Mutex.Unlock()
 			return true
 		})
 	}
