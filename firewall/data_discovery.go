@@ -1,0 +1,216 @@
+/*
+ * @Copyright Reserved By Janusec (https://www.janusec.com/).
+ * @Author: U2
+ * @Date: 2023-03-11 18:49:30
+ */
+
+package firewall
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"janusec/data"
+	"janusec/models"
+	"janusec/utils"
+	"net/http"
+	"reflect"
+	"regexp"
+	"strconv"
+	"time"
+
+	"github.com/patrickmn/go-cache"
+)
+
+var (
+	discoveryRules []*models.DiscoveryRule
+	discoveryCache = cache.New(30*24*time.Hour, 24*time.Hour)
+)
+
+func LoadDiscoveryRules() {
+	discoveryRules = discoveryRules[0:0]
+	if data.IsPrimary {
+		discoveryRules, _ = data.DAL.GetAllDiscoveryRules()
+	} else {
+		// Replica
+		rpcDiscoveryRules := RPCGetAllDiscoveryRules()
+		if rpcDiscoveryRules != nil {
+			discoveryRules = rpcDiscoveryRules
+		}
+	}
+}
+
+func GetDiscoveryRules() []*models.DiscoveryRule {
+	return discoveryRules
+}
+
+func RPCGetAllDiscoveryRules() []*models.DiscoveryRule {
+	rpcRequest := &models.RPCRequest{Action: "get_discovery_rules", Object: nil}
+	resp, err := data.GetRPCResponse(rpcRequest)
+	if err != nil {
+		utils.DebugPrintln("RPCGetAllDiscoveryRules GetResponse", err)
+		return nil
+	}
+	rpcDiscoveryRules := &models.RPCDiscoveryRules{}
+	err = json.Unmarshal(resp, rpcDiscoveryRules)
+	if err != nil {
+		utils.DebugPrintln("RPCGetAllDiscoveryRules Unmarshal", err)
+		return nil
+	}
+	discoveryRules := rpcDiscoveryRules.Object
+	return discoveryRules
+}
+
+func UpdateDiscoveryRule(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.DiscoveryRule, error) {
+	mDiscoveryRule := param["object"].(map[string]interface{})
+	id := int64(mDiscoveryRule["id"].(float64))
+	fieldName := mDiscoveryRule["field_name"].(string)
+	sample := mDiscoveryRule["sample"].(string)
+	regex := mDiscoveryRule["regex"].(string)
+	var description string
+	var ok bool
+	if description, ok = mDiscoveryRule["description"].(string); !ok {
+		description = ""
+	}
+	discoveryRule := models.DiscoveryRule{
+		FieldName:   fieldName,
+		Sample:      sample,
+		Regex:       regex,
+		Description: description,
+		Editor:      authUser.Username,
+		UpdateTime:  time.Now().Unix(),
+	}
+	if id == 0 {
+		// new rule
+		newID, err := data.DAL.InsertDiscoveryRule(&discoveryRule)
+		if err != nil {
+			utils.DebugPrintln("UpdateDiscoveryRule", err)
+		}
+		discoveryRule.ID = newID
+		go utils.OperationLog(clientIP, authUser.Username, "Add Discovery Rule", fieldName)
+		LoadDiscoveryRules()
+		data.UpdateDiscoveryLastModified()
+		return &discoveryRule, err
+	} else {
+		// update
+		err := data.DAL.UpdateDiscoveryRule(&discoveryRule)
+		if err != nil {
+			utils.DebugPrintln("UpdateDiscoveryRule", err)
+		}
+		go utils.OperationLog(clientIP, authUser.Username, "Update Discovery Rule", fieldName)
+		LoadDiscoveryRules()
+		data.UpdateDiscoveryLastModified()
+		return &discoveryRule, err
+	}
+}
+
+func DeleteDiscoveryRuleByID(id int64, clientIP string, authUser *models.AuthUser) error {
+	if !authUser.IsSuperAdmin {
+		return errors.New("only super administrators can perform this operation")
+	}
+	for i, discoveryRule := range discoveryRules {
+		if discoveryRule.ID == id {
+			discoveryRules = append(discoveryRules[:i], discoveryRules[i+1:]...)
+			break
+		}
+	}
+	err := data.DAL.DeleteDiscoveryRuleByID(id)
+	go utils.OperationLog(clientIP, authUser.Username, "Delete Discovery Rule by ID", strconv.FormatInt(id, 10))
+	LoadDiscoveryRules()
+	data.UpdateDiscoveryLastModified()
+	return err
+}
+
+func DataDiscoveryInResponse(value interface{}, r *http.Request) {
+	if value == nil {
+		return
+	}
+	valueKind := reflect.TypeOf(value).Kind()
+	switch valueKind {
+	case reflect.String:
+		value2 := value.(string)
+		// data discovery
+		CheckDiscoveryRules(value2, r)
+	case reflect.Map:
+		value2 := value.(map[string]interface{})
+		for _, subValue := range value2 {
+			DataDiscoveryInResponse(subValue, r)
+		}
+	case reflect.Slice:
+		value2 := value.([]interface{})
+		for _, subValue := range value2 {
+			DataDiscoveryInResponse(subValue, r)
+		}
+	}
+}
+
+func CheckDiscoveryRules(value string, r *http.Request) {
+	for _, discoveryRule := range discoveryRules {
+		matched, err := regexp.MatchString(discoveryRule.Regex, value)
+		if err != nil {
+			continue
+		}
+		if matched {
+			// check cache
+			// uid example 1: "www.janusec.com"  + "/abc/" + "Phone Number"
+			// uid example 2: "www.janusec.com"  +   "/"   + "Phone Number"
+			routePath := utils.GetRoutePath(r.URL.Path)
+			uid := data.SHA256Hash(r.URL.Host + routePath + discoveryRule.FieldName)
+			if _, ok := discoveryCache.Get(uid); !ok {
+				// Set cache
+				discoveryCache.Set(uid, 1, cache.DefaultExpiration)
+				if len(data.NodeSetting.DataDiscoveryAPI) == 0 {
+					return
+				}
+				// report
+				// API: POST http://127.0.0.1/api/v1/data-discoveries
+				// JSON Body: {"domain":"www.janusec.com", "path":"/", "field_name":"Phone Number", "anonymized_sample":"13****138***"}
+				// Response: {"status":0, err:null, data:null}
+				anonymizedSample := Anonymize(value)
+				body := fmt.Sprintf(`{"domain":"%s", "path":"%s", "field_name":"%s", "anonymized_sample":"%s"}`, r.URL.Host, routePath, discoveryRule.FieldName, anonymizedSample)
+				request, _ := http.NewRequest("POST", data.NodeSetting.DataDiscoveryAPI, bytes.NewReader([]byte(body)))
+				request.Header.Set("Content-Type", "application/json")
+				resp, err := utils.GetResponse(request)
+				if err != nil {
+					utils.DebugPrintln("Report Data Discovery", err)
+					continue
+				}
+				rpcResp := models.RPCResponse{}
+				err = json.Unmarshal(resp, &rpcResp)
+				if err != nil {
+					utils.DebugPrintln("Report Data Unmarshal", err)
+					continue
+				}
+				if len(*rpcResp.Error) > 0 {
+					utils.DebugPrintln("Report Data Receive Error:", *rpcResp.Error)
+					continue
+				}
+			}
+			//else {
+			// discoveryCache.IncrementInt64(uid, 1)
+			// fmt.Println("Exist", value, result, expireTime.String())
+			//}
+			return
+		}
+	}
+}
+
+func Anonymize(value string) string {
+	runeValue := []rune(value)
+	// len >= 4
+	for i := 0; i < len(runeValue); i++ {
+		// 13800138000 => 138***380**
+		if (i/3)%2 != 0 {
+			runeValue[i] = '*'
+		}
+	}
+	return string(runeValue)
+}
+
+type RPCResponse struct {
+	// Status 0 represent OK, -1 or non 0 represent abnormal
+	Status int64       `json:"status"`
+	Error  string      `json:"err"`
+	Data   interface{} `json:"data"`
+}

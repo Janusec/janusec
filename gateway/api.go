@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -25,10 +25,10 @@ import (
 	"janusec/utils"
 )
 
-//AdminAPIHandlerFunc receive from browser and other nodes
+// AdminAPIHandlerFunc receive from browser and other nodes
 func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	bodyBuf, _ := ioutil.ReadAll(r.Body)
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+	bodyBuf, _ := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 	decoder := json.NewDecoder(r.Body)
 	var param map[string]interface{}
 	err := decoder.Decode(&param)
@@ -36,7 +36,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		utils.DebugPrintln("AdminAPIHandlerFunc Decode", err)
 	}
 	defer r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 	action := param["action"]
 	var userID int64
 	var authUser *models.AuthUser
@@ -233,6 +233,15 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		uid := param["uid"].(string)
 		code := param["code"].(string)
 		obj, err = nil, usermgmt.VerifyTOTP(uid, code)
+	case "get_discovery_rules":
+		obj = firewall.GetDiscoveryRules()
+		err = nil
+	case "update_discovery_rule":
+		obj, err = firewall.UpdateDiscoveryRule(param, clientIP, authUser)
+	case "del_discovery_rule":
+		id := int64(param["id"].(float64))
+		obj = nil
+		err = firewall.DeleteDiscoveryRuleByID(id, clientIP, authUser)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil
@@ -241,10 +250,10 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	GenResponseByObject(w, obj, err)
 }
 
-//ReplicaAPIHandlerFunc receive from browser and other nodes
+// ReplicaAPIHandlerFunc receive from other nodes
 func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	bodyBuf, _ := ioutil.ReadAll(r.Body)
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+	bodyBuf, _ := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 	decoder := json.NewDecoder(r.Body)
 	var param map[string]interface{}
 	err := decoder.Decode(&param)
@@ -252,7 +261,7 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		utils.DebugPrintln("ReplicaAPIHandlerFunc Decode", err)
 	}
 	defer r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 	action := param["action"]
 	authKey := param["auth_key"]
 	var authUser *models.AuthUser
@@ -323,6 +332,9 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj = nil
 		//mapReferer := param["object"]
 		err = RPCUpdateRefererStat(r)
+	case "get_discovery_rules":
+		obj = firewall.GetDiscoveryRules()
+		err = nil
 	default:
 		//fmt.Println("undefined action:", action)
 		utils.DebugPrintln("undefined action:", action)

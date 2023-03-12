@@ -115,8 +115,8 @@ type SMTPSetting struct {
 
 // PrimarySetting used for admin configuration and primary node only
 type PrimarySetting struct {
-    // AuthenticatorEnabled for janusec-admin 2-factor authentication, v1.2.2
-    AuthenticatorEnabled bool `json:"authenticator_enabled"`
+	// AuthenticatorEnabled for janusec-admin 2-factor authentication, v1.2.2
+	AuthenticatorEnabled bool `json:"authenticator_enabled"`
 
 	// AuthEnabled for SSO Authentication
 	AuthEnabled bool `json:"auth_enabled"`
@@ -142,6 +142,11 @@ type PrimarySetting struct {
 
 	// SMTP
 	SMTP *SMTPSetting `json:"smtp"`
+
+	// Data Discovery, v1.3.2 added
+	DataDiscoveryEnabled bool   `json:"data_discovery_enabled"`
+	DataDiscoveryAPI     string `json:"data_discovery_api"`
+	DataDiscoveryKey     string `json:"data_discovery_key"`
 }
 
 // NodeShareSetting for sync to replica nodes, v1.2.0
@@ -151,6 +156,9 @@ type NodeShareSetting struct {
 
 	// FirewallLastModified is the timestamp for latest change of WAF/CC rules
 	FirewallLastModified int64 `json:"firewall_last_modified"`
+
+	// DiscoveryLastModified is the timestamp fot latest change of DiscoveryRules
+	DiscoveryLastModified int64 `json:"discovery_last_modified"`
 
 	// SyncDuration for replica nodes to check update
 	// SyncDuration = "sync_seconds" * time.Second
@@ -165,12 +173,38 @@ type NodeShareSetting struct {
 
 	// SMTP
 	SMTP *SMTPSetting `json:"smtp"`
+
+	// Data Discovery, v1.3.2 added
+	DataDiscoveryEnabled bool   `json:"data_discovery_enabled"`
+	DataDiscoveryAPI     string `json:"data_discovery_api"`
+	DataDiscoveryKey     string `json:"data_discovery_key"`
+}
+
+// DiscoveryRule for json body and json response
+type DiscoveryRule struct {
+	ID int64 `json:"id"`
+
+	// FieldName example: "Phone Number"
+	FieldName string `json:"field_name"`
+
+	// Sample: 13800138000
+	Sample string `json:"sample"`
+
+	// Regex example: "^(\+?86\-?)?1\d{10}$"
+	Regex string `json:"regex"`
+
+	Description string `json:"description"`
+
+	Editor string `json:"editor"`
+
+	// UpdateTime timestamp with unit seconds
+	UpdateTime int64 `json:"update_time"`
 }
 
 // SMTPTestRequest for SMTP test
 type SMTPTestRequest struct {
-	Action string          `json:"action"`
-	Object *SMTPSetting    `json:"object"`
+	Action string       `json:"action"`
+	Object *SMTPSetting `json:"object"`
 }
 
 // ZipResponseWriter used for compress static files by brotli or gzip

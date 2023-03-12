@@ -53,7 +53,7 @@ func InitNFTables() {
 		utils.DebugPrintln("InitNFTables AddSet error", err)
 		return
 	}
-	rules, _ := conn.GetRule(table, chain)
+	rules, _ := conn.GetRules(table, chain)
 	if len(rules) == 0 {
 		conn.AddRule(&nftables.Rule{
 			Table: table,
@@ -84,7 +84,7 @@ func InitNFTables() {
 // nft add element inet janusec blocklist { 192.168.100.1 timeout 300s }
 func AddIP2NFTables(ip string, blockSeconds float64) {
 	//fmt.Println("AddIP2NFTables", ip)
-	rules, _ := conn.GetRule(table, chain)
+	rules, _ := conn.GetRules(table, chain)
 	if len(rules) == 0 {
 		InitNFTables()
 	}

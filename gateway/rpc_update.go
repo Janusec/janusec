@@ -27,16 +27,20 @@ func SyncTimeTick() {
 	syncTicker = time.NewTicker(data.NodeSetting.SyncInterval)
 	for range syncTicker.C {
 		//fmt.Println("SyncTimeTick:", time.Now())
-		lastBackendModified := data.NodeSetting.BackendLastModified
-		lastFirewallModified := data.NodeSetting.FirewallLastModified
+		backendLastModified := data.NodeSetting.BackendLastModified
+		firewallLastModified := data.NodeSetting.FirewallLastModified
+		discoveryLastModified := data.NodeSetting.DiscoveryLastModified
 		lastSyncInterval := data.NodeSetting.SyncInterval
 		data.NodeSetting = data.RPCGetNodeSetting()
 		// Check update
-		if lastBackendModified < data.NodeSetting.BackendLastModified {
+		if backendLastModified < data.NodeSetting.BackendLastModified {
 			go backend.LoadAppConfiguration()
 		}
-		if lastFirewallModified < data.NodeSetting.FirewallLastModified {
+		if firewallLastModified < data.NodeSetting.FirewallLastModified {
 			go firewall.InitFirewall()
+		}
+		if discoveryLastModified < data.NodeSetting.DiscoveryLastModified {
+			go firewall.LoadDiscoveryRules()
 		}
 		if lastSyncInterval != data.NodeSetting.SyncInterval {
 			syncTicker.Stop()

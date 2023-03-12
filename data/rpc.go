@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -51,7 +51,7 @@ func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	respBytes, err = ioutil.ReadAll(resp.Body)
+	respBytes, err = io.ReadAll(resp.Body)
 	return respBytes, err
 
 }

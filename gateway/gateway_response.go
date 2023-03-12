@@ -12,7 +12,7 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -85,7 +85,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
 				blockContent := GenerateBlockConcent(hitInfo)
 				resp.StatusCode = 403
-				resp.Body = ioutil.NopCloser(bytes.NewBuffer(blockContent))
+				resp.Body = io.NopCloser(bytes.NewBuffer(blockContent))
 				resp.ContentLength = int64(len(blockContent))
 				resp.Header.Set("Content-Length", fmt.Sprint(len(blockContent)))
 				resp.Header.Del("Content-Encoding")
@@ -151,8 +151,8 @@ func rewriteResponse(resp *http.Response) (err error) {
 		staticRoot := fmt.Sprintf("./static/cdncache/%d", app.ID)
 		targetFile := staticRoot + r.URL.Path
 		cacheFilePath := filepath.Dir(targetFile)
-		bodyBuf, _ := ioutil.ReadAll(resp.Body)
-		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+		bodyBuf, _ := io.ReadAll(resp.Body)
+		resp.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 		err := os.MkdirAll(cacheFilePath, 0666)
 		if err != nil {
 			utils.DebugPrintln("Cache Path Error", err)
@@ -162,28 +162,28 @@ func rewriteResponse(resp *http.Response) (err error) {
 		case "gzip":
 			reader, _ := gzip.NewReader(bytes.NewBuffer(bodyBuf))
 			defer reader.Close()
-			decompressedBodyBuf, err := ioutil.ReadAll(reader)
+			decompressedBodyBuf, err := io.ReadAll(reader)
 			if err != nil {
 				utils.DebugPrintln("Gzip decompress Error", err)
 			}
-			_ = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
+			_ = os.WriteFile(targetFile, decompressedBodyBuf, 0600)
 		case "br":
 			reader := brotli.NewReader(bytes.NewBuffer(bodyBuf))
-			decompressedBodyBuf, err := ioutil.ReadAll(reader)
+			decompressedBodyBuf, err := io.ReadAll(reader)
 			if err != nil {
 				utils.DebugPrintln("Brotli decompress Error", err)
 			}
-			_ = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
+			_ = os.WriteFile(targetFile, decompressedBodyBuf, 0600)
 		case "deflate":
 			reader := flate.NewReader(bytes.NewBuffer(bodyBuf))
 			defer reader.Close()
-			decompressedBodyBuf, err := ioutil.ReadAll(reader)
+			decompressedBodyBuf, err := io.ReadAll(reader)
 			if err != nil {
 				utils.DebugPrintln("deflate decompress Error", err)
 			}
-			_ = ioutil.WriteFile(targetFile, decompressedBodyBuf, 0600)
+			_ = os.WriteFile(targetFile, decompressedBodyBuf, 0600)
 		default:
-			_ = ioutil.WriteFile(targetFile, bodyBuf, 0600)
+			_ = os.WriteFile(targetFile, bodyBuf, 0600)
 		}
 		if err != nil {
 			utils.DebugPrintln("Cache File Error", targetFile, err)

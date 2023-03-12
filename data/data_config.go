@@ -10,7 +10,7 @@ package data
 import (
 	"encoding/hex"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"janusec/models"
@@ -21,7 +21,7 @@ import (
 // NewConfig ...
 func NewConfig(filename string) (*models.Config, error) {
 	config := &models.Config{}
-	configBytes, err := ioutil.ReadFile(filename)
+	configBytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func NewConfig(filename string) (*models.Config, error) {
 			encryptedConfig := models.EncryptedConfig(*config)
 			encryptedConfig.PrimaryNode.Database.Password = encryptedPassword
 			encryptedConfigBytes, _ := json.MarshalIndent(encryptedConfig, "", "\t")
-			_ = ioutil.WriteFile(filename, encryptedConfigBytes, 0600)
+			_ = os.WriteFile(filename, encryptedConfigBytes, 0600)
 		} else {
 			// Decrypt password
 			encryptedPassword, err := hex.DecodeString(dbPassword)

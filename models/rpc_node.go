@@ -114,3 +114,8 @@ type PrimarySettingRequest struct {
 	Action string          `json:"action"`
 	Object *PrimarySetting `json:"object"`
 }
+
+type RPCDiscoveryRules struct {
+	Error  *string          `json:"err"`
+	Object []*DiscoveryRule `json:"object"`
+}
