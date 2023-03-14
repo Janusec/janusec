@@ -8,6 +8,7 @@
 package gateway
 
 import (
+	"encoding/hex"
 	"time"
 
 	"janusec/backend"
@@ -46,6 +47,10 @@ func SyncTimeTick() {
 			syncTicker.Stop()
 			syncTicker = time.NewTicker(data.NodeSetting.SyncInterval)
 			utils.DebugPrintln("SyncTimeTick change sync interval to:", data.NodeSetting.SyncInterval)
+		}
+		// update DataDiscoveryKey
+		if len(data.NodeSetting.DataDiscoveryKey) > 0 {
+			data.DataDiscoveryKey, _ = hex.DecodeString(data.NodeSetting.DataDiscoveryKey)
 		}
 	}
 }

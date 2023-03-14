@@ -165,10 +165,13 @@ func CheckDiscoveryRules(value string, r *http.Request) {
 				}
 				// report
 				// API: POST http://127.0.0.1/api/v1/data-discoveries
-				// JSON Body: {"domain":"www.janusec.com", "path":"/", "field_name":"Phone Number", "anonymized_sample":"13****138***"}
+				// JSON Body: {"auth_key":"...", "object":{"domain":"www.janusec.com", "path":"/", "field_name":"Phone Number", "anonymized_sample":"13****138***"}}
 				// Response: {"status":0, err:null, data:null}
+				fmt.Println("CheckDiscoveryRules Report", data.DataDiscoveryKey)
+				authKey := data.GenAuthKey(data.DataDiscoveryKey)
 				anonymizedSample := Anonymize(value)
-				body := fmt.Sprintf(`{"domain":"%s", "path":"%s", "field_name":"%s", "anonymized_sample":"%s"}`, r.URL.Host, routePath, discoveryRule.FieldName, anonymizedSample)
+				body := fmt.Sprintf(`{"auth_key":"%s", "object":{"domain":"%s", "path":"%s", "field_name":"%s", "anonymized_sample":"%s"}}`, authKey, r.URL.Host, routePath, discoveryRule.FieldName, anonymizedSample)
+				fmt.Println("CheckDiscoveryRules Report", data.NodeSetting.DataDiscoveryAPI, body)
 				request, _ := http.NewRequest("POST", data.NodeSetting.DataDiscoveryAPI, bytes.NewReader([]byte(body)))
 				request.Header.Set("Content-Type", "application/json")
 				resp, err := utils.GetResponse(request)

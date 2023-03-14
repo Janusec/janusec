@@ -129,7 +129,7 @@ func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 		return false
 	}
 	// check timestamp
-	nodeAuth := &models.NodeAuth{}
+	nodeAuth := &models.AuthTime{}
 	err = json.Unmarshal(decryptedAuthBytes, nodeAuth)
 	if err != nil {
 		utils.DebugPrintln("IsValidAuthKey Unmarshal", err)

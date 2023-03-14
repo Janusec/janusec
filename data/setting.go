@@ -300,6 +300,10 @@ func LoadSettings() {
 	}
 	// Replica nodes, load to Memory
 	NodeSetting = RPCGetNodeSetting()
+	// Set DataDiscoveryKey
+	if len(NodeSetting.DataDiscoveryKey) > 0 {
+		DataDiscoveryKey, _ = hex.DecodeString(NodeSetting.DataDiscoveryKey)
+	}
 }
 
 // GetPrimarySetting for admin configuration

@@ -34,6 +34,9 @@ var (
 	// HexEncryptedNodesKey for replica nodes, show on admin UI
 	// HexEncryptedNodesKey is the encrypted and hex string format of NodesKey
 	HexEncryptedNodesKey string
+
+	// DataDiscoveryKey = hex.DecodeString(NodeSetting.DataDiscoveryKey)
+	DataDiscoveryKey []byte
 )
 
 // LoadInstanceKey ...
