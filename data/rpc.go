@@ -26,7 +26,7 @@ func GenAuthKey() string {
 	if err != nil {
 		utils.DebugPrintln("GenAuthKey", err)
 	}
-	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, RootKey)
+	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, NodesKey)
 	return hex.EncodeToString(encryptedAuthBytes)
 }
 

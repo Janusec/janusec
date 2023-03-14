@@ -56,7 +56,7 @@ func UpdateDiscoveryLastModified() {
 	utils.DebugPrintln("Discovery Modified")
 }
 
-// InitDefaultSettings ...
+// InitDefaultSettings only for primary node
 func InitDefaultSettings() {
 	DAL.LoadInstanceKey()
 	DAL.LoadNodesKey()
