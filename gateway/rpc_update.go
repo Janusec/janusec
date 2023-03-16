@@ -8,6 +8,7 @@
 package gateway
 
 import (
+	"encoding/hex"
 	"time"
 
 	"janusec/backend"
@@ -27,21 +28,29 @@ func SyncTimeTick() {
 	syncTicker = time.NewTicker(data.NodeSetting.SyncInterval)
 	for range syncTicker.C {
 		//fmt.Println("SyncTimeTick:", time.Now())
-		lastBackendModified := data.NodeSetting.BackendLastModified
-		lastFirewallModified := data.NodeSetting.FirewallLastModified
+		backendLastModified := data.NodeSetting.BackendLastModified
+		firewallLastModified := data.NodeSetting.FirewallLastModified
+		discoveryLastModified := data.NodeSetting.DiscoveryLastModified
 		lastSyncInterval := data.NodeSetting.SyncInterval
 		data.NodeSetting = data.RPCGetNodeSetting()
 		// Check update
-		if lastBackendModified < data.NodeSetting.BackendLastModified {
+		if backendLastModified < data.NodeSetting.BackendLastModified {
 			go backend.LoadAppConfiguration()
 		}
-		if lastFirewallModified < data.NodeSetting.FirewallLastModified {
+		if firewallLastModified < data.NodeSetting.FirewallLastModified {
 			go firewall.InitFirewall()
+		}
+		if discoveryLastModified < data.NodeSetting.DiscoveryLastModified {
+			go firewall.LoadDiscoveryRules()
 		}
 		if lastSyncInterval != data.NodeSetting.SyncInterval {
 			syncTicker.Stop()
 			syncTicker = time.NewTicker(data.NodeSetting.SyncInterval)
 			utils.DebugPrintln("SyncTimeTick change sync interval to:", data.NodeSetting.SyncInterval)
+		}
+		// update DataDiscoveryKey
+		if len(data.NodeSetting.DataDiscoveryKey) > 0 {
+			data.DataDiscoveryKey, _ = hex.DecodeString(data.NodeSetting.DataDiscoveryKey)
 		}
 	}
 }

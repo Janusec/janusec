@@ -8,7 +8,6 @@
 package firewall
 
 import (
-	"io/ioutil"
 	"os"
 	"syscall"
 	"time"
@@ -48,7 +47,7 @@ func RoutineCleanCacheTick() {
 
 // ClearExpiredFiles clear expired static cdn files
 func ClearExpiredFiles(path string, now time.Time) {
-	fs, err := ioutil.ReadDir(path)
+	fs, err := os.ReadDir(path)
 	if err != nil {
 		utils.DebugPrintln("ClearExpiredFiles", err)
 	}

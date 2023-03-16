@@ -61,6 +61,7 @@ func main() {
 	backend.LoadAppConfiguration()
 	firewall.InitFirewall()
 	data.LoadSettings()
+	firewall.LoadDiscoveryRules()
 	if !data.IsPrimary {
 		go gateway.SyncTimeTick()
 	}

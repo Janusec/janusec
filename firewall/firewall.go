@@ -13,7 +13,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -27,6 +26,7 @@ import (
 
 	"github.com/andybalholm/brotli"
 
+	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
 )
@@ -123,8 +123,8 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 		}
 	}
 
-	bodyBuf, _ := ioutil.ReadAll(r.Body)
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+	bodyBuf, _ := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 	contentType := r.Header.Get("Content-Type")
 
 	mediaType, mediaParams, _ := mime.ParseMediaType(contentType)
@@ -146,14 +146,14 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 			}
 
 			// Multipart Content
-			body1 := ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+			body1 := io.NopCloser(bytes.NewBuffer(bodyBuf))
 			multiReader := multipart.NewReader(body1, mediaParams["boundary"])
 			for {
 				p, err := multiReader.NextPart()
 				if err == io.EOF {
 					break
 				}
-				partContent, _ := ioutil.ReadAll(p)
+				partContent, _ := io.ReadAll(p)
 				//fmt.Println("part_content=", string(part_content))
 				matched, policy = IsMatchGroupPolicy(ctxMap, appID, string(partContent), models.ChkPointGetPostValue, "", true)
 				if matched {
@@ -163,13 +163,14 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 		}
 
 	} else if strings.HasPrefix(mediaType, "application/json") {
+		// Request Content-Type: application/json
 		var params interface{}
 		if len(bodyBuf) > 0 {
 			err := json.Unmarshal(bodyBuf, &params)
 			if err != nil {
 				utils.DebugPrintln("IsRequestHitPolicy Unmarshal", err)
 			}
-			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, params)
+			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, params, r)
 			if matched {
 				return matched, policy
 			}
@@ -184,7 +185,7 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 	params := r.Form // include GET/POST/ Multipart non-File , but not include json
 
 	//fmt.Println("IsRequestHitPolicy params:", params, "count:", len(params))
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 	for key, values := range params {
 		//fmt.Println("IsRequestHitPolicy param", key, ":", values)
 		// ChkPoint_GetPostKey
@@ -312,7 +313,7 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 	}
 
 	// ChkPoint_ResponseBody
-	bodyBuf, err := ioutil.ReadAll(resp.Body)
+	bodyBuf, err := io.ReadAll(resp.Body)
 	if err != nil {
 		utils.DebugPrintln("IsResponseHitPolicy ChkPoint_ResponseBody ReadAll", err)
 	}
@@ -322,14 +323,14 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 	case "gzip":
 		reader, _ := gzip.NewReader(bytes.NewBuffer(bodyBuf))
 		defer reader.Close()
-		decompressedBodyBuf, err := ioutil.ReadAll(reader)
+		decompressedBodyBuf, err := io.ReadAll(reader)
 		if err != nil {
 			utils.DebugPrintln("Gzip decompress Error", err)
 		}
 		body1 = string(decompressedBodyBuf)
 	case "br":
 		reader := brotli.NewReader(bytes.NewBuffer(bodyBuf))
-		decompressedBodyBuf, err := ioutil.ReadAll(reader)
+		decompressedBodyBuf, err := io.ReadAll(reader)
 		if err != nil {
 			utils.DebugPrintln("Brotli decompress Error", err)
 		}
@@ -337,7 +338,7 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 	case "deflate":
 		reader := flate.NewReader(bytes.NewBuffer(bodyBuf))
 		defer reader.Close()
-		decompressedBodyBuf, err := ioutil.ReadAll(reader)
+		decompressedBodyBuf, err := io.ReadAll(reader)
 		if err != nil {
 			utils.DebugPrintln("deflate decompress Error", err)
 		}
@@ -345,34 +346,52 @@ func IsResponseHitPolicy(resp *http.Response, appID int64) (bool, *models.GroupP
 	default:
 		body1 = string(bodyBuf)
 	}
-	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBuf))
+	resp.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 	matched, policy = IsMatchGroupPolicy(ctxMap, appID, body1, models.ChkPointResponseBody, "", false)
 	//fmt.Println("IsResponseHitPolicy ChkPoint_ResponseBody", matched, resp.ContentLength, bodyLength, "000", body1)
 	if matched {
 		return matched, policy
 	}
 
+	// data discovery if response Content-Type: application/json, v1.3.2
+	if data.NodeSetting.DataDiscoveryEnabled {
+		contentType := resp.Header.Get("Content-Type")
+		if strings.HasPrefix(contentType, "application/json") {
+			var params interface{}
+			json.Unmarshal([]byte(body1), &params)
+			go func(params interface{}, r *http.Request) {
+				DataDiscoveryInResponse(params, r)
+			}(params, resp.Request)
+		}
+	}
+
 	// Not hit any policy
 	return false, nil
 }
 
-// IsJSONValueHitPolicy ...
-func IsJSONValueHitPolicy(ctxMap *sync.Map, appID int64, value interface{}) (bool, *models.GroupPolicy) {
+// IsJSONValueHitPolicy check json body in request
+func IsJSONValueHitPolicy(ctxMap *sync.Map, appID int64, value interface{}, r *http.Request) (bool, *models.GroupPolicy) {
 	if value == nil {
 		return false, nil
 	}
 	valueKind := reflect.TypeOf(value).Kind()
 	switch valueKind {
 	case reflect.String:
-		value2 := value.(string)
+		value2 := value.(string) // value2: actual json field value
 		matched, policy := IsMatchGroupPolicy(ctxMap, appID, value2, models.ChkPointGetPostValue, "", true)
 		if matched {
 			return matched, policy
 		}
+		// data discovery
+		if data.NodeSetting.DataDiscoveryEnabled {
+			go func(value string, r *http.Request) {
+				CheckDiscoveryRules(value, r)
+			}(value2, r)
+		}
 	case reflect.Map:
 		value2 := value.(map[string]interface{})
 		for _, subValue := range value2 {
-			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, subValue)
+			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, subValue, r)
 			if matched {
 				return matched, policy
 			}
@@ -380,7 +399,7 @@ func IsJSONValueHitPolicy(ctxMap *sync.Map, appID int64, value interface{}) (boo
 	case reflect.Slice:
 		value2 := value.([]interface{})
 		for _, subValue := range value2 {
-			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, subValue)
+			matched, policy := IsJSONValueHitPolicy(ctxMap, appID, subValue, r)
 			if matched {
 				return matched, policy
 			}

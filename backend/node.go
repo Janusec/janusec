@@ -116,20 +116,20 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 }
 */
 
-// IsValidAuthKey ...
+// IsValidAuthKey check whether the request is from legal replica nodes
 func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
 	authKey := param["auth_key"].(string)
 	authBytes, err := hex.DecodeString(authKey)
 	if err != nil {
 		return false
 	}
-	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, data.RootKey)
+	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, data.NodesKey)
 	if err != nil {
 		utils.DebugPrintln("IsValidAuthKey DecryptWithKey", err)
 		return false
 	}
 	// check timestamp
-	nodeAuth := &models.NodeAuth{}
+	nodeAuth := &models.AuthTime{}
 	err = json.Unmarshal(decryptedAuthBytes, nodeAuth)
 	if err != nil {
 		utils.DebugPrintln("IsValidAuthKey Unmarshal", err)

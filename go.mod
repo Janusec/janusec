@@ -1,27 +1,37 @@
 module janusec
 
-go 1.15
+go 1.19
 
 require (
-	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
-	github.com/andybalholm/brotli v1.0.3
-	github.com/dchest/captcha v0.0.0-20200903113550-03f5f0333e1f
-	github.com/go-ldap/ldap/v3 v3.3.0
-	github.com/go-ole/go-ole v1.2.5 // indirect
-	github.com/google/nftables v0.0.0-20210514154851-a285acebcad3
+	github.com/andybalholm/brotli v1.0.5
+	github.com/dchest/captcha v1.0.0
+	github.com/go-ldap/ldap/v3 v3.4.4
+	github.com/google/nftables v0.1.0
 	github.com/gorilla/sessions v1.2.1
-	github.com/gorilla/websocket v1.4.2
-	github.com/lib/pq v1.10.1
-	github.com/mdlayher/netlink v1.4.1 // indirect
-	github.com/mdlayher/socket v0.0.0-20210624160740-9dbe287ded84 // indirect
+	github.com/gorilla/websocket v1.5.0
+	github.com/lib/pq v1.10.7
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/shirou/gopsutil v3.21.4+incompatible
+	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/stretchr/testify v1.7.0 // indirect
-	github.com/tklauser/go-sysconf v0.3.5 // indirect
-	github.com/yookoala/gofast v0.6.0
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
-	golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985
-	golang.org/x/sys v0.5.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	github.com/yookoala/gofast v0.7.0
+	golang.org/x/crypto v0.7.0
+	golang.org/x/net v0.8.0
+)
+
+require (
+	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
+	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/josharian/native v1.1.0 // indirect
+	github.com/mdlayher/netlink v1.7.1 // indirect
+	github.com/mdlayher/socket v0.4.0 // indirect
+	github.com/tklauser/go-sysconf v0.3.11 // indirect
+	github.com/tklauser/numcpus v0.6.0 // indirect
+	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/tools v0.7.0 // indirect
 )

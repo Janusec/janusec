@@ -14,7 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -476,8 +476,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 							defer resp.Body.Close()
 							if resp.StatusCode == http.StatusOK {
 								//fmt.Println("200", backendAddr)
-								bodyBuf, _ := ioutil.ReadAll(resp.Body)
-								err = ioutil.WriteFile(targetFile, bodyBuf, 0600)
+								bodyBuf, _ := io.ReadAll(resp.Body)
+								err = os.WriteFile(targetFile, bodyBuf, 0600)
 								if err != nil {
 									utils.DebugPrintln("CDN WriteFile", targetFile, err)
 								}

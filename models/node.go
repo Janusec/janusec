@@ -21,7 +21,7 @@ type DBNode struct {
 	LastRequestTime int64  `json:"last_req_time"`
 }
 
-type NodeAuth struct {
+type AuthTime struct {
 	CurTime int64 `json:"cur_time"`
 }
 

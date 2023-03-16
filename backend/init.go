@@ -64,6 +64,11 @@ func InitDatabase() {
 	if err != nil {
 		utils.DebugPrintln("InitDatabase CreateTableIfNotExistsTOTP", err)
 	}
+	// v1.3.2 data discovery
+	err = dal.CreateTableIfNotExistsDiscoveryRules()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase CreateTableIfNotExistsDiscoveryRules", err)
+	}
 	// Upgrade to latest version
 	if !dal.ExistColumnInTable("domains", "redirect") {
 		// v0.9.6+ required

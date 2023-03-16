@@ -47,7 +47,16 @@ func UpdateFirewallLastModified() {
 	utils.DebugPrintln("Firewall Modified")
 }
 
-// InitDefaultSettings ...
+func UpdateDiscoveryLastModified() {
+	NodeSetting.DiscoveryLastModified = time.Now().Unix()
+	err := DAL.SaveIntSetting("discovery_last_modified", NodeSetting.DiscoveryLastModified)
+	if err != nil {
+		utils.DebugPrintln("UpdateDiscoveryLastModified SaveIntSetting", err)
+	}
+	utils.DebugPrintln("Discovery Modified")
+}
+
+// InitDefaultSettings only for primary node
 func InitDefaultSettings() {
 	DAL.LoadInstanceKey()
 	DAL.LoadNodesKey()
@@ -247,6 +256,13 @@ func LoadSettings() {
 		smtpSetting.SMTPPassword = DAL.SelectStringSetting("smtp_password")
 		smtpSetting.AdminEmails = DAL.GetAppAdminEmails()
 		PrimarySetting.SMTP = smtpSetting
+		PrimarySetting.DataDiscoveryEnabled = DAL.SelectBoolSetting("data_discovery_enabled")
+		PrimarySetting.DataDiscoveryAPI = DAL.SelectStringSetting("data_discovery_api")
+		if len(PrimarySetting.DataDiscoveryAPI) == 0 {
+			PrimarySetting.DataDiscoveryAPI = "http://127.0.0.1:8088/api/v1/data-discoveries"
+			DAL.SaveStringSetting("data_discovery_api", PrimarySetting.DataDiscoveryAPI)
+		}
+		PrimarySetting.DataDiscoveryKey = DAL.SelectStringSetting("data_discovery_key")
 
 		// NodeSetting
 		NodeSetting = &models.NodeShareSetting{}
@@ -276,10 +292,18 @@ func LoadSettings() {
 				CAS2:     GetCAS2Config(),
 			}
 		}
+		// v1.3.2 data discovery
+		NodeSetting.DataDiscoveryEnabled = PrimarySetting.DataDiscoveryEnabled
+		NodeSetting.DataDiscoveryAPI = PrimarySetting.DataDiscoveryAPI
+		NodeSetting.DataDiscoveryKey = PrimarySetting.DataDiscoveryKey
 		return
 	}
 	// Replica nodes, load to Memory
 	NodeSetting = RPCGetNodeSetting()
+	// Set DataDiscoveryKey
+	if len(NodeSetting.DataDiscoveryKey) > 0 {
+		DataDiscoveryKey, _ = hex.DecodeString(NodeSetting.DataDiscoveryKey)
+	}
 }
 
 // GetPrimarySetting for admin configuration
@@ -612,6 +636,9 @@ func UpdatePrimarySetting(r *http.Request, param map[string]interface{}, clientI
 	DAL.SaveStringSetting("smtp_port", PrimarySetting.SMTP.SMTPPort)
 	DAL.SaveStringSetting("smtp_account", PrimarySetting.SMTP.SMTPAccount)
 	DAL.SaveStringSetting("smtp_password", PrimarySetting.SMTP.SMTPPassword)
+	DAL.SaveBoolSetting("data_discovery_enabled", PrimarySetting.DataDiscoveryEnabled)
+	DAL.SaveStringSetting("data_discovery_api", PrimarySetting.DataDiscoveryAPI)
+	DAL.SaveStringSetting("data_discovery_key", PrimarySetting.DataDiscoveryKey)
 	go utils.OperationLog(clientIP, authUser.Username, "Update Settings", "Global Settings")
 	UpdateBackendLastModified()
 	return PrimarySetting, nil

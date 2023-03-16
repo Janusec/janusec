@@ -9,7 +9,7 @@ package utils
 
 import (
 	"crypto/tls"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -224,6 +224,6 @@ func GetResponse(request *http.Request) (respBytes []byte, err error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	respBytes, err = ioutil.ReadAll(resp.Body)
+	respBytes, err = io.ReadAll(resp.Body)
 	return respBytes, err
 }

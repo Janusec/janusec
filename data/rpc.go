@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -19,21 +19,23 @@ import (
 	"janusec/utils"
 )
 
-// GenAuthKey for authentication between replica nodes and primary node
-func GenAuthKey() string {
-	nodeAuth := models.NodeAuth{CurTime: time.Now().Unix()}
-	nodeAuthBytes, err := json.Marshal(nodeAuth)
+// GenAuthKey
+// Using NodesKey for authentication between replica nodes and primary node
+// Using DataDiscoveryKey for data dicovery report
+func GenAuthKey(key []byte) string {
+	authTime := models.AuthTime{CurTime: time.Now().Unix()}
+	nodeAuthBytes, err := json.Marshal(authTime)
 	if err != nil {
 		utils.DebugPrintln("GenAuthKey", err)
 	}
-	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, RootKey)
+	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, key)
 	return hex.EncodeToString(encryptedAuthBytes)
 }
 
 // GetRPCResponse ...
 func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	rpcReq.NodeVersion = Version
-	rpcReq.AuthKey = GenAuthKey()
+	rpcReq.AuthKey = GenAuthKey(NodesKey)
 	bytesData, err := json.Marshal(rpcReq)
 	if err != nil {
 		utils.DebugPrintln("GetRPCResponse Marshal", err)
@@ -51,7 +53,7 @@ func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	respBytes, err = ioutil.ReadAll(resp.Body)
+	respBytes, err = io.ReadAll(resp.Body)
 	return respBytes, err
 
 }

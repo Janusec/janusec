@@ -33,9 +33,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "1.3.1"
-	// NodeKey share with all nodes
-	NodeKey []byte
+	Version = "1.3.2"
 )
 
 // InitConfig init Data Access Layer
@@ -76,8 +74,8 @@ func InitConfig() {
 		// Database user and password OK
 		DAL.db.SetMaxOpenConns(99)
 	} else {
-		// Init Node Key (Share with primary node)
-		NodeKey = NodeHexKeyToCryptKey(CFG.ReplicaNode.NodeKey)
+		// Init Nodes Key for replica node
+		NodesKey = NodeHexKeyToCryptKey(CFG.ReplicaNode.NodeKey)
 	}
 }
 
