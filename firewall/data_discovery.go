@@ -37,6 +37,7 @@ func LoadDiscoveryRules() {
 		rpcDiscoveryRules := RPCGetAllDiscoveryRules()
 		if rpcDiscoveryRules != nil {
 			discoveryRules = rpcDiscoveryRules
+			utils.DebugPrintln("Load Data Discovery Rules OK")
 		}
 	}
 }
@@ -164,14 +165,12 @@ func CheckDiscoveryRules(value string, r *http.Request) {
 					return
 				}
 				// report
-				// API: POST http://127.0.0.1/api/v1/data-discoveries
+				// API: POST http://127.0.0.1:8088/api/v1/data-discoveries
 				// JSON Body: {"auth_key":"...", "object":{"domain":"www.janusec.com", "path":"/", "field_name":"Phone Number", "anonymized_sample":"13****138***"}}
-				// Response: {"status":0, err:null, data:null}
-				fmt.Println("CheckDiscoveryRules Report", data.DataDiscoveryKey)
+				// Response: {"status":0, err:null}
 				authKey := data.GenAuthKey(data.DataDiscoveryKey)
 				anonymizedSample := Anonymize(value)
 				body := fmt.Sprintf(`{"auth_key":"%s", "object":{"domain":"%s", "path":"%s", "field_name":"%s", "anonymized_sample":"%s"}}`, authKey, r.URL.Host, routePath, discoveryRule.FieldName, anonymizedSample)
-				fmt.Println("CheckDiscoveryRules Report", data.NodeSetting.DataDiscoveryAPI, body)
 				request, _ := http.NewRequest("POST", data.NodeSetting.DataDiscoveryAPI, bytes.NewReader([]byte(body)))
 				request.Header.Set("Content-Type", "application/json")
 				resp, err := utils.GetResponse(request)
@@ -182,11 +181,11 @@ func CheckDiscoveryRules(value string, r *http.Request) {
 				rpcResp := models.RPCResponse{}
 				err = json.Unmarshal(resp, &rpcResp)
 				if err != nil {
-					utils.DebugPrintln("Report Data Unmarshal", err)
+					utils.DebugPrintln("Report Data Discovery Unmarshal", err)
 					continue
 				}
 				if len(*rpcResp.Error) > 0 {
-					utils.DebugPrintln("Report Data Receive Error:", *rpcResp.Error)
+					utils.DebugPrintln("Report Data Discovery, Receive Error:", *rpcResp.Error)
 					continue
 				}
 			}
@@ -201,11 +200,14 @@ func CheckDiscoveryRules(value string, r *http.Request) {
 
 func Anonymize(value string) string {
 	runeValue := []rune(value)
-	// len >= 4
+	regex, _ := regexp.Compile(`[\@\-\.\(\)]`)
 	for i := 0; i < len(runeValue); i++ {
 		// 13800138000 => 138***380**
 		if (i/3)%2 != 0 {
-			runeValue[i] = '*'
+			// check whether the char is special char such as @ - ()
+			if !regex.MatchString(string(runeValue[i])) {
+				runeValue[i] = '*'
+			}
 		}
 	}
 	return string(runeValue)

@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -29,7 +28,6 @@ func GenAuthKey(key []byte) string {
 	if err != nil {
 		utils.DebugPrintln("GenAuthKey", err)
 	}
-	fmt.Println("GenAuthKey", authTime, string(nodeAuthBytes), key)
 	encryptedAuthBytes := EncryptWithKey(nodeAuthBytes, key)
 	return hex.EncodeToString(encryptedAuthBytes)
 }
