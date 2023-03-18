@@ -296,6 +296,7 @@ func LoadSettings() {
 		NodeSetting.DataDiscoveryEnabled = PrimarySetting.DataDiscoveryEnabled
 		NodeSetting.DataDiscoveryAPI = PrimarySetting.DataDiscoveryAPI
 		NodeSetting.DataDiscoveryKey = PrimarySetting.DataDiscoveryKey
+		DataDiscoveryKey, _ = hex.DecodeString(NodeSetting.DataDiscoveryKey)
 		return
 	}
 	// Replica nodes, load to Memory

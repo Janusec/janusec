@@ -161,7 +161,7 @@ func CheckDiscoveryRules(value string, r *http.Request) {
 			if _, ok := discoveryCache.Get(uid); !ok {
 				// Set cache
 				discoveryCache.Set(uid, 1, cache.DefaultExpiration)
-				if len(data.NodeSetting.DataDiscoveryAPI) == 0 {
+				if len(data.NodeSetting.DataDiscoveryAPI) == 0 || len(data.NodeSetting.DataDiscoveryKey) == 0 {
 					return
 				}
 				// report
@@ -176,17 +176,17 @@ func CheckDiscoveryRules(value string, r *http.Request) {
 				resp, err := utils.GetResponse(request)
 				if err != nil {
 					utils.DebugPrintln("Report Data Discovery", err)
-					continue
+					return
 				}
-				rpcResp := models.RPCResponse{}
+				rpcResp := DataDiscoveryAPIResponse{}
 				err = json.Unmarshal(resp, &rpcResp)
 				if err != nil {
 					utils.DebugPrintln("Report Data Discovery Unmarshal", err)
-					continue
+					return
 				}
-				if len(*rpcResp.Error) > 0 {
-					utils.DebugPrintln("Report Data Discovery, Receive Error:", *rpcResp.Error)
-					continue
+				if rpcResp.Status != 0 {
+					utils.DebugPrintln("Report Data Discovery, Receive Error:", rpcResp.Error)
+					return
 				}
 			}
 			//else {
@@ -213,9 +213,8 @@ func Anonymize(value string) string {
 	return string(runeValue)
 }
 
-type RPCResponse struct {
+type DataDiscoveryAPIResponse struct {
 	// Status 0 represent OK, -1 or non 0 represent abnormal
-	Status int64       `json:"status"`
-	Error  string      `json:"err"`
-	Data   interface{} `json:"data"`
+	Status int64  `json:"status"`
+	Error  string `json:"err"`
 }
