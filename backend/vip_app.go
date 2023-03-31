@@ -261,7 +261,7 @@ func UpdateVipApp(param map[string]interface{}, clientIP string, authUser *model
 	if listenPort <= 1024 {
 		return nil, errors.New("port number must be greater than 1024")
 	}
-	appID := int64(application["id"].(float64))
+	appID, _ := strconv.ParseInt(application["id"].(string), 10, 64)
 	appName := application["name"].(string)
 
 	isTCP := application["is_tcp"].(bool)
@@ -346,7 +346,7 @@ func UpdateTargets(vipApp *models.VipApp, targets []interface{}) {
 	for _, targetInterface := range targets {
 		// add new destinations to DB and app
 		targetMap := targetInterface.(map[string]interface{})
-		targetID := int64(targetMap["id"].(float64))
+		targetID, _ := strconv.ParseInt(targetMap["id"].(string), 10, 64)
 		routeType := int64(targetMap["route_type"].(float64))
 		destination := strings.TrimSpace(targetMap["destination"].(string))
 		podsAPI := strings.TrimSpace(targetMap["pods_api"].(string))

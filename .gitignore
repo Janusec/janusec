@@ -8,3 +8,4 @@
 *.tar.gz
 /static/cdncache
 /certs
+/*.sqlite3

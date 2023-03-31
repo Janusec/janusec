@@ -10,6 +10,7 @@ package backend
 import (
 	"janusec/data"
 	"janusec/utils"
+	"os"
 
 	// PostgreSQL
 	_ "github.com/lib/pq"
@@ -55,6 +56,7 @@ func InitDatabase() {
 		`afa8bae009c9dbf4135f62e165847227`, ``, true, true, true, true)
 	if err != nil {
 		utils.DebugPrintln("InitDatabase InsertIfNotExistsAppUser", err)
+		os.Exit(1)
 	}
 	err = dal.CreateTableIfNotExistsNodes()
 	if err != nil {

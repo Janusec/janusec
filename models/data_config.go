@@ -28,8 +28,9 @@ type OAuthConfig struct {
 }
 
 type PrimaryNodeConfig struct {
-	Admin    AdminConfig `json:"admin"`
-	Database DBConfig    `json:"database"`
+	Admin        AdminConfig `json:"admin"`
+	DatabaseType string      `json:"database_type"`
+	Database     DBConfig    `json:"database"`
 }
 
 type ReplicaNodeConfig struct {

@@ -147,7 +147,10 @@ func GetAppUsers(authUser *models.AuthUser) ([]*models.AppUser, error) {
 }
 
 func GetAdmin(param map[string]interface{}) (*models.AppUser, error) {
-	var userID = int64(param["id"].(float64))
+	userID, err := strconv.ParseInt(param["id"].(string), 10, 64)
+	if err != nil {
+		utils.DebugPrintln("user id error", err)
+	}
 	return GetAppUserByID(userID)
 }
 
@@ -173,9 +176,9 @@ func GetAppUserByID(userID int64) (*models.AppUser, error) {
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.AppUser, error) {
-	var user = param["object"].(map[string]interface{})
-	var userID = int64(user["id"].(float64))
-	var username = user["username"].(string)
+	user := param["object"].(map[string]interface{})
+	userID, _ := strconv.ParseInt(user["id"].(string), 10, 64)
+	username := user["username"].(string)
 	var password string
 	if user["password"] == nil {
 		password = ""

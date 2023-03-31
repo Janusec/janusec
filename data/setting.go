@@ -218,6 +218,17 @@ func InitDefaultSettings() {
 		DAL.SaveStringSetting("cas2_callback", "http://www.example.com/oauth/cas2")
 	}
 
+	// Data discoveries 1.3.2
+	if !DAL.ExistsSetting("data_discovery_enabled") {
+		DAL.SaveBoolSetting("data_discovery_enabled", false)
+	}
+	if !DAL.ExistsSetting("data_discovery_api") {
+		DAL.SaveStringSetting("data_discovery_api", "")
+	}
+	if !DAL.ExistsSetting("data_discovery_key") {
+		DAL.SaveStringSetting("data_discovery_key", "")
+	}
+
 	// Other
 	if !DAL.ExistsSetting("init_time") {
 		// 0.9.13 +

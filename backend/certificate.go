@@ -147,7 +147,7 @@ func GetCertificateByCommonName(commonName string) *models.CertItem {
 // UpdateCertificate ...
 func UpdateCertificate(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.CertItem, error) {
 	certificate := param["object"].(map[string]interface{})
-	id := int64(certificate["id"].(float64))
+	id, _ := strconv.ParseInt(certificate["id"].(string), 10, 64)
 	commonName := certificate["common_name"].(string)
 	certContent := certificate["cert_content"].(string)
 	privKeyContent := certificate["priv_key_content"].(string)

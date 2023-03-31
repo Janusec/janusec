@@ -16,7 +16,7 @@ const (
 	sqlCreateTableIfNotExistsDomains = `CREATE TABLE IF NOT EXISTS "domains"("id" bigserial PRIMARY KEY, "name" VARCHAR(256) NOT NULL, "app_id" bigint NOT NULL, "cert_id" bigint, "redirect" boolean, "location" VARCHAR(256))`
 	sqlSelectDomainsCountByCertID    = `SELECT COUNT(1) FROM "domains" WHERE "cert_id"=$1`
 	sqlSelectDomains                 = `SELECT "id", "name", "app_id", "cert_id", "redirect", "location" FROM "domains"`
-	sqlInsertDomain                  = `INSERT INTO "domains"("name", "app_id", "cert_id", "redirect", "location") VALUES($1,$2,$3,$4,$5) RETURNING "id"`
+	sqlInsertDomain                  = `INSERT INTO "domains"("id","name", "app_id", "cert_id", "redirect", "location") VALUES($1,$2,$3,$4,$5,$6) RETURNING "id"`
 	sqlUpdateDomain                  = `UPDATE "domains" SET "name"=$1,"app_id"=$2,"cert_id"=$3,"redirect"=$4,"location"=$5 WHERE "id"=$6`
 	sqlDeleteDomainByDomainID        = `DELETE FROM "domains" WHERE "id"=$1`
 	sqlDeleteDomainByAppID           = `DELETE FROM "domains" WHERE "app_id"=$1`
@@ -56,7 +56,8 @@ func (dal *MyDAL) SelectDomainsCountByCertID(certID int64) int64 {
 
 // InsertDomain ...
 func (dal *MyDAL) InsertDomain(name string, appID int64, certID int64, redirect bool, location string) (newID int64) {
-	err := dal.db.QueryRow(sqlInsertDomain, name, appID, certID, redirect, location).Scan(&newID)
+	id := utils.GenSnowflakeID()
+	err := dal.db.QueryRow(sqlInsertDomain, id, name, appID, certID, redirect, location).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertDomain", err)
 	}

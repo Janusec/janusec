@@ -46,7 +46,7 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 			&dbApp.Owner,
 			&dbApp.CSPEnabled,
 			&dbApp.CSP,
-		    &dbApp.CacheEnabled)
+			&dbApp.CacheEnabled)
 		if err != nil {
 			utils.DebugPrintln("SelectApplications rows.Scan", err)
 		}
@@ -57,8 +57,9 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 
 // InsertApplication insert an Application to DB
 func (dal *MyDAL) InsertApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, shieldEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string, cacheEnabled bool) (newID int64) {
-	const sqlInsertApplication = `INSERT INTO "applications"("name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","shield_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp","cache_enabled") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING "id"`
-	err := dal.db.QueryRow(sqlInsertApplication, appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled).Scan(&newID)
+	const sqlInsertApplication = `INSERT INTO "applications"("id","name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","shield_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp","cache_enabled") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING "id"`
+	id := utils.GenSnowflakeID()
+	err := dal.db.QueryRow(sqlInsertApplication, id, appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertApplication", err)
 	}

@@ -8,6 +8,7 @@
 package backend
 
 import (
+	"strconv"
 	"sync"
 
 	"janusec/data"
@@ -76,9 +77,9 @@ func GetDomainByName(domainName string) *models.Domain {
 // UpdateDomain ...
 func UpdateDomain(app *models.Application, domainMapInterface interface{}) *models.Domain {
 	var domainMap = domainMapInterface.(map[string]interface{})
-	domainID := int64(domainMap["id"].(float64))
+	domainID, _ := strconv.ParseInt(domainMap["id"].(string), 10, 64)
 	domainName := domainMap["name"].(string)
-	certID := int64(domainMap["cert_id"].(float64))
+	certID, _ := strconv.ParseInt(domainMap["cert_id"].(string), 10, 64)
 	redirect := domainMap["redirect"].(bool)
 	location := domainMap["location"].(string)
 	pCert, _ := SysCallGetCertByID(certID)
@@ -138,7 +139,7 @@ func DeleteDomainsByApp(app *models.Application) {
 func InterfaceContainsDomainID(domains []interface{}, domainID int64) bool {
 	for _, domain := range domains {
 		destMap := domain.(map[string]interface{})
-		id := int64(destMap["id"].(float64))
+		id, _ := strconv.ParseInt(destMap["id"].(string), 10, 64)
 		if id == domainID {
 			return true
 		}

@@ -182,7 +182,7 @@ func UpdateCCPolicy(param map[string]interface{}, clientIP string, authUser *mod
 		return errors.New("only super administrators can perform this operation")
 	}
 	ccPolicyMap := param["object"].(map[string]interface{})
-	appID := int64(param["id"].(float64))
+	appID, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 	intervalMilliSeconds := ccPolicyMap["interval_milliseconds"].(float64)
 	maxCount := int64(ccPolicyMap["max_count"].(float64))
 	blockSeconds := ccPolicyMap["block_seconds"].(float64)

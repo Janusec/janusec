@@ -16,6 +16,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"strconv"
 
 	"janusec/backend"
 	"janusec/data"
@@ -69,11 +70,11 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_nodes":
 		obj, err = backend.GetNodes()
 	case "get_node":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = backend.GetDBNodeByID(id)
 	case "del_node":
 		obj = nil
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		err = backend.DeleteNodeByID(id)
 	case "get_auth_user":
 		obj, err = usermgmt.GetAuthUser(w, r)
@@ -82,10 +83,10 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_vip_apps":
 		obj, err = backend.GetVipApps(authUser)
 	case "get_app":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = backend.GetApplicationByID(id)
 	case "get_vip_app":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = backend.GetVipAppByID(id)
 	case "update_app":
 		obj, err = backend.UpdateApplication(param, clientIP, authUser)
@@ -93,21 +94,21 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = backend.UpdateVipApp(param, clientIP, authUser)
 	case "del_app":
 		obj = nil
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		err = backend.DeleteApplicationByID(id, clientIP, authUser)
 	case "del_vip_app":
 		obj = nil
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		err = backend.DeleteVipAppByID(id, clientIP, authUser)
 	case "get_certs":
 		obj, err = backend.GetCertificates(authUser)
 	case "get_cert":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = backend.GetCertificateByID(id, authUser)
 	case "update_cert":
 		obj, err = backend.UpdateCertificate(param, clientIP, authUser)
 	case "del_cert":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj = nil
 		err = backend.DeleteCertificateByID(id, clientIP, authUser)
 	case "self_sign_cert":
@@ -122,14 +123,14 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "update_app_user":
 		obj, err = usermgmt.UpdateUser(w, r, param, clientIP, authUser)
 	case "del_app_user":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj = nil
 		err = usermgmt.DeleteUser(id, clientIP, authUser)
 	case "get_cc_policy":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = firewall.GetCCPolicyRespByAppID(id)
 	case "del_cc_policy":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj = nil
 		err = firewall.DeleteCCPolicyByAppID(id, clientIP, authUser, true)
 	case "update_cc_policy":
@@ -138,7 +139,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_group_policies":
 		obj, err = firewall.GetGroupPolicies()
 	case "get_group_policy":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = firewall.GetGroupPolicyByID(id)
 	case "update_group_policy":
 		obj, err = firewall.UpdateGroupPolicy(r, userID, clientIP, authUser)
@@ -147,11 +148,11 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "update_ip_policy":
 		obj, err = firewall.UpdateIPPolicy(param, clientIP, authUser)
 	case "del_ip_policy":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj = nil
 		err = firewall.DeleteIPPolicyByID(id, clientIP, authUser)
 	case "del_group_policy":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj = nil
 		err = firewall.DeleteGroupPolicyByID(id, clientIP, authUser)
 	case "test_regex":
@@ -168,14 +169,14 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_regex_logs":
 		obj, err = firewall.GetGroupLogs(param)
 	case "get_regex_log":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = firewall.GetGroupLogByID(id)
 	case "get_cc_logs_count":
 		obj, err = firewall.GetCCLogCount(param)
 	case "get_cc_logs":
 		obj, err = firewall.GetCCLogs(param)
 	case "get_cc_log":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = firewall.GetCCLogByID(id)
 	case "get_vuln_stat":
 		obj, err = firewall.GetVulnStat(param)
@@ -239,7 +240,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "update_discovery_rule":
 		obj, err = firewall.UpdateDiscoveryRule(param, clientIP, authUser)
 	case "del_discovery_rule":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj = nil
 		err = firewall.DeleteDiscoveryRuleByID(id, clientIP, authUser)
 	default:
@@ -323,7 +324,7 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		// used for authenticator launched by replica nodes
 		obj, err = usermgmt.GetOrInsertTOTPItem(param)
 	case "update_totp":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = usermgmt.UpdateTOTPVerified(id)
 	case "update_access_stat":
 		obj = nil

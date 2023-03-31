@@ -12,6 +12,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httputil"
+	"strconv"
 	"time"
 
 	"janusec/data"
@@ -144,7 +145,7 @@ func LogGroupHitRequestAPI(r *http.Request) error {
 
 // GetCCLogCount ...
 func GetCCLogCount(param map[string]interface{}) (*models.HitLogsCount, error) {
-	appID := int64(param["app_id"].(float64))
+	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
 	startTime := int64(param["start_time"].(float64))
 	endTime := int64(param["end_time"].(float64))
 	count, err := data.DAL.SelectCCLogsCount(appID, startTime, endTime)
@@ -154,7 +155,7 @@ func GetCCLogCount(param map[string]interface{}) (*models.HitLogsCount, error) {
 
 // GetGroupLogCount ...
 func GetGroupLogCount(param map[string]interface{}) (*models.HitLogsCount, error) {
-	appID := int64(param["app_id"].(float64))
+	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
 	startTime := int64(param["start_time"].(float64))
 	endTime := int64(param["end_time"].(float64))
 	count, err := data.DAL.SelectGroupHitLogsCount(appID, startTime, endTime)
@@ -164,7 +165,7 @@ func GetGroupLogCount(param map[string]interface{}) (*models.HitLogsCount, error
 
 // GetVulnStat ...
 func GetVulnStat(param map[string]interface{}) (vulnStat []*models.VulnStat, err error) {
-	appID := int64(param["app_id"].(float64))
+	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
 	startTime := int64(param["start_time"].(float64))
 	endTime := int64(param["end_time"].(float64))
 	if appID == 0 {
@@ -180,8 +181,8 @@ func GetVulnStat(param map[string]interface{}) (vulnStat []*models.VulnStat, err
 
 // GetWeekStat ...
 func GetWeekStat(param map[string]interface{}) (weekStat []int64, err error) {
-	appID := int64(param["app_id"].(float64))
-	vulnID := int64(param["vuln_id"].(float64))
+	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
+	vulnID, _ := strconv.ParseInt(param["vuln_id"].(string), 10, 64)
 	startTime := int64(param["start_time"].(float64))
 	for i := int64(0); i < 7; i++ {
 		dayStartTime := startTime + 86400*i
@@ -222,7 +223,7 @@ func GetWeekStat(param map[string]interface{}) (weekStat []int64, err error) {
 
 // GetCCLogs ...
 func GetCCLogs(param map[string]interface{}) ([]*models.SimpleCCLog, error) {
-	appID := int64(param["app_id"].(float64))
+	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
 	startTime := int64(param["start_time"].(float64))
 	endTime := int64(param["end_time"].(float64))
 	requestCount := int64(param["request_count"].(float64))
@@ -233,7 +234,7 @@ func GetCCLogs(param map[string]interface{}) ([]*models.SimpleCCLog, error) {
 
 // GetGroupLogs ...
 func GetGroupLogs(param map[string]interface{}) ([]*models.SimpleGroupHitLog, error) {
-	appID := int64(param["app_id"].(float64))
+	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
 	startTime := int64(param["start_time"].(float64))
 	endTime := int64(param["end_time"].(float64))
 	requestCount := int64(param["request_count"].(float64))

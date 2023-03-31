@@ -65,7 +65,7 @@ func RPCGetAllDiscoveryRules() []*models.DiscoveryRule {
 
 func UpdateDiscoveryRule(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.DiscoveryRule, error) {
 	mDiscoveryRule := param["object"].(map[string]interface{})
-	id := int64(mDiscoveryRule["id"].(float64))
+	id, _ := strconv.ParseInt(mDiscoveryRule["id"].(string), 10, 64)
 	fieldName := mDiscoveryRule["field_name"].(string)
 	sample := mDiscoveryRule["sample"].(string)
 	regex := mDiscoveryRule["regex"].(string)

@@ -41,7 +41,7 @@ func UpdateIPPolicy(param map[string]interface{}, clientIP string, authUser *mod
 		return nil, errors.New("only super administrators can perform this operation")
 	}
 	ipPolicyI := param["object"].(map[string]interface{})
-	id := int64(ipPolicyI["id"].(float64))
+	id, _ := strconv.ParseInt(ipPolicyI["id"].(string), 10, 64)
 	ipAddr := ipPolicyI["ip_addr"].(string)
 	ipAddr = strings.Trim(ipAddr, " ")
 	isAllow := ipPolicyI["is_allow"].(bool)

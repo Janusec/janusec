@@ -36,7 +36,7 @@ type OAuthState struct {
 
 // AccessStat record access statistics
 type AccessStat struct {
-	AppID      int64  `json:"app_id"`
+	AppID      int64  `json:"app_id,string"`
 	URLPath    string `json:"url_path"`
 	StatDate   string `json:"stat_date"` // Format("20060102")
 	Delta      int64  `json:"delta"`
@@ -44,17 +44,17 @@ type AccessStat struct {
 }
 
 type RefererStat struct {
-	AppID      int64  `json:"app_id"`
+	AppID      int64  `json:"app_id,string"`
 	Host       string `json:"host"`
 	URL        string `json:"url"`
-	ClientID   string `json:"client_id"`
+	ClientID   string `json:"client_id,string"`
 	Delta      int64  `json:"delta"`
 	UpdateTime int64  `json:"update_time"` // Used for expired cleanup
 }
 
 // PopularContent i.e. top visited URL Path
 type PopularContent struct {
-	AppID   int64  `json:"app_id"`
+	AppID   int64  `json:"app_id,string"`
 	URLPath string `json:"url_path"`
 	Amount  int64  `json:"amount"`
 }
@@ -182,7 +182,7 @@ type NodeShareSetting struct {
 
 // DiscoveryRule for json body and json response
 type DiscoveryRule struct {
-	ID int64 `json:"id"`
+	ID int64 `json:"id,string"`
 
 	// FieldName example: "Phone Number"
 	FieldName string `json:"field_name"`

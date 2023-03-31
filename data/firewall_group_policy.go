@@ -17,7 +17,7 @@ const (
 	sqlExistsGroupPolicy                 = `SELECT COALESCE((SELECT 1 FROM "group_policies" limit 1),0)`
 	sqlSelectGroupPolicies               = `SELECT "id","description","app_id","vuln_id","hit_value","action","is_enabled","user_id","update_time" FROM "group_policies"`
 	sqlSelectGroupPoliciesByAppID        = `SELECT "id","description","vuln_id","hit_value","action","is_enabled","user_id","update_time" FROM "group_policies" WHERE "app_id"=$1`
-	sqlInsertGroupPolicy                 = `INSERT INTO "group_policies"("description","app_id","vuln_id","hit_value","action","is_enabled","user_id","update_time") VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`
+	sqlInsertGroupPolicy                 = `INSERT INTO "group_policies"("id","description","app_id","vuln_id","hit_value","action","is_enabled","user_id","update_time") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`
 	sqlUpdateGroupPolicy                 = `UPDATE "group_policies" SET "description"=$1,"app_id"=$2,"vuln_id"=$3,"hit_value"=$4,"action"=$5,"is_enabled"=$6,"user_id"=$7,"update_time"=$8 WHERE "id"=$9`
 	sqlDeleteGroupPolicyByID             = `DELETE FROM "group_policies" WHERE "id"=$1`
 )
@@ -100,7 +100,8 @@ func (dal *MyDAL) InsertGroupPolicy(description string, appID int64, vulnID int6
 		utils.DebugPrintln("InsertGroupPolicy Prepare", err)
 	}
 	defer stmt.Close()
-	err = stmt.QueryRow(description, appID, vulnID, hitValue, action, isEnabled, userID, updateTime).Scan(&newID)
+	id := utils.GenSnowflakeID()
+	err = stmt.QueryRow(id, description, appID, vulnID, hitValue, action, isEnabled, userID, updateTime).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertGroupPolicy Scan", err)
 	}

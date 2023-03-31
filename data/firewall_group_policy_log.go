@@ -14,15 +14,15 @@ import (
 
 const (
 	sqlCreateTableIfNotExistsGroupHitLog  = `CREATE TABLE IF NOT EXISTS "group_hit_logs"("id" bigserial primary key,"request_time" bigint,"client_ip" VARCHAR(256) NOT NULL,"host" VARCHAR(256) NOT NULL,"method" VARCHAR(16) NOT NULL,"url_path" VARCHAR(2048) NOT NULL,"url_query" VARCHAR(2048) NOT NULL DEFAULT '',"content_type" VARCHAR(128) NOT NULL DEFAULT '',"user_agent" VARCHAR(1024) NOT NULL DEFAULT '',"cookies" VARCHAR(1024) NOT NULL DEFAULT '',"raw_request" VARCHAR(16384) NOT NULL,"action" bigint,"policy_id" bigint,"vuln_id" bigint,"app_id" bigint)`
-	sqlInsertGroupHitLog                  = `INSERT INTO "group_hit_logs"("request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`
+	sqlInsertGroupHitLog                  = `INSERT INTO "group_hit_logs"("id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`
 	sqlSelectGroupHitLogByID              = `SELECT "id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id" FROM "group_hit_logs" WHERE "id"=$1`
 	sqlSelectSimpleGroupHitLogs           = `SELECT "id","request_time","client_ip","host","method","url_path","action","policy_id","app_id" FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 ORDER BY "request_time" DESC LIMIT $4 OFFSET $5`
 	sqlSelectGroupHitLogsCount            = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3`
 	sqlSelectGroupHitLogsCountByVulnID    = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND "vuln_id"=$2 AND "request_time" BETWEEN $3 AND $4`
 	sqlSelectAllGroupHitLogsCount         = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2`
 	sqlSelectAllGroupHitLogsCountByVulnID = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "vuln_id"=$1 AND "request_time" BETWEEN $2 AND $3`
-	sqlSelectVulnStatByAppID              = `SELECT "vuln_id",COUNT("vuln_id") FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 GROUP BY "vuln_id"`
-	sqlSelectAllVulnStat                  = `SELECT "vuln_id",COUNT("vuln_id") FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2 GROUP BY "vuln_id"`
+	sqlSelectVulnStatByAppID              = `SELECT "vuln_id",COUNT("vuln_id") FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 GROUP BY "vuln_id,string"`
+	sqlSelectAllVulnStat                  = `SELECT "vuln_id",COUNT("vuln_id") FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2 GROUP BY "vuln_id,string"`
 	sqlDeleteHitLogsBeforeTime            = `DELETE FROM "group_hit_logs" where "request_time"<$1`
 )
 
@@ -46,7 +46,8 @@ func (dal *MyDAL) CreateTableIfNotExistsGroupHitLog() error {
 
 // InsertGroupHitLog ...
 func (dal *MyDAL) InsertGroupHitLog(requestTime int64, clientIP string, host string, method string, urlPath string, urlQuery string, contentType string, userAgent string, cookies string, rawRequest string, action int64, policyID int64, vulnID int64, appID int64) error {
-	_, err := dal.db.Exec(sqlInsertGroupHitLog, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, policyID, vulnID, appID)
+	snakeID := utils.GenSnowflakeID()
+	_, err := dal.db.Exec(sqlInsertGroupHitLog, snakeID, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, policyID, vulnID, appID)
 	if err != nil {
 		utils.DebugPrintln("InsertGroupHitLog Exec", err)
 	}

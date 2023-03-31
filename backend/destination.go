@@ -13,6 +13,7 @@ import (
 	"janusec/utils"
 	"net"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -21,7 +22,7 @@ import (
 func InterfaceContainsDestinationID(destinations []interface{}, destID int64) bool {
 	for _, destination := range destinations {
 		destMap := destination.(map[string]interface{})
-		id := int64(destMap["id"].(float64))
+		id, _ := strconv.ParseInt(destMap["id"].(string), 10, 64)
 		if id == destID {
 			return true
 		}

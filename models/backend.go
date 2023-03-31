@@ -15,7 +15,7 @@ import (
 
 // Application i.e. Web site
 type Application struct {
-	ID             int64          `json:"id"`
+	ID             int64          `json:"id,string"`
 	Name           string         `json:"name"`
 	InternalScheme string         `json:"internal_scheme"` // http, https
 	Destinations   []*Destination `json:"destinations"`
@@ -48,7 +48,7 @@ type Application struct {
 
 // DBApplication for storage in database
 type DBApplication struct {
-	ID             int64  `json:"id"`
+	ID             int64  `json:"id,string"`
 	Name           string `json:"name"`
 	InternalScheme string `json:"internal_scheme"` // http, https
 	RedirectHTTPS  bool   `json:"redirect_https"`
@@ -78,10 +78,10 @@ type DomainRelation struct {
 }
 
 type Domain struct {
-	ID       int64        `json:"id"`
+	ID       int64        `json:"id,string"`
 	Name     string       `json:"name"`
-	AppID    int64        `json:"app_id"`
-	CertID   int64        `json:"cert_id"`
+	AppID    int64        `json:"app_id,string"`
+	CertID   int64        `json:"cert_id,string"`
 	Redirect bool         `json:"redirect"`
 	Location string       `json:"location"`
 	App      *Application `json:"-"`
@@ -89,10 +89,10 @@ type Domain struct {
 }
 
 type DBDomain struct {
-	ID       int64  `json:"id"`
+	ID       int64  `json:"id,string"`
 	Name     string `json:"name"`
-	AppID    int64  `json:"app_id"`
-	CertID   int64  `json:"cert_id"`
+	AppID    int64  `json:"app_id,string"`
+	CertID   int64  `json:"cert_id,string"`
 	Redirect bool   `json:"redirect"`
 	Location string `json:"location"`
 }
@@ -116,7 +116,7 @@ const (
 
 // Destination is used for backend routing
 type Destination struct {
-	ID int64 `json:"id"`
+	ID int64 `json:"id,string"`
 
 	// 0.9.8+
 	RouteType RouteType `json:"route_type"`
@@ -137,8 +137,8 @@ type Destination struct {
 	// Pods are all destinations
 	Pods string `json:"pods"`
 
-	AppID  int64 `json:"app_id"`
-	NodeID int64 `json:"node_id"`
+	AppID  int64 `json:"app_id,string"`
+	NodeID int64 `json:"node_id,string"`
 
 	// Online status of Destination (IP:Port), added in V0.9.11
 	Online    bool  `json:"online"`
@@ -164,7 +164,7 @@ type PodStatus struct {
 }
 
 type CertItem struct {
-	ID             int64           `json:"id"`
+	ID             int64           `json:"id,string"`
 	CommonName     string          `json:"common_name"`
 	CertContent    string          `json:"cert_content"`
 	PrivKeyContent string          `json:"priv_key_content"`
@@ -184,7 +184,7 @@ type DBCertItem struct {
 
 // AuthUser used for Authentication in Memory
 type AuthUser struct {
-	UserID        int64  `json:"user_id"`
+	UserID        int64  `json:"user_id,string"`
 	Username      string `json:"username"`
 	Logged        bool   `json:"logged"`
 	IsSuperAdmin  bool   `json:"is_super_admin"`
@@ -198,7 +198,7 @@ type AuthUser struct {
 
 // AppUser used for DB Storage
 type AppUser struct {
-	ID            int64  `json:"id"`
+	ID            int64  `json:"id,string"`
 	Username      string `json:"username"`
 	HashPwd       string `json:"-"`
 	Salt          string `json:"-"`
@@ -222,7 +222,7 @@ type QueryAppUser struct {
 
 // TOTP Authenticator
 type TOTP struct {
-	ID           int64  `json:"id"`
+	ID           int64  `json:"id,string"`
 	UID          string `json:"uid"`
 	TOTPKey      string `json:"totp_key"`
 	TOTPVerified bool   `json:"totp_verified"`
@@ -247,7 +247,7 @@ const (
 
 // VipApp configuration, added from 0.9.12, database table name forwarding_app
 type VipApp struct {
-	ID int64 `json:"id"`
+	ID int64 `json:"id,string"`
 
 	Name string `json:"name"`
 
@@ -274,8 +274,8 @@ type VipApp struct {
 
 // VipTarget added from 0.9.12
 type VipTarget struct {
-	ID       int64 `json:"id"`
-	VipAppID int64 `json:"vip_app_id"`
+	ID       int64 `json:"id,string"`
+	VipAppID int64 `json:"vip_app_id,string"`
 
 	// RouteType: Reverse_Proxy, K8S_Ingress
 	RouteType RouteType `json:"route_type"`

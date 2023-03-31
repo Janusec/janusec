@@ -18,7 +18,7 @@ import (
 const (
 	sqlCreateTableIfNotExistsCertificates = `CREATE TABLE IF NOT EXISTS "certificates"("id" bigserial primary key,"common_name" VARCHAR(256) not null,"pub_cert" VARCHAR(16384) not null,"priv_key" bytea not null,"expire_time" bigint,"description" VARCHAR(256))`
 	sqlSelectCertificates                 = `SELECT "id","common_name","pub_cert","priv_key","expire_time","description" FROM "certificates"`
-	sqlInsertCertificate                  = `INSERT INTO "certificates"("common_name","pub_cert","priv_key","expire_time","description") VALUES($1,$2,$3,$4,$5) RETURNING "id"`
+	sqlInsertCertificate                  = `INSERT INTO "certificates"("id","common_name","pub_cert","priv_key","expire_time","description") VALUES($1,$2,$3,$4,$5,$6) RETURNING "id"`
 	sqlUpdateCertificate                  = `UPDATE "certificates" SET "common_name"=$1,"pub_cert"=$2,"priv_key"=$3,"expire_time"=$4,"description"=$5 WHERE "id"=$6`
 	sqlDeleteCertificate                  = `DELETE FROM "certificates" WHERE "id"=$1`
 )
@@ -49,7 +49,8 @@ func (dal *MyDAL) SelectCertificates() []*models.DBCertItem {
 
 // InsertCertificate ...
 func (dal *MyDAL) InsertCertificate(commonName string, certContent string, encryptedPrivKey []byte, expireTime int64, description string) (newID int64) {
-	err := dal.db.QueryRow(sqlInsertCertificate, commonName, certContent, encryptedPrivKey, expireTime, description).Scan(&newID)
+	id := utils.GenSnowflakeID()
+	err := dal.db.QueryRow(sqlInsertCertificate, id, commonName, certContent, encryptedPrivKey, expireTime, description).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertCertificate", err)
 	}

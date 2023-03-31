@@ -9,9 +9,11 @@ package backend
 
 import (
 	"errors"
+	"fmt"
 	"hash/fnv"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -248,7 +250,7 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 	for _, destinationInterface := range destinations {
 		// add new destinations to DB and app
 		destMap := destinationInterface.(map[string]interface{})
-		destID := int64(destMap["id"].(float64))
+		destID, _ := strconv.ParseInt(destMap["id"].(string), 10, 64)
 		routeType := int64(destMap["route_type"].(float64))
 		requestRoute := strings.TrimSpace(destMap["request_route"].(string))
 		if strings.HasPrefix(requestRoute, "/") && !strings.HasSuffix(requestRoute, "/") {
@@ -261,8 +263,8 @@ func UpdateDestinations(app *models.Application, destinations []interface{}) {
 		destDest := strings.TrimSpace(destMap["destination"].(string))
 		podsAPI := strings.TrimSpace(destMap["pods_api"].(string))
 		podPort := strings.TrimSpace(destMap["pod_port"].(string))
-		appID := app.ID //int64(destMap["appID"].(float64))
-		nodeID := int64(destMap["node_id"].(float64))
+		appID := app.ID
+		nodeID, _ := strconv.ParseInt(destMap["node_id"].(string), 10, 64)
 		var err error
 		if destID == 0 {
 			destID, err = data.DAL.InsertDestination(routeType, requestRoute, backendRoute, destDest, podsAPI, podPort, appID, nodeID)
@@ -330,8 +332,9 @@ func UpdateAppDomains(app *models.Application, appDomains []interface{}) {
 
 // UpdateApplication ...
 func UpdateApplication(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.Application, error) {
+	fmt.Println("0000")
 	application := param["object"].(map[string]interface{})
-	appID := int64(application["id"].(float64))
+	appID, _ := strconv.ParseInt(application["id"].(string), 10, 64)
 	appName := application["name"].(string)
 	internalScheme := application["internal_scheme"].(string)
 	redirectHTTPS := application["redirect_https"].(bool)
@@ -353,9 +356,11 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 	}
 	cacheEnabled := application["cache_enabled"].(bool)
 	owner := application["owner"].(string)
+	fmt.Println("0001")
 	var app *models.Application
 	if appID == 0 {
 		// new application
+		fmt.Println("0002")
 		newID := data.DAL.InsertApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled)
 		app = &models.Application{
 			ID: newID, Name: appName,
@@ -376,8 +381,10 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 			CSP:            csp,
 			CacheEnabled:   cacheEnabled}
 		Apps = append(Apps, app)
+		fmt.Println("0003")
 		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {
+		fmt.Println("0004")
 		app, _ = GetApplicationByID(appID)
 		if app != nil {
 			err := data.DAL.UpdateApplication(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled, appID)
@@ -403,6 +410,7 @@ func UpdateApplication(param map[string]interface{}, clientIP string, authUser *
 			return nil, errors.New("application not found")
 		}
 	}
+	fmt.Println("0005")
 	destinations := application["destinations"].([]interface{})
 	UpdateDestinations(app, destinations)
 	appDomains := application["domains"].([]interface{})

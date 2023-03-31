@@ -41,10 +41,12 @@ func InitGroupPolicy() {
 		}
 		existRegexPolicy := data.DAL.ExistsGroupPolicy()
 		if !existRegexPolicy {
-			err := data.DAL.SetIDSeqStartWith("group_policies", 10101)
-			if err != nil {
-				utils.DebugPrintln("InitGroupPolicy SetIDSeqStartWith error", err)
-			}
+			/*
+				err := data.DAL.SetIDSeqStartWith("group_policies", 10101)
+				if err != nil {
+					utils.DebugPrintln("InitGroupPolicy SetIDSeqStartWith error", err)
+				}
+			*/
 			curTime := time.Now().Unix()
 			groupPolicyID, err := data.DAL.InsertGroupPolicy("Code Leakage", 0, 100, int64(models.ChkPointURLPath), models.Action_Block_100, true, 0, curTime)
 			if err != nil {
