@@ -8,7 +8,6 @@
 package backend
 
 import (
-	"strconv"
 	"sync"
 
 	"janusec/data"
@@ -75,36 +74,25 @@ func GetDomainByName(domainName string) *models.Domain {
 }
 
 // UpdateDomain ...
-func UpdateDomain(app *models.Application, domainMapInterface interface{}) *models.Domain {
-	var domainMap = domainMapInterface.(map[string]interface{})
-	domainID, _ := strconv.ParseInt(domainMap["id"].(string), 10, 64)
-	domainName := domainMap["name"].(string)
-	certID, _ := strconv.ParseInt(domainMap["cert_id"].(string), 10, 64)
-	redirect := domainMap["redirect"].(bool)
-	location := domainMap["location"].(string)
-	pCert, _ := SysCallGetCertByID(certID)
-	domain := GetDomainByID(domainID)
-	if domainID == 0 {
+func UpdateDomain(app *models.Application, newDomain *models.Domain) *models.Domain {
+	if newDomain.ID == 0 {
 		// New domain
-		newDomainID := data.DAL.InsertDomain(domainName, app.ID, certID, redirect, location)
-		domain = &models.Domain{}
-		domain.ID = newDomainID
-		Domains = append(Domains, domain)
+		newDomain.ID = data.DAL.InsertDomain(newDomain.Name, app.ID, newDomain.CertID, newDomain.Redirect, newDomain.Location)
+		Domains = append(Domains, newDomain)
 	} else {
-		err := data.DAL.UpdateDomain(domainName, app.ID, certID, redirect, location, domain.ID)
+		oldDomain := GetDomainByID(newDomain.ID)
+		err := data.DAL.UpdateDomain(newDomain.Name, app.ID, newDomain.CertID, newDomain.Redirect, newDomain.Location, oldDomain.ID)
 		if err != nil {
 			utils.DebugPrintln("UpdateDomain", err)
 		}
+		oldDomain = newDomain
 	}
-	domain.Name = domainName
-	domain.AppID = app.ID
-	domain.CertID = certID
-	domain.Redirect = redirect
-	domain.Location = location
-	domain.App = app
-	domain.Cert = pCert
-	DomainsMap.Store(domainName, models.DomainRelation{App: app, Cert: pCert, Redirect: redirect, Location: location})
-	return domain
+	newDomain.AppID = app.ID
+	newDomain.App = app
+	pCert, _ := SysCallGetCertByID(newDomain.CertID)
+	newDomain.Cert = pCert
+	DomainsMap.Store(newDomain.Name, models.DomainRelation{App: app, Cert: pCert, Redirect: newDomain.Redirect, Location: newDomain.Location})
+	return newDomain
 }
 
 // GetDomainIndex ...
@@ -135,12 +123,10 @@ func DeleteDomainsByApp(app *models.Application) {
 	}
 }
 
-// InterfaceContainsDomainID ...
-func InterfaceContainsDomainID(domains []interface{}, domainID int64) bool {
+// ContainsDomainID ...
+func ContainsDomainID(domains []*models.Domain, domainID int64) bool {
 	for _, domain := range domains {
-		destMap := domain.(map[string]interface{})
-		id, _ := strconv.ParseInt(destMap["id"].(string), 10, 64)
-		if id == domainID {
+		if domain.ID == domainID {
 			return true
 		}
 	}

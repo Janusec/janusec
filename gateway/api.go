@@ -89,9 +89,9 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = backend.GetVipAppByID(id)
 	case "update_app":
-		obj, err = backend.UpdateApplication(param, clientIP, authUser)
+		obj, err = backend.UpdateApplication(bodyBuf, clientIP, authUser)
 	case "update_vip_app":
-		obj, err = backend.UpdateVipApp(param, clientIP, authUser)
+		obj, err = backend.UpdateVipApp(bodyBuf, clientIP, authUser)
 	case "del_app":
 		obj = nil
 		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)

@@ -21,8 +21,8 @@ const (
 	sqlSelectGroupHitLogsCountByVulnID    = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND "vuln_id"=$2 AND "request_time" BETWEEN $3 AND $4`
 	sqlSelectAllGroupHitLogsCount         = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2`
 	sqlSelectAllGroupHitLogsCountByVulnID = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "vuln_id"=$1 AND "request_time" BETWEEN $2 AND $3`
-	sqlSelectVulnStatByAppID              = `SELECT "vuln_id",COUNT("vuln_id") FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 GROUP BY "vuln_id,string"`
-	sqlSelectAllVulnStat                  = `SELECT "vuln_id",COUNT("vuln_id") FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2 GROUP BY "vuln_id,string"`
+	sqlSelectVulnStatByAppID              = `SELECT "vuln_id",COUNT("vuln_id") FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 GROUP BY "vuln_id"`
+	sqlSelectAllVulnStat                  = `SELECT "vuln_id",COUNT("vuln_id") FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2 GROUP BY "vuln_id"`
 	sqlDeleteHitLogsBeforeTime            = `DELETE FROM "group_hit_logs" where "request_time"<$1`
 )
 

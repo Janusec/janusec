@@ -144,7 +144,7 @@ type ClientStat struct {
 }
 
 type VulnType struct {
-	ID   int64  `json:"id,string"`
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
