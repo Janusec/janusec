@@ -172,6 +172,9 @@ func InitDatabase() {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications add cache_enabled", err)
 		}
 	}
+
+	// v1.3.3 extend string_value from varchar 1024 to 8192 for postgresql. sqlite not limit the length.
+	_ = dal.ExecSQL(`ALTER TABLE "settings" ALTER COLUMN "string_value" TYPE VARCHAR(8192)`)
 }
 
 // LoadAppConfiguration ...

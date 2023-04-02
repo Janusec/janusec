@@ -8,6 +8,7 @@
 package firewall
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -177,61 +178,39 @@ func InitCCPolicy() {
 }
 
 // UpdateCCPolicy update CC policy
-func UpdateCCPolicy(param map[string]interface{}, clientIP string, authUser *models.AuthUser) error {
+func UpdateCCPolicy(body []byte, clientIP string, authUser *models.AuthUser) error {
 	if !authUser.IsSuperAdmin {
 		return errors.New("only super administrators can perform this operation")
 	}
-	ccPolicyMap := param["object"].(map[string]interface{})
-	appID, _ := strconv.ParseInt(param["id"].(string), 10, 64)
-	intervalMilliSeconds := ccPolicyMap["interval_milliseconds"].(float64)
-	maxCount := int64(ccPolicyMap["max_count"].(float64))
-	blockSeconds := ccPolicyMap["block_seconds"].(float64)
-	action := models.PolicyAction(ccPolicyMap["action"].(float64))
-	statByURL := ccPolicyMap["stat_by_url"].(bool)
-	statByUA := ccPolicyMap["stat_by_ua"].(bool)
-	statByCookie := ccPolicyMap["stat_by_cookie"].(bool)
-	isEnabled := ccPolicyMap["is_enabled"].(bool)
-	existAppID := data.DAL.ExistsCCPolicyByAppID(appID)
-	if !existAppID {
+	var rpcCCRequest models.APICCPolicyRequest
+	if err := json.Unmarshal(body, &rpcCCRequest); err != nil {
+		utils.DebugPrintln("UpdateCCPolicy", err)
+		return err
+	}
+	ccPolicy := rpcCCRequest.Object
+	isExistedCCPolicy := data.DAL.ExistsCCPolicyByAppID(ccPolicy.AppID)
+	if !isExistedCCPolicy {
 		// new policy
-		err := data.DAL.InsertCCPolicy(appID, intervalMilliSeconds, maxCount, blockSeconds, action, statByURL, statByUA, statByCookie, isEnabled)
+		err := data.DAL.InsertCCPolicy(ccPolicy.AppID, ccPolicy.IntervalMilliSeconds, ccPolicy.MaxCount, ccPolicy.BlockSeconds, ccPolicy.Action, ccPolicy.StatByURL, ccPolicy.StatByUserAgent, ccPolicy.StatByCookie, ccPolicy.IsEnabled)
 		if err != nil {
 			return err
 		}
-		ccPolicy := &models.CCPolicy{
-			AppID:                appID,
-			IntervalMilliSeconds: intervalMilliSeconds, MaxCount: maxCount, BlockSeconds: blockSeconds,
-			Action: action, StatByURL: statByURL, StatByUserAgent: statByUA, StatByCookie: statByCookie,
-			IsEnabled: isEnabled}
-		ccPolicies.Store(appID, ccPolicy)
+		ccPolicies.Store(ccPolicy.AppID, ccPolicy)
 		if ccPolicy.IsEnabled {
-			go CCAttackTick(appID)
+			go CCAttackTick(ccPolicy.AppID)
 		}
-		go utils.OperationLog(clientIP, authUser.Username, "Add CC Policy", strconv.FormatInt(appID, 10))
+		go utils.OperationLog(clientIP, authUser.Username, "Add CC Policy", strconv.FormatInt(ccPolicy.AppID, 10))
 	} else {
 		// update policy
-		err := data.DAL.UpdateCCPolicy(intervalMilliSeconds, maxCount, blockSeconds, action, statByURL, statByUA, statByCookie, isEnabled, appID)
+		err := data.DAL.UpdateCCPolicy(ccPolicy.IntervalMilliSeconds, ccPolicy.MaxCount, ccPolicy.BlockSeconds, ccPolicy.Action, ccPolicy.StatByURL, ccPolicy.StatByUserAgent, ccPolicy.StatByCookie, ccPolicy.IsEnabled, ccPolicy.AppID)
 		if err != nil {
 			return err
 		}
-		ccPolicy := GetCCPolicyByAppID(appID)
-		if ccPolicy.IntervalMilliSeconds != intervalMilliSeconds {
-			ccPolicy.IntervalMilliSeconds = intervalMilliSeconds
-			appCCTicker, _ := ccTickers.Load(appID)
-			ccTicker := appCCTicker.(*time.Ticker)
-			ccTicker.Stop()
-		}
-		ccPolicy.MaxCount = maxCount
-		ccPolicy.BlockSeconds = blockSeconds
-		ccPolicy.StatByURL = statByURL
-		ccPolicy.StatByUserAgent = statByUA
-		ccPolicy.StatByCookie = statByCookie
-		ccPolicy.Action = action
-		ccPolicy.IsEnabled = isEnabled
+		// start new ccTicker
 		if ccPolicy.IsEnabled {
-			go CCAttackTick(appID)
+			go CCAttackTick(ccPolicy.AppID)
 		}
-		go utils.OperationLog(clientIP, authUser.Username, "Update CC Policy", strconv.FormatInt(appID, 10))
+		go utils.OperationLog(clientIP, authUser.Username, "Update CC Policy", strconv.FormatInt(ccPolicy.AppID, 10))
 	}
 	data.UpdateFirewallLastModified()
 	return nil

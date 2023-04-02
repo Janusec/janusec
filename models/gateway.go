@@ -124,8 +124,15 @@ type PrimarySetting struct {
 	// AuthProvider such as wxwork, dingtalk, feishu, lark, ldap, cas2
 	AuthProvider string `json:"auth_provider"`
 
+	// Search engines, for 5-second shield
+	SkipSEEnabled bool   `json:"skip_se_enabled"`
+	SearchEngines string `json:"search_engines"`
+
 	// WebSSHEnabled for Web-based SSH
 	WebSSHEnabled bool `json:"webssh_enabled"`
+
+	// BlockHTML, v1.3.3 added
+	BlockHTML string `json:"block_html"`
 
 	// WAFLogDays for WAF logs
 	WAFLogDays int64 `json:"waf_log_days"`
@@ -135,10 +142,6 @@ type PrimarySetting struct {
 
 	// AccessLogDays for log files
 	AccessLogDays int64 `json:"access_log_days"`
-
-	// Search engines, for 5-second shield
-	SkipSEEnabled bool   `json:"skip_se_enabled"`
-	SearchEngines string `json:"search_engines"`
 
 	// SMTP
 	SMTP *SMTPSetting `json:"smtp"`
@@ -167,6 +170,9 @@ type NodeShareSetting struct {
 	// SearchEnginesPattern for bypass the 5-second shield
 	SkipSEEnabled        bool   `json:"skip_se_enabled"`
 	SearchEnginesPattern string `json:"search_engines_pattern"`
+
+	// BlockHTML, v1.3.3 added
+	BlockHTML string `json:"block_html"`
 
 	// AuthConfig for authentication
 	AuthConfig *OAuthConfig `json:"auth_config"`
@@ -216,4 +222,8 @@ type ZipResponseWriter struct {
 // Write method
 func (w ZipResponseWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
+}
+
+type APIKey struct {
+	HexAPIKey string `json:"api_key"`
 }

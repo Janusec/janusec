@@ -63,46 +63,36 @@ func RPCGetAllDiscoveryRules() []*models.DiscoveryRule {
 	return discoveryRules
 }
 
-func UpdateDiscoveryRule(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.DiscoveryRule, error) {
-	mDiscoveryRule := param["object"].(map[string]interface{})
-	id, _ := strconv.ParseInt(mDiscoveryRule["id"].(string), 10, 64)
-	fieldName := mDiscoveryRule["field_name"].(string)
-	sample := mDiscoveryRule["sample"].(string)
-	regex := mDiscoveryRule["regex"].(string)
-	var description string
-	var ok bool
-	if description, ok = mDiscoveryRule["description"].(string); !ok {
-		description = ""
+func UpdateDiscoveryRule(body []byte, clientIP string, authUser *models.AuthUser) (*models.DiscoveryRule, error) {
+	var rpcDiscoveryRuleRequest models.APIDiscoveryRuleRequest
+	var err error
+	if err = json.Unmarshal(body, &rpcDiscoveryRuleRequest); err != nil {
+		utils.DebugPrintln("UpdateDiscoveryRule", err)
+		return nil, err
 	}
-	discoveryRule := models.DiscoveryRule{
-		FieldName:   fieldName,
-		Sample:      sample,
-		Regex:       regex,
-		Description: description,
-		Editor:      authUser.Username,
-		UpdateTime:  time.Now().Unix(),
-	}
-	if id == 0 {
+	discoveryRule := rpcDiscoveryRuleRequest.Object
+	discoveryRule.Editor = authUser.Username
+	discoveryRule.UpdateTime = time.Now().Unix()
+	if discoveryRule.ID == 0 {
 		// new rule
-		newID, err := data.DAL.InsertDiscoveryRule(&discoveryRule)
+		discoveryRule.ID, err = data.DAL.InsertDiscoveryRule(discoveryRule)
 		if err != nil {
 			utils.DebugPrintln("UpdateDiscoveryRule", err)
 		}
-		discoveryRule.ID = newID
-		go utils.OperationLog(clientIP, authUser.Username, "Add Discovery Rule", fieldName)
+		go utils.OperationLog(clientIP, authUser.Username, "Add Discovery Rule", discoveryRule.FieldName)
 		LoadDiscoveryRules()
 		data.UpdateDiscoveryLastModified()
-		return &discoveryRule, err
+		return discoveryRule, err
 	} else {
 		// update
-		err := data.DAL.UpdateDiscoveryRule(&discoveryRule)
+		err := data.DAL.UpdateDiscoveryRule(discoveryRule)
 		if err != nil {
 			utils.DebugPrintln("UpdateDiscoveryRule", err)
 		}
-		go utils.OperationLog(clientIP, authUser.Username, "Update Discovery Rule", fieldName)
+		go utils.OperationLog(clientIP, authUser.Username, "Update Discovery Rule", discoveryRule.FieldName)
 		LoadDiscoveryRules()
 		data.UpdateDiscoveryLastModified()
-		return &discoveryRule, err
+		return discoveryRule, err
 	}
 }
 

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistsSettings = `CREATE TABLE IF NOT EXISTS "settings"("id" bigserial PRIMARY KEY, "name" VARCHAR(128) NOT NULL,"bool_value" boolean,"int_value" bigint,"float_value" decimal,"string_value" VARCHAR(1024))`
+	sqlCreateTableIfNotExistsSettings = `CREATE TABLE IF NOT EXISTS "settings"("id" bigserial PRIMARY KEY, "name" VARCHAR(128) NOT NULL,"bool_value" boolean,"int_value" bigint,"float_value" decimal,"string_value" VARCHAR(8192))`
 	sqlCountSettings                  = `SELECT COUNT(1) FROM "settings"`
 	sqlInsertBoolSetting              = `INSERT INTO "settings"("id","name","bool_value") VALUES($1,$2,$3)`
 	sqlInsertIntSetting               = `INSERT INTO "settings"("id","name","int_value") VALUES($1,$2,$3)`

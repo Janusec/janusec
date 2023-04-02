@@ -8,6 +8,7 @@
 package usermgmt
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -43,29 +44,32 @@ func GetAuthUser(w http.ResponseWriter, r *http.Request) (*models.AuthUser, erro
 	return nil, errors.New("please login")
 }
 
-func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{}, clientIP string) (*models.AuthUser, error) {
-	obj := param["object"].(map[string]interface{})
-	username := obj["username"].(string)
-	password := obj["passwd"].(string)
-	appUser := data.DAL.SelectAppUserByName(username)
+func Login(w http.ResponseWriter, r *http.Request, body []byte, clientIP string) (*models.AuthUser, error) {
+	var apiLoginUserRequest models.APILoginUserRequest
+	if err := json.Unmarshal(body, &apiLoginUserRequest); err != nil {
+		utils.DebugPrintln("Login Unmarshal", err)
+		return nil, err
+	}
+	loginUser := apiLoginUserRequest.Object
+	appUser := data.DAL.SelectAppUserByName(loginUser.Username)
 
-	tmpHashpwd := data.SHA256Hash(password + appUser.Salt)
+	tmpHashpwd := data.SHA256Hash(loginUser.Password + appUser.Salt)
 	if tmpHashpwd != appUser.HashPwd {
 		return nil, errors.New("wrong authentication credentials")
 	}
 	// check auth code
 	if data.PrimarySetting.AuthenticatorEnabled {
-		totpItem, err := GetTOTPByUID(username)
+		totpItem, err := GetTOTPByUID(appUser.Username)
 		if err != nil {
 			// Not exist totp item, means it is the First Login, Create totp key for current uid
 			totpKey := genKey()
-			_, err := data.DAL.InsertTOTPItem(username, totpKey, false)
+			_, err := data.DAL.InsertTOTPItem(appUser.Username, totpKey, false)
 			if err != nil {
 				utils.DebugPrintln("InsertTOTPItem error", err)
 			}
 			authUser := &models.AuthUser{
 				UserID:       appUser.ID,
-				Username:     username,
+				Username:     appUser.Username,
 				Logged:       false,
 				TOTPKey:      totpKey,
 				TOTPVerified: false,
@@ -76,7 +80,7 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{},
 			// TOTP Not Verified, redirect to register
 			authUser := &models.AuthUser{
 				UserID:       appUser.ID,
-				Username:     username,
+				Username:     appUser.Username,
 				Logged:       false,
 				TOTPKey:      totpItem.TOTPKey,
 				TOTPVerified: false,
@@ -84,7 +88,7 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{},
 			return authUser, nil
 		}
 		// Verify TOTP Auth Code
-		totpCode := obj["totp_key"].(string)
+		totpCode := loginUser.TOTPKey // obj["totp_key"].(string)
 		totpCodeInt, _ := strconv.ParseUint(totpCode, 10, 32)
 		verifyOK := VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))
 		if !verifyOK {
@@ -95,7 +99,7 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{},
 	// auth code ok
 	authUser := &models.AuthUser{
 		UserID:        appUser.ID,
-		Username:      username,
+		Username:      appUser.Username,
 		Logged:        true,
 		IsSuperAdmin:  appUser.IsSuperAdmin,
 		IsCertAdmin:   appUser.IsCertAdmin,
@@ -108,7 +112,7 @@ func Login(w http.ResponseWriter, r *http.Request, param map[string]interface{},
 	if err != nil {
 		utils.DebugPrintln("session save error", err)
 	}
-	go utils.AuthLog(clientIP, username, "JANUSEC", "/janusec-admin/")
+	go utils.AuthLog(clientIP, appUser.Username, "JANUSEC", "/janusec-admin/")
 	return authUser, nil
 }
 
@@ -146,14 +150,6 @@ func GetAppUsers(authUser *models.AuthUser) ([]*models.AppUser, error) {
 
 }
 
-func GetAdmin(param map[string]interface{}) (*models.AppUser, error) {
-	userID, err := strconv.ParseInt(param["id"].(string), 10, 64)
-	if err != nil {
-		utils.DebugPrintln("user id error", err)
-	}
-	return GetAppUserByID(userID)
-}
-
 func GetAppUserByID(userID int64) (*models.AppUser, error) {
 	if userID > 0 {
 		appUser := new(models.AppUser)
@@ -175,69 +171,63 @@ func GetAppUserByID(userID int64) (*models.AppUser, error) {
 	}
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request, param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.AppUser, error) {
-	user := param["object"].(map[string]interface{})
-	userID, _ := strconv.ParseInt(user["id"].(string), 10, 64)
-	username := user["username"].(string)
-	var password string
-	if user["password"] == nil {
-		password = ""
-	} else {
-		password = user["password"].(string)
+func UpdateAppUser(w http.ResponseWriter, r *http.Request, body []byte, clientIP string, authUser *models.AuthUser) (*models.AppUser, error) {
+	var rpcAppUserRequest models.APIAppUserRequest
+	if err := json.Unmarshal(body, &rpcAppUserRequest); err != nil {
+		utils.DebugPrintln("UpdateAppUser", err)
+		return nil, err
 	}
-	email := ""
-	if user["email"] != nil {
-		email = user["email"].(string)
+	frontUser := rpcAppUserRequest.Object
+	appUser := &models.AppUser{}
+	appUser.ID = frontUser.ID
+	appUser.Username = frontUser.Username
+	appUser.Email = frontUser.Email
+	appUser.IsAppAdmin = frontUser.IsAppAdmin
+	appUser.IsCertAdmin = frontUser.IsCertAdmin
+	appUser.IsSuperAdmin = frontUser.IsSuperAdmin
+	if !authUser.IsSuperAdmin {
+		appUser.IsAppAdmin = false
+		appUser.IsCertAdmin = false
+		appUser.IsSuperAdmin = false
 	}
-	isSuperAdmin := false
-	isCertAdmin := false
-	isAppAdmin := false
-	if authUser.IsSuperAdmin {
-		isSuperAdmin = user["is_super_admin"].(bool)
-		isCertAdmin = user["is_cert_admin"].(bool)
-		isAppAdmin = user["is_app_admin"].(bool)
-	}
-	salt := data.GetRandomSaltString()
-	hashpwd := data.SHA256Hash(password + salt)
-	appUser := new(models.AppUser)
-	if userID == 0 {
+	if appUser.ID == 0 {
 		// new user
-		newID, err := data.DAL.InsertIfNotExistsAppUser(username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, true)
+		newID, err := data.DAL.InsertIfNotExistsAppUser(appUser.Username, appUser.HashPwd, appUser.Salt, appUser.Email, appUser.IsSuperAdmin, appUser.IsCertAdmin, appUser.IsAppAdmin, true)
 		if err != nil {
 			return nil, err
 		}
 		appUser.ID = newID
-		go utils.OperationLog(clientIP, authUser.Username, "Add User", username)
+		go utils.OperationLog(clientIP, authUser.Username, "Add User", appUser.Username)
 	} else {
 		// update existed user
-		if len(password) > 0 {
-			err := data.DAL.UpdateAppUserWithPwd(username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, false, userID)
+		if len(frontUser.Password) > 0 {
+			// Update salt when modify password
+			appUser.Salt = data.GetRandomSaltString()
+			appUser.HashPwd = data.SHA256Hash(frontUser.Password + appUser.Salt)
+			err := data.DAL.UpdateAppUserWithPwd(appUser.Username, appUser.HashPwd, appUser.Salt, appUser.Email, appUser.IsSuperAdmin, appUser.IsCertAdmin, appUser.IsAppAdmin, false, appUser.ID)
 			if err != nil {
+				utils.DebugPrintln("UpdateAppUser", err)
 				return nil, err
 			}
-			session, _ := store.Get(r, "sessionid")
-			authUser := session.Values["authuser"].(models.AuthUser)
-			authUser.NeedModifyPWD = false
-			session.Values["authuser"] = authUser
-			session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
-			err = session.Save(r, w)
-			if err != nil {
-				utils.DebugPrintln("session save error", err)
+			if appUser.ID == authUser.UserID {
+				session, _ := store.Get(r, "sessionid")
+				authUser := session.Values["authuser"].(models.AuthUser)
+				authUser.NeedModifyPWD = false
+				session.Values["authuser"] = authUser
+				session.Options = &sessions.Options{Path: "/janusec-admin/", MaxAge: 86400 * 7}
+				err = session.Save(r, w)
+				if err != nil {
+					utils.DebugPrintln("session save error", err)
+				}
 			}
 		} else {
-			err := data.DAL.UpdateAppUserNoPwd(username, email, isSuperAdmin, isCertAdmin, isAppAdmin, userID)
+			err := data.DAL.UpdateAppUserNoPwd(appUser.Username, appUser.Email, appUser.IsSuperAdmin, appUser.IsCertAdmin, appUser.IsAppAdmin, appUser.ID)
 			if err != nil {
 				return nil, err
 			}
 		}
-		appUser.ID = userID
-		go utils.OperationLog(clientIP, authUser.Username, "Update User", username)
+		go utils.OperationLog(clientIP, authUser.Username, "Update User", appUser.Username)
 	}
-	appUser.Username = username
-	appUser.Email = email
-	appUser.IsSuperAdmin = isSuperAdmin
-	appUser.IsCertAdmin = isCertAdmin
-	appUser.IsAppAdmin = isAppAdmin
 	return appUser, nil
 }
 
@@ -261,7 +251,14 @@ func GetLoginUsername(r *http.Request) string {
 }
 
 // VerifyTOTP for janusec-admin
-func VerifyTOTP(uid string, code string) error {
+func VerifyTOTP(body []byte) error {
+	var apiTOTPVerifyRequest models.APITOTPVerifyRequest
+	if err := json.Unmarshal(body, &apiTOTPVerifyRequest); err != nil {
+		utils.DebugPrintln("VerifyTOTP", err)
+		return err
+	}
+	uid := apiTOTPVerifyRequest.UID
+	code := apiTOTPVerifyRequest.Code
 	totpItem, _ := GetTOTPByUID(uid)
 	totpCodeInt, _ := strconv.ParseUint(code, 10, 32)
 	verifyOK := VerifyCode(totpItem.TOTPKey, uint32(totpCodeInt))

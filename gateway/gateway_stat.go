@@ -16,7 +16,6 @@ import (
 	"janusec/utils"
 	"net/http"
 	"net/url"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -211,8 +210,13 @@ func IncAccessStat(appID int64, urlPath string) {
 }
 
 // GetAccessStat return access statistics
-func GetAccessStat(param map[string]interface{}) (accessStat []int64, err error) {
-	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
+func GetAccessStat(body []byte) (accessStat []int64, err error) {
+	var statByAppIDReq models.APIStatByAppIDRequest
+	if err := json.Unmarshal(body, &statByAppIDReq); err != nil {
+		utils.DebugPrintln("GetAccessStat", err)
+		return nil, err
+	}
+	appID := statByAppIDReq.AppID
 	beginTime := time.Now().Add(-13 * 24 * time.Hour)
 	for i := 0; i < 14; i++ {
 		statDate := beginTime.Add(time.Duration(i) * 24 * time.Hour).Format("20060102")
@@ -223,8 +227,13 @@ func GetAccessStat(param map[string]interface{}) (accessStat []int64, err error)
 }
 
 // GetTodayPopularContent return top visited URL Path of today
-func GetTodayPopularContent(param map[string]interface{}) (topPaths []*models.PopularContent, err error) {
-	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
+func GetTodayPopularContent(body []byte) (topPaths []*models.PopularContent, err error) {
+	var statByAppIDReq models.APIStatByAppIDRequest
+	if err := json.Unmarshal(body, &statByAppIDReq); err != nil {
+		utils.DebugPrintln("GetTodayPopularContent", err)
+		return nil, err
+	}
+	appID := statByAppIDReq.AppID
 	statDate := time.Now().Format("20060102")
 	topPaths, err = data.DAL.GetPopularContent(appID, statDate)
 	return topPaths, err
@@ -280,8 +289,13 @@ func RPCUpdateRefererStat(r *http.Request) error {
 }
 
 // GetRefererHosts ...
-func GetRefererHosts(param map[string]interface{}) (topReferers []*models.RefererHost, err error) {
-	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
+func GetRefererHosts(body []byte) (topReferers []*models.RefererHost, err error) {
+	var statByAppIDReq models.APIStatByAppIDRequest
+	if err := json.Unmarshal(body, &statByAppIDReq); err != nil {
+		utils.DebugPrintln("GetAccessStat", err)
+		return nil, err
+	}
+	appID := statByAppIDReq.AppID
 	now := time.Now()
 	statTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix() - 86400*14
 	topReferers, err = data.DAL.GetRefererHosts(appID, statTime)
@@ -289,9 +303,14 @@ func GetRefererHosts(param map[string]interface{}) (topReferers []*models.Refere
 }
 
 // GetRefererURLs ...
-func GetRefererURLs(param map[string]interface{}) (topRefererURLs []*models.RefererURL, err error) {
-	appID, _ := strconv.ParseInt(param["app_id"].(string), 10, 64)
-	host := param["host"].(string)
+func GetRefererURLs(body []byte) (topRefererURLs []*models.RefererURL, err error) {
+	var statByAppIDReq models.APIStatByAppIDRequest
+	if err := json.Unmarshal(body, &statByAppIDReq); err != nil {
+		utils.DebugPrintln("GetAccessStat", err)
+		return nil, err
+	}
+	appID := statByAppIDReq.AppID
+	host := statByAppIDReq.Host //param["host"].(string)
 	now := time.Now()
 	statTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix() - 86400*14
 	topRefererURLs, err = data.DAL.GetRefererURLs(appID, host, statTime)

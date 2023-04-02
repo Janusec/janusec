@@ -252,12 +252,21 @@ func GetVipApps(authUser *models.AuthUser) ([]*models.VipApp, error) {
 	return vipApps, nil
 }
 
+// UpdateVipApps refresh the object in the list
+func UpdateVipApps(vipApp *models.VipApp) {
+	for i, obj := range VipApps {
+		if obj.ID == vipApp.ID {
+			VipApps[i] = vipApp
+		}
+	}
+}
+
 // UpdateVipApp create or update VipApp for port forwarding
 func UpdateVipApp(body []byte, clientIP string, authUser *models.AuthUser) (*models.VipApp, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super admin can configure port forwarding")
 	}
-	var rpcVipAppRequest *models.RPCVipAppRequest
+	var rpcVipAppRequest *models.APIVipAppRequest
 	if err := json.Unmarshal(body, &rpcVipAppRequest); err != nil {
 		fmt.Println("UpdateApplication", err)
 		return nil, err
@@ -282,10 +291,10 @@ func UpdateVipApp(body []byte, clientIP string, authUser *models.AuthUser) (*mod
 			if err != nil {
 				utils.DebugPrintln("UpdateVipApp", err)
 			}
-			// exit old vipApp
+			// exit old vipApp listen
 			oldVipApp.ExitChan <- true
 			// update old vipApp pointer in vipApps
-			oldVipApp = vipApp
+			UpdateVipApps(vipApp)
 			go utils.OperationLog(clientIP, authUser.Username, "Update Port Forwarding", vipApp.Name)
 		} else {
 			return nil, errors.New("port forwarding not found")

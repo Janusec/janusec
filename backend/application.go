@@ -10,7 +10,6 @@ package backend
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"hash/fnv"
 	"net/http"
 	"path/filepath"
@@ -235,7 +234,6 @@ func GetApplications(authUser *models.AuthUser) ([]*models.Application, error) {
 
 // UpdateDestinations ...
 func UpdateDestinations(app *models.Application, destinations []*models.Destination) {
-	//fmt.Println("ToDo UpdateDestinations")
 	for _, dest := range app.Destinations {
 		// delete outdated destinations from DB
 		if !ContainsDestinationID(destinations, dest.ID) {
@@ -306,11 +304,20 @@ func UpdateAppDomains(app *models.Application, domains []*models.Domain) {
 	app.Domains = newDomains
 }
 
+// UpdateApplications refresh the object in the list
+func UpdateApplications(app *models.Application) {
+	for i, obj := range Apps {
+		if obj.ID == app.ID {
+			Apps[i] = app
+		}
+	}
+}
+
 // UpdateApplication ...
 func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) (*models.Application, error) {
-	var rpcAppRequest models.RPCApplicationRequest
+	var rpcAppRequest models.APIApplicationRequest
 	if err := json.Unmarshal(body, &rpcAppRequest); err != nil {
-		fmt.Println("UpdateApplication", err)
+		utils.DebugPrintln("UpdateApplication", err)
 		return nil, err
 	}
 	app := rpcAppRequest.Object
@@ -320,18 +327,13 @@ func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) 
 		Apps = append(Apps, app)
 		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {
-		oldApp, _ := GetApplicationByID(app.ID)
-		if oldApp != nil {
-			err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, app.ID)
-			if err != nil {
-				utils.DebugPrintln("UpdateApplication", err)
-			}
-			// update app pointer in apps
-			oldApp = app
-			go utils.OperationLog(clientIP, authUser.Username, "Update Application", app.Name)
-		} else {
-			return nil, errors.New("application not found")
+		err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, app.ID)
+		if err != nil {
+			utils.DebugPrintln("UpdateApplication", err)
 		}
+		// update app pointer in apps
+		UpdateApplications(app)
+		go utils.OperationLog(clientIP, authUser.Username, "Update Application", app.Name)
 	}
 	UpdateDestinations(app, app.Destinations)
 	UpdateAppDomains(app, app.Domains)

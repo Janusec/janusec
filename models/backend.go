@@ -182,60 +182,6 @@ type DBCertItem struct {
 	Description      sql.NullString
 }
 
-// AuthUser used for Authentication in Memory
-type AuthUser struct {
-	UserID        int64  `json:"user_id,string"`
-	Username      string `json:"username"`
-	Logged        bool   `json:"logged"`
-	IsSuperAdmin  bool   `json:"is_super_admin"`
-	IsCertAdmin   bool   `json:"is_cert_admin"`
-	IsAppAdmin    bool   `json:"is_app_admin"`
-	NeedModifyPWD bool   `json:"need_modify_pwd"`
-	// v1.2.2
-	TOTPKey      string `json:"totp_key"`
-	TOTPVerified bool   `json:"totp_verified"`
-}
-
-// AppUser used for DB Storage
-type AppUser struct {
-	ID            int64  `json:"id,string"`
-	Username      string `json:"username"`
-	HashPwd       string `json:"-"`
-	Salt          string `json:"-"`
-	Email         string `json:"email"`
-	IsSuperAdmin  bool   `json:"is_super_admin"`
-	IsCertAdmin   bool   `json:"is_cert_admin"`
-	IsAppAdmin    bool   `json:"is_app_admin"`
-	NeedModifyPWD bool   `json:"need_modify_pwd"`
-}
-
-// QueryAppUser not include password and salt
-type QueryAppUser struct {
-	ID            int64
-	Username      string
-	Email         sql.NullString
-	IsSuperAdmin  bool
-	IsCertAdmin   bool
-	IsAppAdmin    bool
-	NeedModifyPWD bool
-}
-
-// TOTP Authenticator
-type TOTP struct {
-	ID           int64  `json:"id,string"`
-	UID          string `json:"uid"`
-	TOTPKey      string `json:"totp_key"`
-	TOTPVerified bool   `json:"totp_verified"`
-}
-
-// Setting mainly used for replica nodes
-/*
-type Setting struct {
-	Name  string      `json:"name"`
-	Value interface{} `json:"value"`
-}
-*/
-
 type IPMethod int64
 
 const (

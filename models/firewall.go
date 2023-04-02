@@ -66,7 +66,7 @@ type GroupPolicy struct {
 	ID          int64        `json:"id,string"`
 	Description string       `json:"description"`
 	AppID       int64        `json:"app_id,string"`
-	VulnID      int64        `json:"vuln_id,string"`
+	VulnID      int64        `json:"vuln_id"`
 	CheckItems  []*CheckItem `json:"check_items"`
 	HitValue    int64        `json:"hit_value"`
 	Action      PolicyAction `json:"action"`
@@ -81,7 +81,7 @@ type DBGroupPolicy struct {
 	ID          int64        `json:"id,string"`
 	Description string       `json:"description"`
 	AppID       int64        `json:"app_id,string"`
-	VulnID      int64        `json:"vuln_id,string"`
+	VulnID      int64        `json:"vuln_id"`
 	HitValue    int64        `json:"hit_value"`
 	Action      PolicyAction `json:"action"`
 	IsEnabled   bool         `json:"is_enabled"`
@@ -196,7 +196,7 @@ type GroupHitLog struct {
 	RawRequest  string       `json:"raw_request"`
 	Action      PolicyAction `json:"action"`
 	PolicyID    int64        `json:"policy_id,string"`
-	VulnID      int64        `json:"vuln_id,string"`
+	VulnID      int64        `json:"vuln_id"`
 	AppID       int64        `json:"app_id,string"`
 }
 
@@ -212,7 +212,8 @@ type SimpleGroupHitLog struct {
 	AppID       int64        `json:"app_id,string"`
 }
 
-type HitLogsCount struct {
+// StatCount for GroupPolicy or CCPolicy hit logs etc.
+type StatCount struct {
 	AppID     int64 `json:"app_id,string"`
 	StartTime int64 `json:"start_time"`
 	EndTime   int64 `json:"end_time"`
@@ -220,7 +221,7 @@ type HitLogsCount struct {
 }
 
 type VulnStat struct {
-	VulnID int64 `json:"vuln_id,string"`
+	VulnID int64 `json:"vuln_id"`
 	Count  int64 `json:"count"`
 }
 

@@ -116,8 +116,8 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 }
 */
 
-// IsValidAuthKey check whether the request is from legal replica nodes
-func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
+// IsValidAuthKeyFromReplicaNode check whether the request is from legal replica nodes
+func IsValidAuthKeyFromReplicaNode(r *http.Request, param map[string]interface{}) bool {
 	authKey := param["auth_key"].(string)
 	authBytes, err := hex.DecodeString(authKey)
 	if err != nil {

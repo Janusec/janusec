@@ -282,19 +282,18 @@ func DeleteGroupPolicyByID(id int64, clientIP string, authUser *models.AuthUser)
 }
 
 // UpdateGroupPolicy ...
-func UpdateGroupPolicy(r *http.Request, userID int64, clientIP string, authUser *models.AuthUser) (*models.GroupPolicy, error) {
+func UpdateGroupPolicy(r *http.Request, clientIP string, authUser *models.AuthUser) (*models.GroupPolicy, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super administrators can perform this operation")
 	}
-	var setGroupPolicyRequest models.RPCSetGroupPolicy
-	err := json.NewDecoder(r.Body).Decode(&setGroupPolicyRequest)
+	var groupPolicyRequest models.APIGroupPolicyRequest
+	err := json.NewDecoder(r.Body).Decode(&groupPolicyRequest)
 	if err != nil {
-
 		utils.DebugPrintln("UpdateGroupPolicy Decode", err)
 		return nil, errors.New("decode body error")
 	}
 	defer r.Body.Close()
-	curGroupPolicy := setGroupPolicyRequest.Object
+	curGroupPolicy := groupPolicyRequest.Object
 	if curGroupPolicy == nil {
 		return nil, errors.New("updateGroupPolicy parse body null")
 	}
@@ -305,7 +304,7 @@ func UpdateGroupPolicy(r *http.Request, userID int64, clientIP string, authUser 
 		checkItem.GroupPolicy = curGroupPolicy
 		curGroupPolicy.HitValue += int64(checkItem.CheckPoint)
 	}
-	curGroupPolicy.UserID = userID
+	curGroupPolicy.UserID = authUser.UserID
 	curTime := time.Now().Unix()
 	if curGroupPolicy.ID == 0 {
 		newID, err := data.DAL.InsertGroupPolicy(curGroupPolicy.Description, curGroupPolicy.AppID, curGroupPolicy.VulnID, curGroupPolicy.HitValue, curGroupPolicy.Action, curGroupPolicy.IsEnabled, curGroupPolicy.UserID, curTime)
@@ -446,15 +445,17 @@ func IsMatch(pattern string, str string) (bool, error) {
 }
 
 // TestRegex ...
-func TestRegex(param map[string]interface{}) (*models.RegexMatch, error) {
-	obj := param["object"].(map[string]interface{})
-	pattern := obj["pattern"].(string)
-	payload := obj["payload"].(string)
-	preprocess := obj["preprocess"].(bool)
-	if preprocess {
-		payload = UnEscapeRawValue(payload)
+func TestRegex(body []byte) (*models.RegexMatch, error) {
+	var rpcRegexTestRequest models.APIRegexMatchRequest
+	if err := json.Unmarshal(body, &rpcRegexTestRequest); err != nil {
+		utils.DebugPrintln("UpdateRegexTestPolicy", err)
+		return nil, err
 	}
-	matched, err := IsMatch(pattern, payload)
-	regexMatch := &models.RegexMatch{Pattern: pattern, Payload: payload, Matched: matched, PreProcess: preprocess}
-	return regexMatch, err
+	regexTest := rpcRegexTestRequest.Object
+	if regexTest.PreProcess {
+		regexTest.Payload = UnEscapeRawValue(regexTest.Payload)
+	}
+	var err error
+	regexTest.Matched, err = IsMatch(regexTest.Pattern, regexTest.Payload)
+	return regexTest, err
 }

@@ -29,14 +29,18 @@ var (
 	instanceKey []byte
 
 	// NodesKey shared between primary node and replica nodes
-	NodesKey []byte
-
 	// HexEncryptedNodesKey for replica nodes, show on admin UI
 	// HexEncryptedNodesKey is the encrypted and hex string format of NodesKey
-	HexEncryptedNodesKey string
+	// HexEncryptedNodesKey = hex.EncodeToString(AES256Encrypt(NodesKey, true))
+	NodesKey []byte
 
+	// DataDiscoveryKey used for reporting data discoveries to JANUCAT (Compliance, Accountability and Transparency)
 	// DataDiscoveryKey = hex.DecodeString(NodeSetting.DataDiscoveryKey)
 	DataDiscoveryKey []byte
+
+	// APIKey used for external control panels, show on admin UI - settings. APIKey will not be shared with replica nodes
+	// hexAPIKey = hex.EncodeToString(APIKey) , will be showed on admin UI
+	APIKey []byte
 )
 
 // LoadInstanceKey ...
@@ -61,15 +65,15 @@ func (dal *MyDAL) LoadNodesKey() {
 	if !dal.ExistsSetting("nodes_key") {
 		NodesKey = GenRandomAES256Key()
 		encryptedNodesKey := AES256Encrypt(NodesKey, true)
-		HexEncryptedNodesKey = hex.EncodeToString(encryptedNodesKey)
-		err := dal.SaveStringSetting("nodes_key", HexEncryptedNodesKey)
+		hexEncryptedNodesKey := hex.EncodeToString(encryptedNodesKey)
+		err := dal.SaveStringSetting("nodes_key", hexEncryptedNodesKey)
 		if err != nil {
 			utils.DebugPrintln("LoadNodesKey SaveStringSetting", err)
 		}
 	} else {
 		var err error
-		HexEncryptedNodesKey = dal.SelectStringSetting("nodes_key")
-		decodeEncryptedKey, _ := hex.DecodeString(HexEncryptedNodesKey)
+		hexEncryptedNodesKey := dal.SelectStringSetting("nodes_key")
+		decodeEncryptedKey, _ := hex.DecodeString(hexEncryptedNodesKey)
 		NodesKey, err = AES256Decrypt(decodeEncryptedKey, true)
 		if err != nil {
 			utils.DebugPrintln("LoadNodesKey AES256Decrypt", err)
@@ -79,8 +83,37 @@ func (dal *MyDAL) LoadNodesKey() {
 
 // GetHexEncryptedNodesKey return HexEncryptedKey which will be displayed on admin UI
 func GetHexEncryptedNodesKey() *models.NodesKey {
-	nodesKey := &models.NodesKey{HexEncryptedKey: HexEncryptedNodesKey}
+	hexEncryptedNodesKey := hex.EncodeToString(AES256Encrypt(NodesKey, true))
+	nodesKey := &models.NodesKey{HexEncryptedKey: hexEncryptedNodesKey}
 	return nodesKey
+}
+
+// LoadAPIKey only run on primary node
+func (dal *MyDAL) LoadAPIKey() {
+	if !dal.ExistsSetting("api_key") {
+		APIKey = GenRandomAES256Key()
+		encryptedAPIKey := AES256Encrypt(APIKey, true)
+		hexEncryptedAPIKey := hex.EncodeToString(encryptedAPIKey)
+		err := dal.SaveStringSetting("api_key", hexEncryptedAPIKey)
+		if err != nil {
+			utils.DebugPrintln("LoadAPIKey SaveStringSetting", err)
+		}
+	} else {
+		var err error
+		hexEncryptedAPIKey := dal.SelectStringSetting("api_key")
+		encryptedKey, _ := hex.DecodeString(hexEncryptedAPIKey)
+		APIKey, err = AES256Decrypt(encryptedKey, true)
+		if err != nil {
+			utils.DebugPrintln("LoadAPIKey AES256Decrypt", err)
+		}
+	}
+}
+
+// GetHexAPIKey will return HEX format of APIKey without encryption
+func GetHexAPIKey() *models.APIKey {
+	hexAPIKey := hex.EncodeToString(APIKey)
+	apiKey := &models.APIKey{HexAPIKey: hexAPIKey}
+	return apiKey
 }
 
 // GenRandomAES256Key ...
