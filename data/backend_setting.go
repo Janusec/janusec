@@ -12,12 +12,12 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistsSettings = `CREATE TABLE IF NOT EXISTS "settings"("id" bigserial PRIMARY KEY, "name" VARCHAR(128) NOT NULL,"bool_value" boolean,"int_value" bigint,"float_value" decimal,"string_value" VARCHAR(1024))`
+	sqlCreateTableIfNotExistsSettings = `CREATE TABLE IF NOT EXISTS "settings"("id" bigserial PRIMARY KEY, "name" VARCHAR(128) NOT NULL,"bool_value" boolean,"int_value" bigint,"float_value" decimal,"string_value" VARCHAR(8192))`
 	sqlCountSettings                  = `SELECT COUNT(1) FROM "settings"`
-	sqlInsertBoolSetting              = `INSERT INTO "settings"("name","bool_value") VALUES($1,$2)`
-	sqlInsertIntSetting               = `INSERT INTO "settings"("name","int_value") VALUES($1,$2)`
-	sqlInsertFloatSetting             = `INSERT INTO "settings"("name","float_value") VALUES($1,$2)`
-	sqlInsertStringSetting            = `INSERT INTO "settings"("name","string_value") VALUES($1,$2)`
+	sqlInsertBoolSetting              = `INSERT INTO "settings"("id","name","bool_value") VALUES($1,$2,$3)`
+	sqlInsertIntSetting               = `INSERT INTO "settings"("id","name","int_value") VALUES($1,$2,$3)`
+	sqlInsertFloatSetting             = `INSERT INTO "settings"("id","name","float_value") VALUES($1,$2,$3)`
+	sqlInsertStringSetting            = `INSERT INTO "settings"("id","name","string_value") VALUES($1,$2,$3)`
 	sqlUpdateBoolSetting              = `UPDATE "settings" SET "bool_value"=$1 WHERE "name"=$2`
 	sqlUpdateIntSetting               = `UPDATE "settings" SET "int_value"=$1 WHERE "name"=$2`
 	sqlUpdateFloatSetting             = `UPDATE "settings" SET "float_value"=$1 WHERE "name"=$2`
@@ -80,7 +80,8 @@ func (dal *MyDAL) SaveBoolSetting(name string, value bool) (err error) {
 	if dal.ExistsSetting(name) {
 		_, err = dal.db.Exec(sqlUpdateBoolSetting, value, name)
 	} else {
-		_, err = dal.db.Exec(sqlInsertBoolSetting, name, value)
+		id := utils.GenSnowflakeID()
+		_, err = dal.db.Exec(sqlInsertBoolSetting, id, name, value)
 	}
 	if err != nil {
 		utils.DebugPrintln("SaveBoolSetting: "+name, err)
@@ -93,7 +94,8 @@ func (dal *MyDAL) SaveIntSetting(name string, value int64) (err error) {
 	if dal.ExistsSetting(name) {
 		_, err = dal.db.Exec(sqlUpdateIntSetting, value, name)
 	} else {
-		_, err = dal.db.Exec(sqlInsertIntSetting, name, value)
+		id := utils.GenSnowflakeID()
+		_, err = dal.db.Exec(sqlInsertIntSetting, id, name, value)
 	}
 	if err != nil {
 		utils.DebugPrintln("SaveIntSetting: "+name, err)
@@ -106,7 +108,8 @@ func (dal *MyDAL) SaveFloatSetting(name string, value float64) (err error) {
 	if dal.ExistsSetting(name) {
 		_, err = dal.db.Exec(sqlUpdateFloatSetting, value, name)
 	} else {
-		_, err = dal.db.Exec(sqlInsertFloatSetting, name, value)
+		id := utils.GenSnowflakeID()
+		_, err = dal.db.Exec(sqlInsertFloatSetting, id, name, value)
 	}
 	if err != nil {
 		utils.DebugPrintln("SaveFloatSetting: "+name, err)
@@ -119,7 +122,8 @@ func (dal *MyDAL) SaveStringSetting(name string, value string) (err error) {
 	if dal.ExistsSetting(name) {
 		_, err = dal.db.Exec(sqlUpdateStringSetting, value, name)
 	} else {
-		_, err = dal.db.Exec(sqlInsertStringSetting, name, value)
+		id := utils.GenSnowflakeID()
+		_, err = dal.db.Exec(sqlInsertStringSetting, id, name, value)
 	}
 	if err != nil {
 		utils.DebugPrintln("SaveStringSetting: "+name, err)

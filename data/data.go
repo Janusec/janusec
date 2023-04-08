@@ -18,6 +18,8 @@ import (
 
 	// PostgreSQL
 	_ "github.com/lib/pq"
+	//_ "github.com/mattn/go-sqlite3"
+	_ "github.com/glebarez/go-sqlite"
 )
 
 // MyDAL used for data access layer
@@ -33,7 +35,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "1.3.2"
+	Version = "1.4.0"
 )
 
 // InitConfig init Data Access Layer
@@ -53,26 +55,39 @@ func InitConfig() {
 	}
 	IsPrimary = (nodeRole == "primary")
 	if IsPrimary {
-		conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-			CFG.PrimaryNode.Database.Host,
-			CFG.PrimaryNode.Database.Port,
-			CFG.PrimaryNode.Database.User,
-			CFG.PrimaryNode.Database.Password,
-			CFG.PrimaryNode.Database.DBName)
-		DAL.db, err = sql.Open("postgres", conn)
-		if err != nil {
-			utils.DebugPrintln("InitConfig sql.Open:", err)
-			os.Exit(1)
+		switch CFG.PrimaryNode.DatabaseType {
+		case "sqlite":
+			// SQLite
+			conn := "file:./data.sqlite3?_busy_timeout=9999999"
+			DAL.db, err = sql.Open("sqlite", conn)
+			if err != nil {
+				utils.DebugPrintln("InitConfig sql.Open:", err)
+				os.Exit(1)
+			}
+			// Set max conns 1
+			DAL.db.SetMaxOpenConns(1)
+		default:
+			// PostgreSQL
+			conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+				CFG.PrimaryNode.Database.Host,
+				CFG.PrimaryNode.Database.Port,
+				CFG.PrimaryNode.Database.User,
+				CFG.PrimaryNode.Database.Password,
+				CFG.PrimaryNode.Database.DBName)
+			DAL.db, err = sql.Open("postgres", conn)
+			if err != nil {
+				utils.DebugPrintln("InitConfig sql.Open:", err)
+				os.Exit(1)
+			}
+			// Check if the User and Password are Correct
+			_, err = DAL.db.Query("select 1")
+			if err != nil {
+				utils.DebugPrintln("InitConfig Failed, Please check the database user and password. Error:", err)
+				os.Exit(1)
+			}
+			// Set max conns 99
+			DAL.db.SetMaxOpenConns(99)
 		}
-		// Check if the User and Password are Correct
-		_, err = DAL.db.Query("select 1")
-		if err != nil {
-			utils.DebugPrintln("InitConfig Failed, Please check the database user and password. Error:", err)
-			os.Exit(1)
-		}
-
-		// Database user and password OK
-		DAL.db.SetMaxOpenConns(99)
 	} else {
 		// Init Nodes Key for replica node
 		NodesKey = NodeHexKeyToCryptKey(CFG.ReplicaNode.NodeKey)
@@ -88,21 +103,55 @@ func (dal *MyDAL) ExecSQL(sql string) error {
 // ExistColumnInTable ...
 func (dal *MyDAL) ExistColumnInTable(tableName string, columnName string) bool {
 	var count int64
-	const sql = `select count(1) from information_schema.columns where table_name=$1 and column_name=$2`
-	err := dal.db.QueryRow(sql, tableName, columnName).Scan(&count)
-	if err != nil {
-		utils.DebugPrintln("ExistColumnInTable QueryRow", err)
+	var sql string
+	var err error
+	switch CFG.PrimaryNode.DatabaseType {
+	case "sqlite":
+		// SQLite
+		// This statement has a bug, if a_uid exists, then uid will be considered as exists
+		// sql = `SELECT count(1) FROM sqlite_master WHERE name=? and sql like ?`
+		// err = dal.db.QueryRow(sql, tableName, "%"+columnName+"%").Scan(&count)
+		sql = fmt.Sprintf(`SELECT count(%s) FROM %s`, columnName, tableName)
+		err = dal.db.QueryRow(sql).Scan(&count)
+		if err != nil {
+			// Not exists
+			return false
+		}
+		return true
+	default:
+		// PostgreSQL
+		sql = `SELECT count(1) FROM information_schema.columns WHERE table_name=$1 AND column_name=$2`
+		err = dal.db.QueryRow(sql, tableName, columnName).Scan(&count)
+		if err != nil {
+			utils.DebugPrintln("PostgreSQL ExistColumnInTable QueryRow", tableName, columnName, err)
+		}
+		return count > 0
 	}
-	return count > 0
 }
 
 // ExistConstraint ...
 func (dal *MyDAL) ExistConstraint(tableName string, constraintName string) bool {
 	var count int64
-	const sql = `SELECT count(1) FROM information_schema.constraint_column_usage WHERE table_name=$1 and constraint_name=$2`
-	err := dal.db.QueryRow(sql, tableName, constraintName).Scan(&count)
-	if err != nil {
-		utils.DebugPrintln("ExistConstraint QueryRow", err)
+	var sql string
+	var err error
+	switch CFG.PrimaryNode.DatabaseType {
+	case "postgres":
+		// PostgreSQL
+		sql = `SELECT count(1) FROM information_schema.constraint_column_usage WHERE table_name=$1 and constraint_name=$2`
+		err = dal.db.QueryRow(sql, tableName, constraintName).Scan(&count)
+		if err != nil {
+			utils.DebugPrintln("ExistConstraint QueryRow", err)
+		}
+		return count > 0
+	default:
+		// SQLite
+		// select * from sqlite_master where type='index' and tbl_name='test' and name='uid'
+		// For SQLite, create unique index uid on table_name(column1, column2);
+		sql = `SELECT count(1) FROM sqlite_master WHERE type='index' AND tbl_name=$1 AND name=$2`
+		err = dal.db.QueryRow(sql, tableName, constraintName).Scan(&count)
+		if err != nil {
+			utils.DebugPrintln("ExistConstraint QueryRow", err)
+		}
+		return count > 0
 	}
-	return count > 0
 }

@@ -15,7 +15,7 @@ import (
 const (
 	sqlSelectAllNodes              = `SELECT "id","version","last_ip","last_req_time" FROM "nodes"`
 	sqlCreateTableIfNotExistsNodes = `CREATE TABLE IF NOT EXISTS "nodes"("id" bigserial PRIMARY KEY,"version" VARCHAR(128) NOT NULL,"last_ip" VARCHAR(128) NOT NULL,"last_req_time" bigint)`
-	sqlInsertNode                  = `INSERT INTO "nodes"("version","last_ip","last_req_time") VALUES($1,$2,$3) RETURNING "id"`
+	sqlInsertNode                  = `INSERT INTO "nodes"("id","version","last_ip","last_req_time") VALUES($1,$2,$3,$4) RETURNING "id"`
 	sqlUpdateNodeLastInfo          = `UPDATE "nodes" SET "version"=$1,"last_ip"=$2,"last_req_time"=$3 WHERE "id"=$4`
 	sqlDeleteNodeByID              = `DELETE FROM "nodes" WHERE "id"=$1`
 )
@@ -50,7 +50,8 @@ func (dal *MyDAL) CreateTableIfNotExistsNodes() error {
 
 // InsertNode ...
 func (dal *MyDAL) InsertNode(version string, lastIP string, lastReqTime int64) (newID int64) {
-	err := dal.db.QueryRow(sqlInsertNode, version, lastIP, lastReqTime).Scan(&newID)
+	id := utils.GenSnowflakeID()
+	err := dal.db.QueryRow(sqlInsertNode, id, version, lastIP, lastReqTime).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertNode", err)
 	}

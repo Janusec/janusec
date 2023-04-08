@@ -9,13 +9,17 @@ package gateway
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"strconv"
+	"time"
 
 	"janusec/backend"
 	"janusec/data"
@@ -27,22 +31,49 @@ import (
 
 // AdminAPIHandlerFunc receive from browser and other nodes
 func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
+	var err error
 	bodyBuf, _ := io.ReadAll(r.Body)
-	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
-	decoder := json.NewDecoder(r.Body)
-	var param map[string]interface{}
-	err := decoder.Decode(&param)
-	if err != nil {
-		utils.DebugPrintln("AdminAPIHandlerFunc Decode", err)
+
+	var apiRequest models.APIRequest
+	if err := json.Unmarshal(bodyBuf, &apiRequest); err != nil {
+		utils.DebugPrintln("API", err)
+		GenResponseByObject(w, nil, err)
+		return
 	}
-	defer r.Body.Close()
+
 	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
-	action := param["action"]
-	var userID int64
+	defer r.Body.Close()
+	/*
+		decoder := json.NewDecoder(r.Body)
+		var param map[string]interface{}
+		err := decoder.Decode(&param)
+		if err != nil {
+			utils.DebugPrintln("AdminAPIHandlerFunc Decode", err)
+		}
+		defer r.Body.Close()
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
+	*/
+	//var userID int64
 	var authUser *models.AuthUser
 
-	// For administrators and OAuth users
-	if (action != "login") && (action != "verify_totp") {
+	if len(apiRequest.AuthKey) > 0 {
+		// Request come from external control panels, not from UI
+		if !IsValidAPIAuthKey(apiRequest.AuthKey) {
+			GenResponseByObject(w, nil, errors.New("invalid auth_key"))
+			return
+		}
+		// for privilege check
+		authUser = &models.AuthUser{
+			UserID:        0,
+			Username:      "ExternalAPI",
+			Logged:        true,
+			IsSuperAdmin:  true,
+			IsCertAdmin:   true,
+			IsAppAdmin:    true,
+			NeedModifyPWD: false,
+		}
+	} else if (apiRequest.Action != "login") && (apiRequest.Action != "verify_totp") {
+		// Request come from UI, administrators and OAuth users
 		authUser, err = usermgmt.GetAuthUser(w, r)
 		if authUser == nil {
 			GenResponseByObject(w, nil, err)
@@ -62,19 +93,20 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	clientIP, _, _ := net.SplitHostPort(r.RemoteAddr)
 
 	var obj interface{}
-	switch action {
+	switch apiRequest.Action {
+	case "get_api_key":
+		obj = data.GetHexAPIKey()
+		err = nil
 	case "get_nodes_key":
 		obj = data.GetHexEncryptedNodesKey()
 		err = nil
 	case "get_nodes":
 		obj, err = backend.GetNodes()
 	case "get_node":
-		id := int64(param["id"].(float64))
-		obj, err = backend.GetDBNodeByID(id)
+		obj, err = backend.GetDBNodeByID(apiRequest.ObjectID)
 	case "del_node":
 		obj = nil
-		id := int64(param["id"].(float64))
-		err = backend.DeleteNodeByID(id)
+		err = backend.DeleteNodeByID(apiRequest.ObjectID)
 	case "get_auth_user":
 		obj, err = usermgmt.GetAuthUser(w, r)
 	case "get_apps":
@@ -82,166 +114,149 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_vip_apps":
 		obj, err = backend.GetVipApps(authUser)
 	case "get_app":
-		id := int64(param["id"].(float64))
-		obj, err = backend.GetApplicationByID(id)
+		obj, err = backend.GetApplicationByID(apiRequest.ObjectID)
 	case "get_vip_app":
-		id := int64(param["id"].(float64))
-		obj, err = backend.GetVipAppByID(id)
+		obj, err = backend.GetVipAppByID(apiRequest.ObjectID)
 	case "update_app":
-		obj, err = backend.UpdateApplication(param, clientIP, authUser)
+		obj, err = backend.UpdateApplication(bodyBuf, clientIP, authUser)
 	case "update_vip_app":
-		obj, err = backend.UpdateVipApp(param, clientIP, authUser)
+		obj, err = backend.UpdateVipApp(bodyBuf, clientIP, authUser)
 	case "del_app":
 		obj = nil
-		id := int64(param["id"].(float64))
-		err = backend.DeleteApplicationByID(id, clientIP, authUser)
+		err = backend.DeleteApplicationByID(apiRequest.ObjectID, clientIP, authUser)
 	case "del_vip_app":
 		obj = nil
-		id := int64(param["id"].(float64))
-		err = backend.DeleteVipAppByID(id, clientIP, authUser)
+		err = backend.DeleteVipAppByID(apiRequest.ObjectID, clientIP, authUser)
 	case "get_certs":
 		obj, err = backend.GetCertificates(authUser)
 	case "get_cert":
-		id := int64(param["id"].(float64))
-		obj, err = backend.GetCertificateByID(id, authUser)
+		obj, err = backend.GetCertificateByID(apiRequest.ObjectID, authUser)
 	case "update_cert":
-		obj, err = backend.UpdateCertificate(param, clientIP, authUser)
+		obj, err = backend.UpdateCertificate(bodyBuf, clientIP, authUser)
 	case "del_cert":
-		id := int64(param["id"].(float64))
 		obj = nil
-		err = backend.DeleteCertificateByID(id, clientIP, authUser)
+		err = backend.DeleteCertificateByID(apiRequest.ObjectID, clientIP, authUser)
 	case "self_sign_cert":
-		obj, err = utils.GenerateRSACertificate(param)
+		obj, err = utils.GenerateRSACertificate(bodyBuf)
 	case "get_domains":
 		obj = backend.Domains
 		err = nil
 	case "get_app_users":
 		obj, err = usermgmt.GetAppUsers(authUser)
 	case "get_app_user":
-		obj, err = usermgmt.GetAdmin(param)
+		obj, err = usermgmt.GetAppUserByID(apiRequest.ObjectID)
 	case "update_app_user":
-		obj, err = usermgmt.UpdateUser(w, r, param, clientIP, authUser)
+		obj, err = usermgmt.UpdateAppUser(w, r, bodyBuf, clientIP, authUser)
 	case "del_app_user":
-		id := int64(param["id"].(float64))
 		obj = nil
-		err = usermgmt.DeleteUser(id, clientIP, authUser)
+		err = usermgmt.DeleteUser(apiRequest.ObjectID, clientIP, authUser)
 	case "get_cc_policy":
-		id := int64(param["id"].(float64))
-		obj, err = firewall.GetCCPolicyRespByAppID(id)
+		obj, err = firewall.GetCCPolicyRespByAppID(apiRequest.ObjectID)
 	case "del_cc_policy":
-		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteCCPolicyByAppID(id, clientIP, authUser, true)
+		err = firewall.DeleteCCPolicyByAppID(apiRequest.ObjectID, clientIP, authUser, true)
 	case "update_cc_policy":
 		obj = nil
-		err = firewall.UpdateCCPolicy(param, clientIP, authUser)
+		err = firewall.UpdateCCPolicy(bodyBuf, clientIP, authUser)
 	case "get_group_policies":
 		obj, err = firewall.GetGroupPolicies()
 	case "get_group_policy":
-		id := int64(param["id"].(float64))
-		obj, err = firewall.GetGroupPolicyByID(id)
+		obj, err = firewall.GetGroupPolicyByID(apiRequest.ObjectID)
 	case "update_group_policy":
-		obj, err = firewall.UpdateGroupPolicy(r, userID, clientIP, authUser)
+		obj, err = firewall.UpdateGroupPolicy(r, clientIP, authUser)
 	case "get_ip_policies":
 		obj, err = firewall.GetIPPolicies()
 	case "update_ip_policy":
-		obj, err = firewall.UpdateIPPolicy(param, clientIP, authUser)
+		obj, err = firewall.UpdateIPPolicy(bodyBuf, clientIP, authUser)
 	case "del_ip_policy":
-		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteIPPolicyByID(id, clientIP, authUser)
+		err = firewall.DeleteIPPolicyByID(apiRequest.ObjectID, clientIP, authUser)
 	case "del_group_policy":
-		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteGroupPolicyByID(id, clientIP, authUser)
+		err = firewall.DeleteGroupPolicyByID(apiRequest.ObjectID, clientIP, authUser)
 	case "test_regex":
-		obj, err = firewall.TestRegex(param)
+		obj, err = firewall.TestRegex(bodyBuf)
 	case "get_vuln_types":
 		obj, err = firewall.GetVulnTypes()
 	case "login":
-		obj, err = usermgmt.Login(w, r, param, clientIP)
+		obj, err = usermgmt.Login(w, r, bodyBuf, clientIP)
 	case "logout":
 		obj = nil
 		err = usermgmt.Logout(w, r)
 	case "get_regex_logs_count":
-		obj, err = firewall.GetGroupLogCount(param)
+		obj, err = firewall.GetGroupLogCount(bodyBuf)
 	case "get_regex_logs":
-		obj, err = firewall.GetGroupLogs(param)
+		obj, err = firewall.GetGroupLogs(bodyBuf)
 	case "get_regex_log":
-		id := int64(param["id"].(float64))
-		obj, err = firewall.GetGroupLogByID(id)
+		obj, err = firewall.GetGroupLogByID(apiRequest.ObjectID)
 	case "get_cc_logs_count":
-		obj, err = firewall.GetCCLogCount(param)
+		obj, err = firewall.GetCCLogCount(bodyBuf)
 	case "get_cc_logs":
-		obj, err = firewall.GetCCLogs(param)
+		obj, err = firewall.GetCCLogs(bodyBuf)
 	case "get_cc_log":
-		id := int64(param["id"].(float64))
-		obj, err = firewall.GetCCLogByID(id)
+		obj, err = firewall.GetCCLogByID(apiRequest.ObjectID)
 	case "get_vuln_stat":
-		obj, err = firewall.GetVulnStat(param)
+		obj, err = firewall.GetVulnStat(bodyBuf)
 	case "get_week_stat":
-		obj, err = firewall.GetWeekStat(param)
+		obj, err = firewall.GetWeekStat(bodyBuf)
 	case "get_access_stat":
-		obj, err = GetAccessStat(param)
+		obj, err = GetAccessStat(bodyBuf)
 	case "get_referer_hosts":
-		obj, err = GetRefererHosts(param)
+		obj, err = GetRefererHosts(bodyBuf)
 	case "get_referer_urls":
-		obj, err = GetRefererURLs(param)
+		obj, err = GetRefererURLs(bodyBuf)
 	case "get_pop_contents":
-		obj, err = GetTodayPopularContent(param)
+		obj, err = GetTodayPopularContent(bodyBuf)
 	case "get_gateway_health":
 		obj, err = GetGatewayHealth()
 	case "get_primary_setting":
 		obj, err = data.GetPrimarySetting(authUser)
 	case "update_primary_setting":
-		obj, err = data.UpdatePrimarySetting(r, param, clientIP, authUser)
+		obj, err = data.UpdatePrimarySetting(r, bodyBuf, clientIP, authUser)
 	case "get_wxwork_config":
 		obj = data.GetWxworkConfig()
 		err = nil
 	case "update_wxwork_config":
-		obj, err = data.UpdateWxworkConfig(param, clientIP, authUser)
+		obj, err = data.UpdateWxworkConfig(bodyBuf, clientIP, authUser)
 	case "get_dingtalk_config":
 		obj = data.GetDingtalkConfig()
 		err = nil
 	case "update_dingtalk_config":
-		obj, err = data.UpdateDingtalkConfig(param, clientIP, authUser)
+		obj, err = data.UpdateDingtalkConfig(bodyBuf, clientIP, authUser)
 	case "get_feishu_config":
 		obj = data.GetFeishuConfig()
 		err = nil
 	case "update_feishu_config":
-		obj, err = data.UpdateFeishuConfig(param, clientIP, authUser)
+		obj, err = data.UpdateFeishuConfig(bodyBuf, clientIP, authUser)
 	case "get_lark_config":
 		obj = data.GetLarkConfig()
 		err = nil
 	case "update_lark_config":
-		obj, err = data.UpdateLarkConfig(param, clientIP, authUser)
+		obj, err = data.UpdateLarkConfig(bodyBuf, clientIP, authUser)
 	case "get_ldap_config":
 		obj = data.GetLDAPConfig()
 		err = nil
 	case "update_ldap_config":
-		obj, err = data.UpdateLDAPConfig(param, clientIP, authUser)
+		obj, err = data.UpdateLDAPConfig(bodyBuf, clientIP, authUser)
 	case "get_cas2_config":
 		obj = data.GetCAS2Config()
 		err = nil
 	case "update_cas2_config":
-		obj, err = data.UpdateCAS2Config(param, clientIP, authUser)
+		obj, err = data.UpdateCAS2Config(bodyBuf, clientIP, authUser)
 	case "get_license":
 		obj, err = nil, nil
 	case "test_smtp":
 		obj, err = nil, TestSMTP(r)
 	case "verify_totp":
-		uid := param["uid"].(string)
-		code := param["code"].(string)
-		obj, err = nil, usermgmt.VerifyTOTP(uid, code)
+		obj, err = nil, usermgmt.VerifyTOTP(bodyBuf)
 	case "get_discovery_rules":
 		obj = firewall.GetDiscoveryRules()
 		err = nil
 	case "update_discovery_rule":
-		obj, err = firewall.UpdateDiscoveryRule(param, clientIP, authUser)
+		obj, err = firewall.UpdateDiscoveryRule(bodyBuf, clientIP, authUser)
 	case "del_discovery_rule":
-		id := int64(param["id"].(float64))
 		obj = nil
-		err = firewall.DeleteDiscoveryRuleByID(id, clientIP, authUser)
+		err = firewall.DeleteDiscoveryRuleByID(apiRequest.ObjectID, clientIP, authUser)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil
@@ -267,7 +282,7 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	var authUser *models.AuthUser
 	if authKey != nil {
 		// For replica nodes
-		if !backend.IsValidAuthKey(r, param) {
+		if !backend.IsValidAuthKeyFromReplicaNode(r, param) {
 			GenResponseByObject(w, nil, errors.New("authkey invalid"))
 			return
 		}
@@ -323,7 +338,7 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		// used for authenticator launched by replica nodes
 		obj, err = usermgmt.GetOrInsertTOTPItem(param)
 	case "update_totp":
-		id := int64(param["id"].(float64))
+		id, _ := strconv.ParseInt(param["id"].(string), 10, 64)
 		obj, err = usermgmt.UpdateTOTPVerified(id)
 	case "update_access_stat":
 		obj = nil
@@ -345,7 +360,7 @@ func ReplicaAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 // GenResponseByObject generate response
-func GenResponseByObject(w http.ResponseWriter, object interface{}, err error) {
+func GenResponseByObject(w http.ResponseWriter, object any, err error) {
 	resp := &models.RPCResponse{}
 	if err == nil {
 		resp.Error = nil
@@ -358,4 +373,27 @@ func GenResponseByObject(w http.ResponseWriter, object interface{}, err error) {
 	if err != nil {
 		utils.DebugPrintln("GenResponseByObject Encode error", err)
 	}
+}
+
+// IsValidAPIAuthKey check whether the request is from legal external control panels
+func IsValidAPIAuthKey(authKey string) bool {
+	authBytes, err := hex.DecodeString(authKey)
+	if err != nil {
+		return false
+	}
+	decryptedAuthBytes, err := data.DecryptWithKey(authBytes, data.APIKey)
+	if err != nil {
+		utils.DebugPrintln("IsValidAuthKey DecryptWithKey", err)
+		return false
+	}
+	// check timestamp
+	authTime := &models.AuthTime{}
+	err = json.Unmarshal(decryptedAuthBytes, authTime)
+	if err != nil {
+		utils.DebugPrintln("IsValidAuthKey Unmarshal", err)
+		return false
+	}
+	curTime := time.Now().Unix()
+	secondsDiff := math.Abs(float64(curTime - authTime.CurTime))
+	return secondsDiff <= 1800.0
 }

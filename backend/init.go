@@ -10,6 +10,7 @@ package backend
 import (
 	"janusec/data"
 	"janusec/utils"
+	"os"
 
 	// PostgreSQL
 	_ "github.com/lib/pq"
@@ -55,6 +56,7 @@ func InitDatabase() {
 		`afa8bae009c9dbf4135f62e165847227`, ``, true, true, true, true)
 	if err != nil {
 		utils.DebugPrintln("InitDatabase InsertIfNotExistsAppUser", err)
+		os.Exit(1)
 	}
 	err = dal.CreateTableIfNotExistsNodes()
 	if err != nil {
@@ -170,6 +172,9 @@ func InitDatabase() {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications add cache_enabled", err)
 		}
 	}
+
+	// v1.4.0 extend string_value from varchar 1024 to 8192 for postgresql. sqlite not limit the length.
+	_ = dal.ExecSQL(`ALTER TABLE "settings" ALTER COLUMN "string_value" TYPE VARCHAR(8192)`)
 }
 
 // LoadAppConfiguration ...

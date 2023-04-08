@@ -7,10 +7,7 @@
 
 package data
 
-import (
-	"janusec/utils"
-)
-
+/*
 const (
 	sqlSetIDSeqStartWith = `SELECT setval($1,$2,false)`
 )
@@ -28,3 +25,4 @@ func (dal *MyDAL) SetIDSeqStartWith(tableName string, seq int64) error {
 	}
 	return err
 }
+*/

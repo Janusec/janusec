@@ -23,7 +23,7 @@ const (
 )
 
 type CCPolicy struct {
-	AppID                int64        `json:"app_id"` // Global Policy set app_id=0
+	AppID                int64        `json:"app_id,string"` // Global Policy set app_id=0
 	IntervalMilliSeconds float64      `json:"interval_milliseconds"`
 	MaxCount             int64        `json:"max_count"`
 	BlockSeconds         float64      `json:"block_seconds"`
@@ -63,29 +63,29 @@ const (
 )
 
 type GroupPolicy struct {
-	ID          int64        `json:"id"`
+	ID          int64        `json:"id,string"`
 	Description string       `json:"description"`
-	AppID       int64        `json:"app_id"`
+	AppID       int64        `json:"app_id,string"`
 	VulnID      int64        `json:"vuln_id"`
 	CheckItems  []*CheckItem `json:"check_items"`
 	HitValue    int64        `json:"hit_value"`
 	Action      PolicyAction `json:"action"`
 	IsEnabled   bool         `json:"is_enabled"`
-	UserID      int64        `json:"user_id"`
+	UserID      int64        `json:"user_id,string"`
 	User        *AppUser     `json:"-"`
 	UpdateTime  int64        `json:"update_time"`
 }
 
 /*
 type DBGroupPolicy struct {
-	ID          int64        `json:"id"`
+	ID          int64        `json:"id,string"`
 	Description string       `json:"description"`
-	AppID       int64        `json:"app_id"`
+	AppID       int64        `json:"app_id,string"`
 	VulnID      int64        `json:"vuln_id"`
 	HitValue    int64        `json:"hit_value"`
 	Action      PolicyAction `json:"action"`
 	IsEnabled   bool         `json:"is_enabled"`
-	UserID      int64        `json:"user_id"`
+	UserID      int64        `json:"user_id,string"`
 	UpdateTime  int64        `json:"update_time"`
 }
 */
@@ -102,12 +102,12 @@ const (
 )
 
 type CheckItem struct {
-	ID            int64        `json:"id"`
+	ID            int64        `json:"id,string"`
 	CheckPoint    ChkPoint     `json:"check_point"`
 	Operation     Operation    `json:"operation"`
 	KeyName       string       `json:"key_name"`
 	RegexPolicy   string       `json:"regex_policy"`
-	GroupPolicyID int64        `json:"group_policy_id"`
+	GroupPolicyID int64        `json:"group_policy_id,string"`
 	GroupPolicy   *GroupPolicy `json:"-"`
 }
 
@@ -156,7 +156,7 @@ type RegexMatch struct {
 }
 
 type CCLog struct {
-	ID          int64        `json:"id"`
+	ID          int64        `json:"id,string"`
 	RequestTime int64        `json:"request_time"`
 	ClientIP    string       `json:"client_ip"`
 	Host        string       `json:"host"`
@@ -168,22 +168,22 @@ type CCLog struct {
 	Cookies     string       `json:"cookies"`
 	RawRequest  string       `json:"raw_request"`
 	Action      PolicyAction `json:"action"`
-	AppID       int64        `json:"app_id"`
+	AppID       int64        `json:"app_id,string"`
 }
 
 type SimpleCCLog struct {
-	ID          int64        `json:"id"`
+	ID          int64        `json:"id,string"`
 	RequestTime int64        `json:"request_time"`
 	ClientIP    string       `json:"client_ip"`
 	Host        string       `json:"host"`
 	Method      string       `json:"method"`
 	UrlPath     string       `json:"url_path"`
 	Action      PolicyAction `json:"action"`
-	AppID       int64        `json:"app_id"`
+	AppID       int64        `json:"app_id,string"`
 }
 
 type GroupHitLog struct {
-	ID          int64        `json:"id"`
+	ID          int64        `json:"id,string"`
 	RequestTime int64        `json:"request_time"`
 	ClientIP    string       `json:"client_ip"`
 	Host        string       `json:"host"`
@@ -195,25 +195,26 @@ type GroupHitLog struct {
 	Cookies     string       `json:"cookies"`
 	RawRequest  string       `json:"raw_request"`
 	Action      PolicyAction `json:"action"`
-	PolicyID    int64        `json:"policy_id"`
+	PolicyID    int64        `json:"policy_id,string"`
 	VulnID      int64        `json:"vuln_id"`
-	AppID       int64        `json:"app_id"`
+	AppID       int64        `json:"app_id,string"`
 }
 
 type SimpleGroupHitLog struct {
-	ID          int64        `json:"id"`
+	ID          int64        `json:"id,string"`
 	RequestTime int64        `json:"request_time"`
 	ClientIP    string       `json:"client_ip"`
 	Host        string       `json:"host"`
 	Method      string       `json:"method"`
 	UrlPath     string       `json:"url_path"`
 	Action      PolicyAction `json:"action"`
-	PolicyID    int64        `json:"policy_id"`
-	AppID       int64        `json:"app_id"`
+	PolicyID    int64        `json:"policy_id,string"`
+	AppID       int64        `json:"app_id,string"`
 }
 
-type HitLogsCount struct {
-	AppID     int64 `json:"app_id"`
+// StatCount for GroupPolicy or CCPolicy hit logs etc.
+type StatCount struct {
+	AppID     int64 `json:"app_id,string"`
 	StartTime int64 `json:"start_time"`
 	EndTime   int64 `json:"end_time"`
 	Count     int64 `json:"count"`
@@ -226,7 +227,7 @@ type VulnStat struct {
 
 // IPPolicy is element in table "allow_list"
 type IPPolicy struct {
-	ID     int64  `json:"id"`
+	ID     int64  `json:"id,string"`
 	IPAddr string `json:"ip_addr"`
 
 	// IsAllow true for AllowList, and false for BlockList

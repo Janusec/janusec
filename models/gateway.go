@@ -36,7 +36,7 @@ type OAuthState struct {
 
 // AccessStat record access statistics
 type AccessStat struct {
-	AppID      int64  `json:"app_id"`
+	AppID      int64  `json:"app_id,string"`
 	URLPath    string `json:"url_path"`
 	StatDate   string `json:"stat_date"` // Format("20060102")
 	Delta      int64  `json:"delta"`
@@ -44,17 +44,17 @@ type AccessStat struct {
 }
 
 type RefererStat struct {
-	AppID      int64  `json:"app_id"`
+	AppID      int64  `json:"app_id,string"`
 	Host       string `json:"host"`
 	URL        string `json:"url"`
-	ClientID   string `json:"client_id"`
+	ClientID   string `json:"client_id,string"`
 	Delta      int64  `json:"delta"`
 	UpdateTime int64  `json:"update_time"` // Used for expired cleanup
 }
 
 // PopularContent i.e. top visited URL Path
 type PopularContent struct {
-	AppID   int64  `json:"app_id"`
+	AppID   int64  `json:"app_id,string"`
 	URLPath string `json:"url_path"`
 	Amount  int64  `json:"amount"`
 }
@@ -124,8 +124,15 @@ type PrimarySetting struct {
 	// AuthProvider such as wxwork, dingtalk, feishu, lark, ldap, cas2
 	AuthProvider string `json:"auth_provider"`
 
+	// Search engines, for 5-second shield
+	SkipSEEnabled bool   `json:"skip_se_enabled"`
+	SearchEngines string `json:"search_engines"`
+
 	// WebSSHEnabled for Web-based SSH
 	WebSSHEnabled bool `json:"webssh_enabled"`
+
+	// BlockHTML, v1.4.0 added
+	BlockHTML string `json:"block_html"`
 
 	// WAFLogDays for WAF logs
 	WAFLogDays int64 `json:"waf_log_days"`
@@ -135,10 +142,6 @@ type PrimarySetting struct {
 
 	// AccessLogDays for log files
 	AccessLogDays int64 `json:"access_log_days"`
-
-	// Search engines, for 5-second shield
-	SkipSEEnabled bool   `json:"skip_se_enabled"`
-	SearchEngines string `json:"search_engines"`
 
 	// SMTP
 	SMTP *SMTPSetting `json:"smtp"`
@@ -168,6 +171,9 @@ type NodeShareSetting struct {
 	SkipSEEnabled        bool   `json:"skip_se_enabled"`
 	SearchEnginesPattern string `json:"search_engines_pattern"`
 
+	// BlockHTML, v1.4.0 added
+	BlockHTML string `json:"block_html"`
+
 	// AuthConfig for authentication
 	AuthConfig *OAuthConfig `json:"auth_config"`
 
@@ -182,7 +188,7 @@ type NodeShareSetting struct {
 
 // DiscoveryRule for json body and json response
 type DiscoveryRule struct {
-	ID int64 `json:"id"`
+	ID int64 `json:"id,string"`
 
 	// FieldName example: "Phone Number"
 	FieldName string `json:"field_name"`
@@ -216,4 +222,8 @@ type ZipResponseWriter struct {
 // Write method
 func (w ZipResponseWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
+}
+
+type APIKey struct {
+	HexAPIKey string `json:"api_key"`
 }

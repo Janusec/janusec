@@ -92,7 +92,7 @@ func DeleteNodeByID(id int64) error {
 /*
 func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBNode, err error) {
 	nodeInterface := param["object"].(map[string]interface{})
-	nodeID := int64(nodeInterface["id"].(float64))
+	nodeID := int64(nodeInterface["id"].(string))
 	name := nodeInterface["name"].(string)
 	if nodeID == 0 {
 		keyBytes := data.GenRandomAES256Key()
@@ -116,8 +116,8 @@ func UpdateNode(r *http.Request, param map[string]interface{}) (node *models.DBN
 }
 */
 
-// IsValidAuthKey check whether the request is from legal replica nodes
-func IsValidAuthKey(r *http.Request, param map[string]interface{}) bool {
+// IsValidAuthKeyFromReplicaNode check whether the request is from legal replica nodes
+func IsValidAuthKeyFromReplicaNode(r *http.Request, param map[string]interface{}) bool {
 	authKey := param["auth_key"].(string)
 	authBytes, err := hex.DecodeString(authKey)
 	if err != nil {

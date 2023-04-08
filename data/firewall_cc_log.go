@@ -14,7 +14,7 @@ import (
 
 const (
 	sqlCreateTableIfNotExistsCCLog = `CREATE TABLE IF NOT EXISTS "cc_logs"("id" bigserial primary key,"request_time" bigint,"client_ip" VARCHAR(256) NOT NULL,"host" VARCHAR(256) NOT NULL,"method" VARCHAR(16) NOT NULL,"url_path" VARCHAR(2048) NOT NULL,"url_query" VARCHAR(2048) NOT NULL DEFAULT '',"content_type" VARCHAR(128) NOT NULL DEFAULT '',"user_agent" VARCHAR(1024) NOT NULL DEFAULT '',"cookies" VARCHAR(1024) NOT NULL DEFAULT '',"raw_request" VARCHAR(16384) NOT NULL,"action" bigint,"app_id" bigint)`
-	sqlInsertCCLog                 = `INSERT INTO "cc_logs"("request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","app_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
+	sqlInsertCCLog                 = `INSERT INTO "cc_logs"("id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","app_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`
 	sqlSelectCCLogByID             = `SELECT "id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","app_id" FROM "cc_logs" WHERE "id"=$1`
 	sqlSelectSimpleCCLogs          = `SELECT "id","request_time","client_ip","host","method","url_path","action","app_id" FROM "cc_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 ORDER BY "request_time" DESC LIMIT $4 OFFSET $5`
 	sqlSelectCCLogsCount           = `SELECT COUNT(1) FROM "cc_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3`
@@ -42,7 +42,8 @@ func (dal *MyDAL) CreateTableIfNotExistsCCLog() error {
 
 // InsertCCLog ...
 func (dal *MyDAL) InsertCCLog(requestTime int64, clientIP string, host string, method string, urlPath string, urlQuery string, contentType string, userAgent string, cookies string, rawRequest string, action int64, appID int64) error {
-	_, err := dal.db.Exec(sqlInsertCCLog, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, appID)
+	snowID := utils.GenSnowflakeID()
+	_, err := dal.db.Exec(sqlInsertCCLog, snowID, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, appID)
 	if err != nil {
 		utils.DebugPrintln("InsertCCLog Exec", err)
 	}

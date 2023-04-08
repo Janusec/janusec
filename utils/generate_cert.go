@@ -12,7 +12,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
+	"janusec/models"
 	"math/big"
 	"strings"
 	"time"
@@ -25,10 +27,14 @@ type SelfSignedCertificate struct {
 }
 
 // GenerateRSACertificate in Application Management
-func GenerateRSACertificate(param map[string]interface{}) (selfSignedCert *SelfSignedCertificate, err error) {
-	reqObj := param["object"].(map[string]interface{})
-	commonName := reqObj["common_name"].(string)
-	org := strings.ToUpper(commonName)
+func GenerateRSACertificate(body []byte) (selfSignedCert *SelfSignedCertificate, err error) {
+	var rpcCertRequest models.APICertRequest
+	if err := json.Unmarshal(body, &rpcCertRequest); err != nil {
+		DebugPrintln("GenerateRSACertificate", err)
+		return nil, err
+	}
+	certItem := rpcCertRequest.Object
+	org := strings.ToUpper(certItem.CommonName)
 	dotIndex := strings.Index(org, ".")
 	if dotIndex > 0 {
 		org = org[dotIndex+1:]
@@ -54,7 +60,7 @@ func GenerateRSACertificate(param map[string]interface{}) (selfSignedCert *SelfS
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
-		DNSNames:              []string{commonName},
+		DNSNames:              []string{certItem.CommonName},
 	}
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
 	//fmt.Println("derBytes=", derBytes)

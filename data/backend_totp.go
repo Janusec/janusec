@@ -7,7 +7,10 @@
 
 package data
 
-import "janusec/models"
+import (
+	"janusec/models"
+	"janusec/utils"
+)
 
 // CreateTableIfNotExistsTOTP init table
 // 0.9.12+fix: change uid to totp_uid
@@ -27,8 +30,9 @@ func (dal *MyDAL) GetTOTPItemByUID(uid string) (*models.TOTP, error) {
 
 // InsertTOTPItem INSERT new totp item
 func (dal *MyDAL) InsertTOTPItem(uid string, totpKey string, totpVerified bool) (id int64, err error) {
-	const sqlInsertTOTP = `INSERT INTO "totp"("totp_uid","totp_key","totp_verified") VALUES($1,$2,$3) RETURNING "id"`
-	err = dal.db.QueryRow(sqlInsertTOTP, uid, totpKey, totpVerified).Scan(&id)
+	snowID := utils.GenSnowflakeID()
+	const sqlInsertTOTP = `INSERT INTO "totp"("id","totp_uid","totp_key","totp_verified") VALUES($1,$2,$3,$4) RETURNING "id"`
+	err = dal.db.QueryRow(sqlInsertTOTP, snowID, uid, totpKey, totpVerified).Scan(&id)
 	return id, err
 }
 

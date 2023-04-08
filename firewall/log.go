@@ -143,34 +143,50 @@ func LogGroupHitRequestAPI(r *http.Request) error {
 }
 
 // GetCCLogCount ...
-func GetCCLogCount(param map[string]interface{}) (*models.HitLogsCount, error) {
-	appID := int64(param["app_id"].(float64))
-	startTime := int64(param["start_time"].(float64))
-	endTime := int64(param["end_time"].(float64))
-	count, err := data.DAL.SelectCCLogsCount(appID, startTime, endTime)
-	logsCount := &models.HitLogsCount{AppID: appID, StartTime: startTime, EndTime: endTime, Count: count}
-	return logsCount, err
+func GetCCLogCount(body []byte) (*models.StatCount, error) {
+	var rpcStatCountRequest models.APIStatCountRequest
+	if err := json.Unmarshal(body, &rpcStatCountRequest); err != nil {
+		utils.DebugPrintln("GetCCLogCount", err)
+		return nil, err
+	}
+	count, err := data.DAL.SelectCCLogsCount(rpcStatCountRequest.AppID, rpcStatCountRequest.StartTime, rpcStatCountRequest.EndTime)
+	statCount := &models.StatCount{
+		AppID:     rpcStatCountRequest.AppID,
+		StartTime: rpcStatCountRequest.StartTime,
+		EndTime:   rpcStatCountRequest.EndTime,
+		Count:     count,
+	}
+	return statCount, err
 }
 
 // GetGroupLogCount ...
-func GetGroupLogCount(param map[string]interface{}) (*models.HitLogsCount, error) {
-	appID := int64(param["app_id"].(float64))
-	startTime := int64(param["start_time"].(float64))
-	endTime := int64(param["end_time"].(float64))
-	count, err := data.DAL.SelectGroupHitLogsCount(appID, startTime, endTime)
-	logsCount := &models.HitLogsCount{AppID: appID, StartTime: startTime, EndTime: endTime, Count: count}
-	return logsCount, err
+func GetGroupLogCount(body []byte) (*models.StatCount, error) {
+	var rpcStatCountRequest models.APIStatCountRequest
+	if err := json.Unmarshal(body, &rpcStatCountRequest); err != nil {
+		utils.DebugPrintln("GetGroupLogCount", err)
+		return nil, err
+	}
+	count, err := data.DAL.SelectGroupHitLogsCount(rpcStatCountRequest.AppID, rpcStatCountRequest.StartTime, rpcStatCountRequest.EndTime)
+	statCount := &models.StatCount{
+		AppID:     rpcStatCountRequest.AppID,
+		StartTime: rpcStatCountRequest.StartTime,
+		EndTime:   rpcStatCountRequest.EndTime,
+		Count:     count,
+	}
+	return statCount, err
 }
 
 // GetVulnStat ...
-func GetVulnStat(param map[string]interface{}) (vulnStat []*models.VulnStat, err error) {
-	appID := int64(param["app_id"].(float64))
-	startTime := int64(param["start_time"].(float64))
-	endTime := int64(param["end_time"].(float64))
-	if appID == 0 {
-		vulnStat, err = data.DAL.SelectAllVulnStat(startTime, endTime)
+func GetVulnStat(body []byte) (vulnStat []*models.VulnStat, err error) {
+	var rpcStatCountRequest models.APIStatCountRequest
+	if err := json.Unmarshal(body, &rpcStatCountRequest); err != nil {
+		utils.DebugPrintln("GetVulnStat", err)
+		return nil, err
+	}
+	if rpcStatCountRequest.AppID == 0 {
+		vulnStat, err = data.DAL.SelectAllVulnStat(rpcStatCountRequest.StartTime, rpcStatCountRequest.EndTime)
 	} else {
-		vulnStat, err = data.DAL.SelectVulnStatByAppID(appID, startTime, endTime)
+		vulnStat, err = data.DAL.SelectVulnStatByAppID(rpcStatCountRequest.AppID, rpcStatCountRequest.StartTime, rpcStatCountRequest.EndTime)
 	}
 	if err != nil {
 		utils.DebugPrintln("GetVulnStat", err)
@@ -179,22 +195,25 @@ func GetVulnStat(param map[string]interface{}) (vulnStat []*models.VulnStat, err
 }
 
 // GetWeekStat ...
-func GetWeekStat(param map[string]interface{}) (weekStat []int64, err error) {
-	appID := int64(param["app_id"].(float64))
-	vulnID := int64(param["vuln_id"].(float64))
-	startTime := int64(param["start_time"].(float64))
+func GetWeekStat(body []byte) (weekStat []int64, err error) {
+	var apiWeekStatRequest models.APIWeekStatRequest
+	if err := json.Unmarshal(body, &apiWeekStatRequest); err != nil {
+		utils.DebugPrintln("GetVulnStat", err)
+		return nil, err
+	}
+	//stat := rpcWeekStatRequest.Object
 	for i := int64(0); i < 7; i++ {
-		dayStartTime := startTime + 86400*i
+		dayStartTime := apiWeekStatRequest.StartTime + 86400*i
 		dayEndTime := dayStartTime + 86400
-		if appID == 0 {
-			if vulnID == 0 {
+		if apiWeekStatRequest.AppID == 0 {
+			if apiWeekStatRequest.VulnID == 0 {
 				dayCount, err := data.DAL.SelectAllGroupHitLogsCount(dayStartTime, dayEndTime)
 				if err != nil {
 					utils.DebugPrintln("GetWeekStat SelectAllGroupHitLogsCount", err)
 				}
 				weekStat = append(weekStat, dayCount)
 			} else {
-				dayCount, err := data.DAL.SelectAllGroupHitLogsCountByVulnID(vulnID, dayStartTime, dayEndTime)
+				dayCount, err := data.DAL.SelectAllGroupHitLogsCountByVulnID(apiWeekStatRequest.VulnID, dayStartTime, dayEndTime)
 				if err != nil {
 					utils.DebugPrintln("GetWeekStat SelectAllGroupHitLogsCountByVulnID", err)
 				}
@@ -202,14 +221,14 @@ func GetWeekStat(param map[string]interface{}) (weekStat []int64, err error) {
 			}
 
 		} else {
-			if vulnID == 0 {
-				dayCount, err := data.DAL.SelectGroupHitLogsCount(appID, dayStartTime, dayEndTime)
+			if apiWeekStatRequest.VulnID == 0 {
+				dayCount, err := data.DAL.SelectGroupHitLogsCount(apiWeekStatRequest.AppID, dayStartTime, dayEndTime)
 				if err != nil {
 					utils.DebugPrintln("GetWeekStat SelectGroupHitLogsCount", err)
 				}
 				weekStat = append(weekStat, dayCount)
 			} else {
-				dayCount, err := data.DAL.SelectGroupHitLogsCountByVulnID(appID, vulnID, dayStartTime, dayEndTime)
+				dayCount, err := data.DAL.SelectGroupHitLogsCountByVulnID(apiWeekStatRequest.AppID, apiWeekStatRequest.VulnID, dayStartTime, dayEndTime)
 				if err != nil {
 					utils.DebugPrintln("GetWeekStat SelectGroupHitLogsCountByVulnID", err)
 				}
@@ -221,24 +240,26 @@ func GetWeekStat(param map[string]interface{}) (weekStat []int64, err error) {
 }
 
 // GetCCLogs ...
-func GetCCLogs(param map[string]interface{}) ([]*models.SimpleCCLog, error) {
-	appID := int64(param["app_id"].(float64))
-	startTime := int64(param["start_time"].(float64))
-	endTime := int64(param["end_time"].(float64))
-	requestCount := int64(param["request_count"].(float64))
-	offset := int64(param["offset"].(float64))
-	simpleCCLogs := data.DAL.SelectCCLogs(appID, startTime, endTime, requestCount, offset)
+func GetCCLogs(body []byte) ([]*models.SimpleCCLog, error) {
+	var rpcHitLogRequest models.APIHitLogsRequest
+	if err := json.Unmarshal(body, &rpcHitLogRequest); err != nil {
+		utils.DebugPrintln("GetCCLogs", err)
+		return nil, err
+	}
+	hitLogsReq := rpcHitLogRequest.Object
+	simpleCCLogs := data.DAL.SelectCCLogs(hitLogsReq.AppID, hitLogsReq.StartTime, hitLogsReq.EndTime, hitLogsReq.RequestCount, hitLogsReq.Offset)
 	return simpleCCLogs, nil
 }
 
 // GetGroupLogs ...
-func GetGroupLogs(param map[string]interface{}) ([]*models.SimpleGroupHitLog, error) {
-	appID := int64(param["app_id"].(float64))
-	startTime := int64(param["start_time"].(float64))
-	endTime := int64(param["end_time"].(float64))
-	requestCount := int64(param["request_count"].(float64))
-	offset := int64(param["offset"].(float64))
-	simpleRegexHitLogs := data.DAL.SelectGroupHitLogs(appID, startTime, endTime, requestCount, offset)
+func GetGroupLogs(body []byte) ([]*models.SimpleGroupHitLog, error) {
+	var rpcSimpleHitLogRequest models.APIHitLogsRequest
+	if err := json.Unmarshal(body, &rpcSimpleHitLogRequest); err != nil {
+		utils.DebugPrintln("GetGroupLogs", err)
+		return nil, err
+	}
+	hitLogsReq := rpcSimpleHitLogRequest.Object
+	simpleRegexHitLogs := data.DAL.SelectGroupHitLogs(hitLogsReq.AppID, hitLogsReq.StartTime, hitLogsReq.EndTime, hitLogsReq.RequestCount, hitLogsReq.Offset)
 	return simpleRegexHitLogs, nil
 }
 

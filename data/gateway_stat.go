@@ -25,8 +25,9 @@ func (dal *MyDAL) IncAmount(appID int64, urlPath string, statDate string, delta 
 	if len(urlPath) > 255 {
 		urlPath = urlPath[0:255]
 	}
-	const sql = `INSERT INTO "access_stats"("app_id","url_path","stat_date","amount","update_time") VALUES($1,$2,$3,$4,$5) ON CONFLICT ("app_id","url_path","stat_date") DO UPDATE SET "amount"="access_stats"."amount"+$4,"update_time"=$5`
-	_, err := dal.db.Exec(sql, appID, urlPath, statDate, delta, updateTime)
+	snowID := utils.GenSnowflakeID()
+	const sql = `INSERT INTO "access_stats"("id","app_id","url_path","stat_date","amount","update_time") VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT ("app_id","url_path","stat_date") DO UPDATE SET "amount"="access_stats"."amount"+$5,"update_time"=$6`
+	_, err := dal.db.Exec(sql, snowID, appID, urlPath, statDate, delta, updateTime)
 	if err != nil {
 		utils.DebugPrintln("IncAmount insert", err)
 	}

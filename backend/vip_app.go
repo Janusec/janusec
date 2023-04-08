@@ -8,7 +8,9 @@
 package backend
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"hash/fnv"
 	"io"
 	"janusec/data"
@@ -16,7 +18,6 @@ import (
 	"janusec/utils"
 	"net"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -60,6 +61,7 @@ func LoadVipApps() {
 
 // ListenOnVIP ...
 func ListenOnVIP(vipApp *models.VipApp) {
+	vipApp.ExitChan = make(chan bool)
 	address := ":" + strconv.FormatInt(vipApp.ListenPort, 10)
 	if vipApp.IsTCP {
 		vipListener, err := net.Listen("tcp", address)
@@ -80,7 +82,6 @@ func ListenOnVIP(vipApp *models.VipApp) {
 		utils.DebugPrintln("ResolveUDPAddr", address, err)
 		return
 	}
-
 	udpListenConn, err := net.ListenUDP("udp", udpAddr)
 	if err != nil {
 		utils.DebugPrintln("ListenOnVIP could not start udp port ", vipApp.ListenPort, err)
@@ -251,63 +252,56 @@ func GetVipApps(authUser *models.AuthUser) ([]*models.VipApp, error) {
 	return vipApps, nil
 }
 
+// UpdateVipApps refresh the object in the list
+func UpdateVipApps(vipApp *models.VipApp) {
+	for i, obj := range VipApps {
+		if obj.ID == vipApp.ID {
+			VipApps[i] = vipApp
+		}
+	}
+}
+
 // UpdateVipApp create or update VipApp for port forwarding
-func UpdateVipApp(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.VipApp, error) {
+func UpdateVipApp(body []byte, clientIP string, authUser *models.AuthUser) (*models.VipApp, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super admin can configure port forwarding")
 	}
-	application := param["object"].(map[string]interface{})
-	listenPort := int64(application["listen_port"].(float64))
-	if listenPort <= 1024 {
+	var rpcVipAppRequest *models.APIVipAppRequest
+	if err := json.Unmarshal(body, &rpcVipAppRequest); err != nil {
+		fmt.Println("UpdateApplication", err)
+		return nil, err
+	}
+	vipApp := rpcVipAppRequest.Object
+	if vipApp.ListenPort <= 1024 {
 		return nil, errors.New("port number must be greater than 1024")
 	}
-	appID := int64(application["id"].(float64))
-	appName := application["name"].(string)
 
-	isTCP := application["is_tcp"].(bool)
-	var description string
-	var ok bool
-	if description, ok = application["description"].(string); !ok {
-		description = ""
-	}
-	owner := application["owner"].(string)
-	var vipApp *models.VipApp
-	if appID == 0 {
+	if vipApp.ID == 0 {
 		// new application
-		newID := data.DAL.InsertVipApp(appName, listenPort, isTCP, owner, description)
-		vipApp = &models.VipApp{
-			ID:          newID,
-			Name:        appName,
-			ListenPort:  listenPort,
-			IsTCP:       isTCP,
-			Owner:       owner,
-			Description: description,
-			ExitChan:    make(chan bool),
-		}
+		vipApp.ID = data.DAL.InsertVipApp(vipApp.Name, vipApp.ListenPort, vipApp.IsTCP, vipApp.Owner, vipApp.Description)
+
 		VipApps = append(VipApps, vipApp)
 		go utils.OperationLog(clientIP, authUser.Username, "Add Port Forwarding", vipApp.Name)
 	} else {
-		vipApp, _ = GetVipAppByID(appID)
-		if vipApp != nil {
-			err := data.DAL.UpdateVipAppByID(appName, listenPort, isTCP, owner, description, appID)
+		// check exists
+		oldVipApp, _ := GetVipAppByID(vipApp.ID)
+		if oldVipApp != nil {
+			// exist old vipApp
+			err := data.DAL.UpdateVipAppByID(vipApp.Name, vipApp.ListenPort, vipApp.IsTCP, vipApp.Owner, vipApp.Description, vipApp.ID)
 			if err != nil {
 				utils.DebugPrintln("UpdateVipApp", err)
 			}
-			vipApp.Name = appName
-			vipApp.ListenPort = listenPort
-			vipApp.IsTCP = isTCP
-			vipApp.Owner = owner
-			vipApp.Description = description
-			// fmt.Println("send exit signal to", vipApp.Name)
-			vipApp.ExitChan <- true
+			// exit old vipApp listen
+			oldVipApp.ExitChan <- true
+			// update old vipApp pointer in vipApps
+			UpdateVipApps(vipApp)
 			go utils.OperationLog(clientIP, authUser.Username, "Update Port Forwarding", vipApp.Name)
 		} else {
 			return nil, errors.New("port forwarding not found")
 		}
 	}
 	// fmt.Println("update targets ...")
-	targets := application["targets"].([]interface{})
-	UpdateTargets(vipApp, targets)
+	UpdateTargets(vipApp, vipApp.Targets)
 	vipListener, err := net.Listen("tcp", ":"+strconv.FormatInt(vipApp.ListenPort, 10))
 	if err != nil {
 		utils.DebugPrintln("could not start server on port ", vipApp.ListenPort, err)
@@ -331,10 +325,10 @@ func GetVipAppByID(id int64) (*models.VipApp, error) {
 }
 
 // UpdateTargets update the list of backend IP:Port
-func UpdateTargets(vipApp *models.VipApp, targets []interface{}) {
+func UpdateTargets(vipApp *models.VipApp, targets []*models.VipTarget) {
 	for _, target := range vipApp.Targets {
 		// delete outdated destinations from DB
-		if !InterfaceContainsDestinationID(targets, target.ID) {
+		if !ContainsTargetID(targets, target.ID) {
 			err := data.DAL.DeleteVipTargetByID(target.ID)
 			if err != nil {
 				utils.DebugPrintln("DeleteVipTargetByID", err)
@@ -343,35 +337,21 @@ func UpdateTargets(vipApp *models.VipApp, targets []interface{}) {
 	}
 	var newTargets = []*models.VipTarget{}
 
-	for _, targetInterface := range targets {
+	for _, target := range targets {
 		// add new destinations to DB and app
-		targetMap := targetInterface.(map[string]interface{})
-		targetID := int64(targetMap["id"].(float64))
-		routeType := int64(targetMap["route_type"].(float64))
-		destination := strings.TrimSpace(targetMap["destination"].(string))
-		podsAPI := strings.TrimSpace(targetMap["pods_api"].(string))
-		podPort := strings.TrimSpace(targetMap["pod_port"].(string))
 		var err error
-		if targetID == 0 {
-			targetID, err = data.DAL.InsertVipTarget(vipApp.ID, routeType, destination, podsAPI, podPort)
+		if target.ID == 0 {
+			target.ID, err = data.DAL.InsertVipTarget(vipApp.ID, int64(target.RouteType), target.Destination, target.PodsAPI, target.PodPort)
 			if err != nil {
 				utils.DebugPrintln("InsertVipTarget", err)
 			}
 		} else {
-			err = data.DAL.UpdateVipTarget(vipApp.ID, routeType, destination, podsAPI, podPort, targetID)
+			err = data.DAL.UpdateVipTarget(vipApp.ID, int64(target.RouteType), target.Destination, target.PodsAPI, target.PodPort, target.ID)
 			if err != nil {
 				utils.DebugPrintln("UpdateVipTarget", err)
 			}
 		}
-		target := &models.VipTarget{
-			ID:          targetID,
-			VipAppID:    vipApp.ID,
-			RouteType:   models.RouteType(routeType),
-			Destination: destination,
-			PodsAPI:     podsAPI,
-			PodPort:     podPort,
-			Online:      true,
-		}
+		target.Online = true
 		newTargets = append(newTargets, target)
 	}
 	vipApp.Targets = newTargets

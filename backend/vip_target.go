@@ -70,3 +70,12 @@ func CheckOfflineVipTargets(nowTimeStamp int64) {
 		}
 	}
 }
+
+func ContainsTargetID(targets []*models.VipTarget, targetID int64) bool {
+	for _, target := range targets {
+		if target.ID == targetID {
+			return true
+		}
+	}
+	return false
+}

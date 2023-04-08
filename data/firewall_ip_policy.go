@@ -21,8 +21,9 @@ func (dal *MyDAL) CreateTableIfNotExistsIPPolicies() error {
 
 // InsertIPPolicy Insert IP Address to "ip_policies"
 func (dal *MyDAL) InsertIPPolicy(ipAddr string, isAllow bool, applyToWAF bool, applyToCC bool) (newID int64) {
-	const sqlInsertIPPolicy = `INSERT INTO "ip_policies"("ip_addr","is_allow","apply_to_waf","apply_to_cc") VALUES($1,$2,$3,$4) RETURNING "id"`
-	err := dal.db.QueryRow(sqlInsertIPPolicy, ipAddr, isAllow, applyToWAF, applyToCC).Scan(&newID)
+	const sqlInsertIPPolicy = `INSERT INTO "ip_policies"("id","ip_addr","is_allow","apply_to_waf","apply_to_cc") VALUES($1,$2,$3,$4,$5) RETURNING "id"`
+	snowID := utils.GenSnowflakeID()
+	err := dal.db.QueryRow(sqlInsertIPPolicy, snowID, ipAddr, isAllow, applyToWAF, applyToCC).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertIPPolicy", err)
 	}

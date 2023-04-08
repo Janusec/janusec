@@ -9,6 +9,7 @@ package backend
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"log"
 	"strconv"
@@ -144,62 +145,49 @@ func GetCertificateByCommonName(commonName string) *models.CertItem {
 	return nil
 }
 
-// UpdateCertificate ...
-func UpdateCertificate(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.CertItem, error) {
-	certificate := param["object"].(map[string]interface{})
-	id := int64(certificate["id"].(float64))
-	commonName := certificate["common_name"].(string)
-	certContent := certificate["cert_content"].(string)
-	privKeyContent := certificate["priv_key_content"].(string)
-	encryptedPrivKey := data.AES256Encrypt([]byte(privKeyContent), false)
-	expireTime := data.GetCertificateExpiryTime(certContent)
-	var description string
-	var ok bool
-	if description, ok = certificate["description"].(string); !ok {
-		description = ""
+// UpdateCerts refresh the object in the list
+func UpdateCerts(certItem *models.CertItem) {
+	for i, obj := range Certs {
+		if obj.ID == certItem.ID {
+			Certs[i] = certItem
+		}
 	}
-	var certItem *models.CertItem
-	tlsCert, err := tls.X509KeyPair([]byte(certContent), []byte(privKeyContent))
+}
+
+// UpdateCertificate ...
+func UpdateCertificate(body []byte, clientIP string, authUser *models.AuthUser) (*models.CertItem, error) {
+	var rpcCertRequest models.APICertRequest
+	if err := json.Unmarshal(body, &rpcCertRequest); err != nil {
+		utils.DebugPrintln("UpdateCertificate", err)
+		return nil, err
+	}
+	certItem := rpcCertRequest.Object
+	encryptedPrivKey := data.AES256Encrypt([]byte(certItem.PrivKeyContent), false)
+	expireTime := data.GetCertificateExpiryTime(certItem.CertContent)
+	tlsCert, err := tls.X509KeyPair([]byte(certItem.CertContent), []byte(certItem.PrivKeyContent))
 	if err != nil {
 		utils.DebugPrintln("UpdateCertificate X509KeyPair", err)
 		return nil, err
 	}
-	if id == 0 {
+	certItem.TlsCert = tlsCert
+	if certItem.ID == 0 {
 		//new certificate
-		newID := data.DAL.InsertCertificate(commonName, certContent, encryptedPrivKey, expireTime, description)
-		certItem = &models.CertItem{}
+		newID := data.DAL.InsertCertificate(certItem.CommonName, certItem.CertContent, encryptedPrivKey, expireTime, certItem.Description)
+		//certItem = &models.CertItem{}
 		certItem.ID = newID
 		Certs = append(Certs, certItem)
-		go utils.OperationLog(clientIP, authUser.Username, "Add Certificate", commonName)
+		go utils.OperationLog(clientIP, authUser.Username, "Add Certificate", certItem.CommonName)
 	} else {
-		certItem, err = GetCertificateByID(id, authUser)
+		// update
+		err = data.DAL.UpdateCertificate(certItem.CommonName, certItem.CertContent, encryptedPrivKey, expireTime, certItem.Description, certItem.ID)
 		if err != nil {
 			return nil, err
 		}
-		err = data.DAL.UpdateCertificate(commonName, certContent, encryptedPrivKey, expireTime, description, id)
-		if err != nil {
-			return nil, err
-		}
-		go utils.OperationLog(clientIP, authUser.Username, "Update Certificate", commonName)
+		UpdateCerts(certItem)
+		go utils.OperationLog(clientIP, authUser.Username, "Update Certificate", certItem.CommonName)
 	}
-	certItem.CommonName = commonName
-	certItem.CertContent = certContent
-	certItem.PrivKeyContent = privKeyContent
-	certItem.TlsCert = tlsCert
-	certItem.ExpireTime = expireTime
-	certItem.Description = description
 	data.UpdateBackendLastModified()
 	return certItem, nil
-}
-
-// GetCertificateIndex ...
-func GetCertificateIndex(certID int64) int {
-	for i := 0; i < len(Certs); i++ {
-		if Certs[i].ID == certID {
-			return i
-		}
-	}
-	return -1
 }
 
 // DeleteCertificateByID ...
@@ -212,9 +200,14 @@ func DeleteCertificateByID(certID int64, clientIP string, authUser *models.AuthU
 	if err != nil {
 		return err
 	}
-	i := GetCertificateIndex(certID)
+	// delete in the list
+	for i, obj := range Certs {
+		if obj.ID == certID {
+			Certs = append(Certs[:i], Certs[i+1:]...)
+			break
+		}
+	}
 	go utils.OperationLog(clientIP, authUser.Username, "Delete Certificate", strconv.FormatInt(certID, 10))
-	Certs = append(Certs[:i], Certs[i+1:]...)
 	data.UpdateBackendLastModified()
 	return nil
 }

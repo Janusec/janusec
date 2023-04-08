@@ -16,13 +16,11 @@ import (
 	"time"
 )
 
-// InterfaceContainsDestinationID ...
+// ContainsDestinationID ...
 // destination example: [{"id":16,"route_type":1,"request_route":"/","backend_route":"/","destination":"127.0.0.1:8800","app_id":14,"node_id":0,"online":true,"check_time":0}]
-func InterfaceContainsDestinationID(destinations []interface{}, destID int64) bool {
+func ContainsDestinationID(destinations []*models.Destination, destID int64) bool {
 	for _, destination := range destinations {
-		destMap := destination.(map[string]interface{})
-		id := int64(destMap["id"].(float64))
-		if id == destID {
+		if destination.ID == destID {
 			return true
 		}
 	}

@@ -25,6 +25,47 @@ var (
 
 	// PrimarySetting include oauth, logs retention, smtp etc.
 	PrimarySetting *models.PrimarySetting
+
+	blockHTML string = `<!DOCTYPE html>
+	<html>
+	<head>
+	<title>403 Forbidden</title>
+	</head>
+	<style>
+	body {
+		font-family: Arial, Helvetica, sans-serif;
+		text-align: center;
+	}
+
+	.text-logo {
+		display: block;
+		width: 260px;
+		font-size: 48px;  
+		background-color: #F9F9F9;    
+		color: #f5f5f5;    
+		text-decoration: none;
+		text-shadow: 2px 2px 4px #000000;
+		box-shadow: 2px 2px 3px #D5D5D5;
+		padding: 15px; 
+		margin: auto;    
+	}
+
+	.block_div {
+		padding: 10px;
+		width: 70%;    
+		margin: auto;
+	}
+
+	</style>
+	<body>
+	<div class="block_div">
+	<h1 class="text-logo">JANUSEC</h1>
+	<hr>
+	Reason: {{.VulnName}}, Policy ID: {{.PolicyID}}, by Janusec Application Gateway
+	</div>
+	</body>
+	</html>
+	`
 )
 
 // UpdateBackendLastModified ...
@@ -60,6 +101,7 @@ func UpdateDiscoveryLastModified() {
 func InitDefaultSettings() {
 	DAL.LoadInstanceKey()
 	DAL.LoadNodesKey()
+	DAL.LoadAPIKey()
 	var err error
 
 	// Init PrimarySetting
@@ -73,9 +115,8 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("auth_provider") {
 		_ = DAL.SaveStringSetting("auth_provider", "wxwork")
 	}
-	if !DAL.ExistsSetting("webssh_enabled") {
-		_ = DAL.SaveBoolSetting("webssh_enabled", false)
-	}
+
+	// Security Audit
 	if !DAL.ExistsSetting("waf_log_days") {
 		_ = DAL.SaveIntSetting("waf_log_days", 7)
 	}
@@ -85,9 +126,10 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("access_log_days") {
 		_ = DAL.SaveIntSetting("access_log_days", 180)
 	}
-	if !DAL.ExistsSetting("smtp_enabled") {
-		_ = DAL.SaveBoolSetting("smtp_enabled", false)
-	}
+
+	// Access Control
+	// skip_se_enabled shared with PrimarySetting
+	// search_engines_pattern is generated based on search_engines
 	if !DAL.ExistsSetting("skip_se_enabled") {
 		// used for 5-second shield, v1.2.0, shared with NodeSetting
 		_ = DAL.SaveBoolSetting("skip_se_enabled", true)
@@ -95,6 +137,17 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("search_engines") {
 		// used for 5-second shield, v1.2.0
 		_ = DAL.SaveStringSetting("search_engines", "Google|Baidu|MicroMessenger|miniprogram|bing|sogou|Yisou|360spider|soso|duckduck|Yandex|Yahoo|AOL|teoma")
+	}
+	if !DAL.ExistsSetting("webssh_enabled") {
+		_ = DAL.SaveBoolSetting("webssh_enabled", false)
+	}
+	if !DAL.ExistsSetting("block_html") {
+		_ = DAL.SaveStringSetting("block_html", blockHTML)
+	}
+
+	// SMTP shared with PrimarySetting
+	if !DAL.ExistsSetting("smtp_enabled") {
+		_ = DAL.SaveBoolSetting("smtp_enabled", false)
 	}
 	if !DAL.ExistsSetting("smtp_server") {
 		_ = DAL.SaveStringSetting("smtp_server", "smtp.example.com")
@@ -119,9 +172,6 @@ func InitDefaultSettings() {
 	// v1.2.0, sync interval change from 10 minutes to 2 minutes
 	_ = DAL.SaveIntSetting("sync_seconds", 120)
 
-	// skip_se_enabled shared with PrimarySetting
-	// search_engines_pattern is generated based on search_engines
-	// SMTP shared with PrimarySetting
 	// AuthConfig wxwork
 	if !DAL.ExistsSetting("wxwork_display_name") {
 		DAL.SaveStringSetting("wxwork_display_name", "Login with WeChat Work")
@@ -218,6 +268,17 @@ func InitDefaultSettings() {
 		DAL.SaveStringSetting("cas2_callback", "http://www.example.com/oauth/cas2")
 	}
 
+	// Data discoveries 1.3.2
+	if !DAL.ExistsSetting("data_discovery_enabled") {
+		DAL.SaveBoolSetting("data_discovery_enabled", false)
+	}
+	if !DAL.ExistsSetting("data_discovery_api") {
+		DAL.SaveStringSetting("data_discovery_api", "")
+	}
+	if !DAL.ExistsSetting("data_discovery_key") {
+		DAL.SaveStringSetting("data_discovery_key", "")
+	}
+
 	// Other
 	if !DAL.ExistsSetting("init_time") {
 		// 0.9.13 +
@@ -239,14 +300,15 @@ func LoadSettings() {
 		if len(PrimarySetting.AuthProvider) == 0 {
 			PrimarySetting.AuthProvider = "wxwork"
 		}
-		PrimarySetting.WebSSHEnabled = DAL.SelectBoolSetting("webssh_enabled")
 		// 0.9.15 add
 		PrimarySetting.WAFLogDays = DAL.SelectIntSetting("waf_log_days")
 		PrimarySetting.CCLogDays = DAL.SelectIntSetting("cc_log_days")
 		PrimarySetting.AccessLogDays = DAL.SelectIntSetting("access_log_days")
-		// v1.2.0 add search engines for 5-second shield
+		// Access Control, v1.2.0 add search engines for 5-second shield, v1.3.3 add custom block html
 		PrimarySetting.SkipSEEnabled = DAL.SelectBoolSetting("skip_se_enabled")
 		PrimarySetting.SearchEngines = DAL.SelectStringSetting("search_engines")
+		PrimarySetting.WebSSHEnabled = DAL.SelectBoolSetting("webssh_enabled")
+		PrimarySetting.BlockHTML = DAL.SelectStringSetting("block_html")
 		// v1.2.0 add SMTP
 		smtpSetting := &models.SMTPSetting{}
 		smtpSetting.SMTPEnabled = DAL.SelectBoolSetting("smtp_enabled")
@@ -272,6 +334,7 @@ func LoadSettings() {
 		NodeSetting.SyncInterval = time.Duration(SyncScndsInt64) * time.Second
 		NodeSetting.SkipSEEnabled = PrimarySetting.SkipSEEnabled
 		NodeSetting.SearchEnginesPattern = UpdateSecondShieldPattern(PrimarySetting.SearchEngines)
+		NodeSetting.BlockHTML = PrimarySetting.BlockHTML
 		// NodeSetting.SMTP and PrimarySetting.SMTP point to the same SMTP setting
 		NodeSetting.SMTP = smtpSetting
 		// LoadAuthConfig
@@ -338,31 +401,25 @@ func GetWxworkConfig() *models.WxworkConfig {
 }
 
 // UpdateWxworkConfig ...
-func UpdateWxworkConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.WxworkConfig, error) {
+func UpdateWxworkConfig(body []byte, clientIP string, authUser *models.AuthUser) (*models.WxworkConfig, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super administrators can perform this operation")
 	}
-	wxworkConfig := param["object"].(map[string]interface{})
-	displayName := wxworkConfig["display_name"].(string)
-	callback := wxworkConfig["callback"].(string)
-	corpid := wxworkConfig["corpid"].(string)
-	agentid := wxworkConfig["agentid"].(string)
-	corpsecret := wxworkConfig["corpsecret"].(string)
-	DAL.SaveStringSetting("wxwork_display_name", displayName)
-	DAL.SaveStringSetting("wxwork_callback", callback)
-	DAL.SaveStringSetting("wxwork_corpid", corpid)
-	DAL.SaveStringSetting("wxwork_agentid", agentid)
-	DAL.SaveStringSetting("wxwork_corpsecret", corpsecret)
-	newWxworkConfig := &models.WxworkConfig{
-		DisplayName: displayName,
-		Callback:    callback,
-		CorpID:      corpid,
-		AgentID:     agentid,
-		CorpSecret:  corpsecret,
+	var rpcWxworkConfigRequest models.APIWxworkConfigRequest
+	if err := json.Unmarshal(body, &rpcWxworkConfigRequest); err != nil {
+		utils.DebugPrintln("UpdateWxworkConfig", err)
+		return nil, err
 	}
-	NodeSetting.AuthConfig.Wxwork = newWxworkConfig
-	go utils.OperationLog(clientIP, authUser.Username, "Update Wxwork Config", displayName)
-	return newWxworkConfig, nil
+	wxworkConfig := rpcWxworkConfigRequest.Object
+	DAL.SaveStringSetting("wxwork_display_name", wxworkConfig.DisplayName)
+	DAL.SaveStringSetting("wxwork_callback", wxworkConfig.Callback)
+	DAL.SaveStringSetting("wxwork_corpid", wxworkConfig.CorpID)
+	DAL.SaveStringSetting("wxwork_agentid", wxworkConfig.AgentID)
+	DAL.SaveStringSetting("wxwork_corpsecret", wxworkConfig.CorpSecret)
+
+	NodeSetting.AuthConfig.Wxwork = wxworkConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update Wxwork Config", wxworkConfig.DisplayName)
+	return wxworkConfig, nil
 }
 
 // GetDingtalkConfig return Auth Dingtalk config
@@ -381,28 +438,31 @@ func GetDingtalkConfig() *models.DingtalkConfig {
 }
 
 // UpdateDingtalkConfig ...
-func UpdateDingtalkConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.DingtalkConfig, error) {
+func UpdateDingtalkConfig(body []byte, clientIP string, authUser *models.AuthUser) (*models.DingtalkConfig, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super administrators can perform this operation")
 	}
-	dingtalkConfig := param["object"].(map[string]interface{})
-	displayName := dingtalkConfig["display_name"].(string)
-	callback := dingtalkConfig["callback"].(string)
-	appid := dingtalkConfig["appid"].(string)
-	appsecret := dingtalkConfig["appsecret"].(string)
-	DAL.SaveStringSetting("dingtalk_display_name", displayName)
-	DAL.SaveStringSetting("dingtalk_callback", callback)
-	DAL.SaveStringSetting("dingtalk_appid", appid)
-	DAL.SaveStringSetting("dingtalk_appsecret", appsecret)
-	newDingtalkConfig := &models.DingtalkConfig{
-		DisplayName: displayName,
-		Callback:    callback,
-		AppID:       appid,
-		AppSecret:   appsecret,
+	var rpcDingtalkConfigRequest models.APIDingtalkConfigRequest
+	if err := json.Unmarshal(body, &rpcDingtalkConfigRequest); err != nil {
+		utils.DebugPrintln("UpdateDingtalkConfig", err)
+		return nil, err
 	}
-	NodeSetting.AuthConfig.Dingtalk = newDingtalkConfig
-	go utils.OperationLog(clientIP, authUser.Username, "Update Dingtalk Config", displayName)
-	return newDingtalkConfig, nil
+	dingtalkConfig := rpcDingtalkConfigRequest.Object
+	/*
+		dingtalkConfig := param["object"].(map[string]interface{})
+		displayName := dingtalkConfig["display_name"].(string)
+		callback := dingtalkConfig["callback"].(string)
+		appid := dingtalkConfig["appid"].(string)
+		appsecret := dingtalkConfig["appsecret"].(string)
+	*/
+	DAL.SaveStringSetting("dingtalk_display_name", dingtalkConfig.DisplayName)
+	DAL.SaveStringSetting("dingtalk_callback", dingtalkConfig.Callback)
+	DAL.SaveStringSetting("dingtalk_appid", dingtalkConfig.AppID)
+	DAL.SaveStringSetting("dingtalk_appsecret", dingtalkConfig.AppSecret)
+
+	NodeSetting.AuthConfig.Dingtalk = dingtalkConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update Dingtalk Config", dingtalkConfig.DisplayName)
+	return dingtalkConfig, nil
 }
 
 // GetFeishuConfig ...
@@ -421,28 +481,24 @@ func GetFeishuConfig() *models.FeishuConfig {
 }
 
 // UpdateFeishuConfig ...
-func UpdateFeishuConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.FeishuConfig, error) {
+func UpdateFeishuConfig(body []byte, clientIP string, authUser *models.AuthUser) (*models.FeishuConfig, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super administrators can perform this operation")
 	}
-	feishuConfig := param["object"].(map[string]interface{})
-	displayName := feishuConfig["display_name"].(string)
-	callback := feishuConfig["callback"].(string)
-	appid := feishuConfig["appid"].(string)
-	appsecret := feishuConfig["appsecret"].(string)
-	DAL.SaveStringSetting("feishu_display_name", displayName)
-	DAL.SaveStringSetting("feishu_callback", callback)
-	DAL.SaveStringSetting("feishu_appid", appid)
-	DAL.SaveStringSetting("feishu_appsecret", appsecret)
-	newFeishuConfig := &models.FeishuConfig{
-		DisplayName: displayName,
-		Callback:    callback,
-		AppID:       appid,
-		AppSecret:   appsecret,
+	var rpcFeishuConfigRequest models.APIFeishuConfigRequest
+	if err := json.Unmarshal(body, &rpcFeishuConfigRequest); err != nil {
+		utils.DebugPrintln("UpdateFeishuConfig", err)
+		return nil, err
 	}
-	NodeSetting.AuthConfig.Feishu = newFeishuConfig
-	go utils.OperationLog(clientIP, authUser.Username, "Update Feishu Config", displayName)
-	return newFeishuConfig, nil
+	feishuConfig := rpcFeishuConfigRequest.Object
+	DAL.SaveStringSetting("feishu_display_name", feishuConfig.DisplayName)
+	DAL.SaveStringSetting("feishu_callback", feishuConfig.Callback)
+	DAL.SaveStringSetting("feishu_appid", feishuConfig.AppID)
+	DAL.SaveStringSetting("feishu_appsecret", feishuConfig.AppSecret)
+
+	NodeSetting.AuthConfig.Feishu = feishuConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update Feishu Config", feishuConfig.DisplayName)
+	return feishuConfig, nil
 }
 
 // GetLarkConfig ...
@@ -461,28 +517,23 @@ func GetLarkConfig() *models.LarkConfig {
 }
 
 // UpdateLarkConfig ...
-func UpdateLarkConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.LarkConfig, error) {
+func UpdateLarkConfig(body []byte, clientIP string, authUser *models.AuthUser) (*models.LarkConfig, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super administrators can perform this operation")
 	}
-	larkConfig := param["object"].(map[string]interface{})
-	displayName := larkConfig["display_name"].(string)
-	callback := larkConfig["callback"].(string)
-	appid := larkConfig["appid"].(string)
-	appsecret := larkConfig["appsecret"].(string)
-	DAL.SaveStringSetting("lark_display_name", displayName)
-	DAL.SaveStringSetting("lark_callback", callback)
-	DAL.SaveStringSetting("lark_appid", appid)
-	DAL.SaveStringSetting("lark_appsecret", appsecret)
-	newLarkConfig := &models.LarkConfig{
-		DisplayName: displayName,
-		Callback:    callback,
-		AppID:       appid,
-		AppSecret:   appsecret,
+	var rpcLarkConfigRequest models.APILarkConfigRequest
+	if err := json.Unmarshal(body, &rpcLarkConfigRequest); err != nil {
+		utils.DebugPrintln("UpdateLarkConfig", err)
+		return nil, err
 	}
-	NodeSetting.AuthConfig.Lark = newLarkConfig
-	go utils.OperationLog(clientIP, authUser.Username, "Update Lark Config", displayName)
-	return newLarkConfig, nil
+	larkConfig := rpcLarkConfigRequest.Object
+	DAL.SaveStringSetting("lark_display_name", larkConfig.DisplayName)
+	DAL.SaveStringSetting("lark_callback", larkConfig.Callback)
+	DAL.SaveStringSetting("lark_appid", larkConfig.AppID)
+	DAL.SaveStringSetting("lark_appsecret", larkConfig.AppSecret)
+	NodeSetting.AuthConfig.Lark = larkConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update Lark Config", larkConfig.DisplayName)
+	return larkConfig, nil
 }
 
 // GetLDAPConfig ...
@@ -522,55 +573,36 @@ func GetLDAPConfig() *models.LDAPConfig {
 }
 
 // UpdateLDAPConfig ...
-func UpdateLDAPConfig(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.LDAPConfig, error) {
+func UpdateLDAPConfig(body []byte, clientIP string, authUser *models.AuthUser) (*models.LDAPConfig, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super administrators can perform this operation")
 	}
-	ldapConfig := param["object"].(map[string]interface{})
-	displayName := ldapConfig["display_name"].(string)
-	entrance := ldapConfig["entrance"].(string)
-	address := ldapConfig["address"].(string)
-	dn := ldapConfig["dn"].(string)
-	usingTLS := ldapConfig["using_tls"].(bool)
-	authenticatorEnabled := ldapConfig["authenticator_enabled"].(bool)
-	bindRequired := ldapConfig["bind_required"].(bool)
-	baseDN := ldapConfig["base_dn"].(string)
-	bindUsername := ldapConfig["bind_username"].(string)
-	bindPassword := ldapConfig["bind_password"].(string)
-
-	DAL.SaveStringSetting("ldap_display_name", displayName)
-	DAL.SaveStringSetting("ldap_entrance", entrance)
-	DAL.SaveStringSetting("ldap_address", address)
-	DAL.SaveStringSetting("ldap_dn", dn)
-	DAL.SaveBoolSetting("ldap_using_tls", usingTLS)
-	DAL.SaveBoolSetting("ldap_authenticator_enabled", authenticatorEnabled)
-	DAL.SaveBoolSetting("ldap_bind_required", bindRequired)
-	DAL.SaveStringSetting("ldap_base_dn", baseDN)
-	DAL.SaveStringSetting("ldap_bind_username", bindUsername)
+	var rpcLDAPConfigRequest models.APILDAPConfigRequest
+	if err := json.Unmarshal(body, &rpcLDAPConfigRequest); err != nil {
+		utils.DebugPrintln("UpdateLDAPConfig", err)
+		return nil, err
+	}
+	ldapConfig := rpcLDAPConfigRequest.Object
+	DAL.SaveStringSetting("ldap_display_name", ldapConfig.DisplayName)
+	DAL.SaveStringSetting("ldap_entrance", ldapConfig.Entrance)
+	DAL.SaveStringSetting("ldap_address", ldapConfig.Address)
+	DAL.SaveStringSetting("ldap_dn", ldapConfig.DN)
+	DAL.SaveBoolSetting("ldap_using_tls", ldapConfig.UsingTLS)
+	DAL.SaveBoolSetting("ldap_authenticator_enabled", ldapConfig.AuthenticatorEnabled)
+	DAL.SaveBoolSetting("ldap_bind_required", ldapConfig.BindRequired)
+	DAL.SaveStringSetting("ldap_base_dn", ldapConfig.BaseDN)
+	DAL.SaveStringSetting("ldap_bind_username", ldapConfig.BindUsername)
 	var encrypedBindPassword string
-	if len(bindPassword) == 0 {
+	if len(ldapConfig.BindPassword) == 0 {
 		encrypedBindPassword = ""
 	} else {
-		encryptedPasswordBytes := AES256Encrypt([]byte(bindPassword), false)
+		encryptedPasswordBytes := AES256Encrypt([]byte(ldapConfig.BindPassword), false)
 		encrypedBindPassword = hex.EncodeToString(encryptedPasswordBytes)
 	}
 	DAL.SaveStringSetting("ldap_bind_password", encrypedBindPassword)
-
-	newLDAPConfig := &models.LDAPConfig{
-		DisplayName:          displayName,
-		Entrance:             entrance,
-		Address:              address,
-		DN:                   dn,
-		UsingTLS:             usingTLS,
-		AuthenticatorEnabled: authenticatorEnabled,
-		BindRequired:         bindRequired,
-		BaseDN:               baseDN,
-		BindUsername:         bindUsername,
-		BindPassword:         bindPassword,
-	}
-	NodeSetting.AuthConfig.LDAP = newLDAPConfig
-	go utils.OperationLog(clientIP, authUser.Username, "Update LDAP Config", displayName)
-	return newLDAPConfig, nil
+	NodeSetting.AuthConfig.LDAP = ldapConfig
+	go utils.OperationLog(clientIP, authUser.Username, "Update LDAP Config", ldapConfig.DisplayName)
+	return ldapConfig, nil
 }
 
 // GetCAS2Config ...
@@ -587,38 +619,33 @@ func GetCAS2Config() *models.CAS2Config {
 }
 
 // UpdateCAS2Config ...
-func UpdateCAS2Config(param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.CAS2Config, error) {
+func UpdateCAS2Config(body []byte, clientIP string, authUser *models.AuthUser) (*models.CAS2Config, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super administrators can perform this operation")
 	}
-	cas2Config := param["object"].(map[string]interface{})
-	displayName := cas2Config["display_name"].(string)
-	entrance := cas2Config["entrance"].(string)
-	callback := cas2Config["callback"].(string)
-	DAL.SaveStringSetting("cas2_display_name", displayName)
-	DAL.SaveStringSetting("cas2_entrance", entrance)
-	DAL.SaveStringSetting("cas2_callback", callback)
-	newCAS2Config := &models.CAS2Config{
-		DisplayName: displayName,
-		Entrance:    entrance,
-		Callback:    callback,
+	var rpcCAS2ConfigRequest models.APICAS2ConfigRequest
+	if err := json.Unmarshal(body, &rpcCAS2ConfigRequest); err != nil {
+		utils.DebugPrintln("UpdateCAS2Config", err)
+		return nil, err
 	}
-	NodeSetting.AuthConfig.CAS2 = newCAS2Config
-	go utils.OperationLog(clientIP, authUser.Username, "Update CAS2 Config", displayName)
-	return newCAS2Config, nil
+	cas2Config := rpcCAS2ConfigRequest.Object
+	DAL.SaveStringSetting("cas2_display_name", cas2Config.DisplayName)
+	DAL.SaveStringSetting("cas2_entrance", cas2Config.Entrance)
+	DAL.SaveStringSetting("cas2_callback", cas2Config.Callback)
+	NodeSetting.AuthConfig.CAS2 = cas2Config
+	go utils.OperationLog(clientIP, authUser.Username, "Update CAS2 Config", cas2Config.DisplayName)
+	return cas2Config, nil
 }
 
 // UpdatePrimarySetting ...
-func UpdatePrimarySetting(r *http.Request, param map[string]interface{}, clientIP string, authUser *models.AuthUser) (*models.PrimarySetting, error) {
+func UpdatePrimarySetting(r *http.Request, body []byte, clientIP string, authUser *models.AuthUser) (*models.PrimarySetting, error) {
 	if !authUser.IsSuperAdmin {
 		return nil, errors.New("only super administrators can perform this operation")
 	}
 	var settingReq models.PrimarySettingRequest
-	err := json.NewDecoder(r.Body).Decode(&settingReq)
-	if err != nil {
-		utils.DebugPrintln("UpdatePrimarySetting Decode", err)
+	if err := json.Unmarshal(body, &settingReq); err != nil {
+		utils.DebugPrintln("UpdatePrimarySetting Unmarshal", err)
 	}
-	defer r.Body.Close()
 	PrimarySetting = settingReq.Object
 	DAL.SaveBoolSetting("authenticator_enabled", PrimarySetting.AuthenticatorEnabled) // v1.2.2
 	DAL.SaveBoolSetting("auth_enabled", PrimarySetting.AuthEnabled)
@@ -632,6 +659,8 @@ func UpdatePrimarySetting(r *http.Request, param map[string]interface{}, clientI
 	DAL.SaveBoolSetting("skip_se_enabled", PrimarySetting.SkipSEEnabled)
 	DAL.SaveStringSetting("search_engines", PrimarySetting.SearchEngines)
 	NodeSetting.SearchEnginesPattern = UpdateSecondShieldPattern(PrimarySetting.SearchEngines)
+	DAL.SaveStringSetting("block_html", PrimarySetting.BlockHTML)
+	NodeSetting.BlockHTML = PrimarySetting.BlockHTML
 	DAL.SaveBoolSetting("smtp_enabled", PrimarySetting.SMTP.SMTPEnabled)
 	DAL.SaveStringSetting("smtp_server", PrimarySetting.SMTP.SMTPServer)
 	DAL.SaveStringSetting("smtp_port", PrimarySetting.SMTP.SMTPPort)

@@ -3,8 +3,8 @@
 /janusec
 /luci
 /config.json
-/log/*
 *.zip
 *.tar.gz
 /static/cdncache
 /certs
+/*.sqlite3

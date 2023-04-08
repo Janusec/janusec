@@ -18,6 +18,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/bwmarrin/snowflake"
 )
 
 var (
@@ -25,6 +27,9 @@ var (
 
 	// Debug , if it is true, more output
 	Debug = false
+
+	// Snowflake Node
+	snowNode, _ = snowflake.NewNode(1)
 )
 
 // CheckError output to standard console
@@ -226,4 +231,8 @@ func GetResponse(request *http.Request) (respBytes []byte, err error) {
 	defer resp.Body.Close()
 	respBytes, err = io.ReadAll(resp.Body)
 	return respBytes, err
+}
+
+func GenSnowflakeID() int64 {
+	return snowNode.Generate().Int64()
 }

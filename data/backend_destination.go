@@ -68,8 +68,9 @@ func (dal *MyDAL) SelectDestinationsByAppID(appID int64) []*models.Destination {
 
 // InsertDestination ...
 func (dal *MyDAL) InsertDestination(routeType int64, requestRoute string, backendRoute string, dest string, podsAPI string, podPort string, appID int64, nodeID int64) (newID int64, err error) {
-	const sqlInsertDestination = `INSERT INTO "destinations"("route_type","request_route","backend_route","destination","pods_api","pod_port","app_id","node_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`
-	err = dal.db.QueryRow(sqlInsertDestination, routeType, requestRoute, backendRoute, dest, podsAPI, podPort, appID, nodeID).Scan(&newID)
+	const sqlInsertDestination = `INSERT INTO "destinations"("id","route_type","request_route","backend_route","destination","pods_api","pod_port","app_id","node_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`
+	id := utils.GenSnowflakeID()
+	err = dal.db.QueryRow(sqlInsertDestination, id, routeType, requestRoute, backendRoute, dest, podsAPI, podPort, appID, nodeID).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertDestination", err)
 	}

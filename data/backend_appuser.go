@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	sqlInsertAppUser        = `INSERT INTO "appusers"("username","hashpwd","salt","email","is_super_admin","is_cert_admin","is_app_admin","need_modify_pwd") VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`
+	sqlInsertAppUser        = `INSERT INTO "appusers"("id","username","hashpwd","salt","email","is_super_admin","is_cert_admin","is_app_admin","need_modify_pwd") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`
 	sqlIsExistUser          = `SELECT COALESCE((SELECT 1 FROM "appusers" WHERE "username"=$1 limit 1),0)`
 	sqlSelectHashPwdAndSalt = `SELECT "id","hashpwd","salt","need_modify_pwd" FROM "appusers" WHERE "username"=$1`
 	sqlSelectAppUsers       = `SELECT "id","username","email","is_super_admin","is_cert_admin","is_app_admin" FROM "appusers"`
@@ -56,7 +56,8 @@ func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt
 	if err == nil {
 		return id, err
 	}
-	err = dal.db.QueryRow(sqlInsertAppUser, username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd).Scan(&id)
+	snowID := utils.GenSnowflakeID()
+	err = dal.db.QueryRow(sqlInsertAppUser, snowID, username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd).Scan(&id)
 	return id, err
 }
 

@@ -14,7 +14,7 @@ type RPCResponse struct {
 
 type RPCRequest struct {
 	Action      string      `json:"action"`
-	ObjectID    int64       `json:"id"`
+	ObjectID    int64       `json:"id,string"`
 	NodeVersion string      `json:"node_version"`
 	AuthKey     string      `json:"auth_key"`
 	Object      interface{} `json:"object"`
@@ -22,16 +22,16 @@ type RPCRequest struct {
 
 type RPCGroupHitLogRequest struct {
 	Action   string       `json:"action"`
-	ObjectID int64        `json:"id"`
-	NodeID   int64        `json:"node_id"`
+	ObjectID int64        `json:"id,string"`
+	NodeID   int64        `json:"node_id,string"`
 	AuthKey  string       `json:"auth_key"`
 	Object   *GroupHitLog `json:"object"`
 }
 
 type RPCCCLogRequest struct {
 	Action   string `json:"action"`
-	ObjectID int64  `json:"id"`
-	NodeID   int64  `json:"node_id"`
+	ObjectID int64  `json:"id,string"`
+	NodeID   int64  `json:"node_id,string"`
 	AuthKey  string `json:"auth_key"`
 	Object   *CCLog `json:"object"`
 }
@@ -90,16 +90,16 @@ type RPCTOTP struct {
 
 type RPCStatRequest struct {
 	Action   string        `json:"action"`
-	ObjectID int64         `json:"id"`
-	NodeID   int64         `json:"node_id"`
+	ObjectID int64         `json:"id,string"`
+	NodeID   int64         `json:"node_id,string"`
 	AuthKey  string        `json:"auth_key"`
 	Object   []*AccessStat `json:"object"`
 }
 
 type RPCRefererRequest struct {
 	Action   string                                            `json:"action"`
-	ObjectID int64                                             `json:"id"`
-	NodeID   int64                                             `json:"node_id"`
+	ObjectID int64                                             `json:"id,string"`
+	NodeID   int64                                             `json:"node_id,string"`
 	AuthKey  string                                            `json:"auth_key"`
 	Object   *map[int64]map[string]map[string]map[string]int64 `json:"object"`
 }

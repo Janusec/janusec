@@ -7,6 +7,7 @@
             "listen_https": ":9443",
             "portal": "https://your_domain.com:9443/janusec-admin/"
         },
+		"database_type": "sqlite",
 		"database": {
 			"host": "127.0.0.1",
 			"port": "5432",
