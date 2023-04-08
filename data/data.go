@@ -135,19 +135,19 @@ func (dal *MyDAL) ExistConstraint(tableName string, constraintName string) bool 
 	var sql string
 	var err error
 	switch CFG.PrimaryNode.DatabaseType {
-	case "postgres":
-		// PostgreSQL
-		sql = `SELECT count(1) FROM information_schema.constraint_column_usage WHERE table_name=$1 and constraint_name=$2`
+	case "sqlite":
+		// SQLite
+		// select * from sqlite_master where type='index' and tbl_name='test' and name='uid'
+		// For SQLite, create unique index uid on table_name(column1, column2);
+		sql = `SELECT count(1) FROM sqlite_master WHERE type='index' AND tbl_name=$1 AND name=$2`
 		err = dal.db.QueryRow(sql, tableName, constraintName).Scan(&count)
 		if err != nil {
 			utils.DebugPrintln("ExistConstraint QueryRow", err)
 		}
 		return count > 0
 	default:
-		// SQLite
-		// select * from sqlite_master where type='index' and tbl_name='test' and name='uid'
-		// For SQLite, create unique index uid on table_name(column1, column2);
-		sql = `SELECT count(1) FROM sqlite_master WHERE type='index' AND tbl_name=$1 AND name=$2`
+		// PostgreSQL
+		sql = `SELECT count(1) FROM information_schema.constraint_column_usage WHERE table_name=$1 and constraint_name=$2`
 		err = dal.db.QueryRow(sql, tableName, constraintName).Scan(&count)
 		if err != nil {
 			utils.DebugPrintln("ExistConstraint QueryRow", err)
