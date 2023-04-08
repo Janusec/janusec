@@ -46,8 +46,8 @@ func (dal *MyDAL) CreateTableIfNotExistsGroupHitLog() error {
 
 // InsertGroupHitLog ...
 func (dal *MyDAL) InsertGroupHitLog(requestTime int64, clientIP string, host string, method string, urlPath string, urlQuery string, contentType string, userAgent string, cookies string, rawRequest string, action int64, policyID int64, vulnID int64, appID int64) error {
-	snakeID := utils.GenSnowflakeID()
-	_, err := dal.db.Exec(sqlInsertGroupHitLog, snakeID, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, policyID, vulnID, appID)
+	snowID := utils.GenSnowflakeID()
+	_, err := dal.db.Exec(sqlInsertGroupHitLog, snowID, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, policyID, vulnID, appID)
 	if err != nil {
 		utils.DebugPrintln("InsertGroupHitLog Exec", err)
 	}

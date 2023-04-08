@@ -35,7 +35,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "1.3.3"
+	Version = "1.4.0"
 )
 
 // InitConfig init Data Access Layer

@@ -20,8 +20,8 @@ func (dal *MyDAL) CreateTableIfNotExistsDiscoveryRules() error {
 
 func (dal *MyDAL) InsertDiscoveryRule(discoveryRule *models.DiscoveryRule) (newID int64, err error) {
 	const sqlInsertDiscoveryRule = `INSERT INTO "discovery_rules"("id","field_name", "sample", "regex", "description", "editor", "update_time") VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`
-	snakeID := utils.GenSnowflakeID()
-	err = dal.db.QueryRow(sqlInsertDiscoveryRule, snakeID, discoveryRule.FieldName, discoveryRule.Sample, discoveryRule.Regex, discoveryRule.Description, discoveryRule.Editor, discoveryRule.UpdateTime).Scan(&newID)
+	snowID := utils.GenSnowflakeID()
+	err = dal.db.QueryRow(sqlInsertDiscoveryRule, snowID, discoveryRule.FieldName, discoveryRule.Sample, discoveryRule.Regex, discoveryRule.Description, discoveryRule.Editor, discoveryRule.UpdateTime).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertDiscoveryRule", err)
 	}

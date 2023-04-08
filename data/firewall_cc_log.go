@@ -42,8 +42,8 @@ func (dal *MyDAL) CreateTableIfNotExistsCCLog() error {
 
 // InsertCCLog ...
 func (dal *MyDAL) InsertCCLog(requestTime int64, clientIP string, host string, method string, urlPath string, urlQuery string, contentType string, userAgent string, cookies string, rawRequest string, action int64, appID int64) error {
-	snakeID := utils.GenSnowflakeID()
-	_, err := dal.db.Exec(sqlInsertCCLog, snakeID, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, appID)
+	snowID := utils.GenSnowflakeID()
+	_, err := dal.db.Exec(sqlInsertCCLog, snowID, requestTime, clientIP, host, method, urlPath, urlQuery, contentType, userAgent, cookies, rawRequest, action, appID)
 	if err != nil {
 		utils.DebugPrintln("InsertCCLog Exec", err)
 	}

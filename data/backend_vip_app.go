@@ -49,8 +49,8 @@ func (dal *MyDAL) SelectVipApplications() []*models.VipApp {
 // InsertVipApp create new port forwarding
 func (dal *MyDAL) InsertVipApp(vipAppName string, listenPort int64, isTCP bool, owner string, description string) (newID int64) {
 	const sqlInsertVipApp = `INSERT INTO "vip_apps"("id","name","listen_port","is_tcp","owner","description") VALUES($1,$2,$3,$4,$5,$6) RETURNING "id"`
-	snakeID := utils.GenSnowflakeID()
-	err := dal.db.QueryRow(sqlInsertVipApp, snakeID, vipAppName, listenPort, isTCP, owner, description).Scan(&newID)
+	snowID := utils.GenSnowflakeID()
+	err := dal.db.QueryRow(sqlInsertVipApp, snowID, vipAppName, listenPort, isTCP, owner, description).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertVipApp", err)
 	}

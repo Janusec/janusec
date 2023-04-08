@@ -56,8 +56,8 @@ func (dal *MyDAL) InsertIfNotExistsAppUser(username string, hashpwd string, salt
 	if err == nil {
 		return id, err
 	}
-	snakeID := utils.GenSnowflakeID()
-	err = dal.db.QueryRow(sqlInsertAppUser, snakeID, username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd).Scan(&id)
+	snowID := utils.GenSnowflakeID()
+	err = dal.db.QueryRow(sqlInsertAppUser, snowID, username, hashpwd, salt, email, isSuperAdmin, isCertAdmin, isAppAdmin, needModifyPwd).Scan(&id)
 	return id, err
 }
 

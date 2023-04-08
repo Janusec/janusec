@@ -36,8 +36,8 @@ func (dal *MyDAL) InsertCheckItem(checkPoint models.ChkPoint, operation models.O
 		utils.DebugPrintln("sqlInsertCheckItem Prepare", err)
 	}
 	defer stmt.Close()
-	snakeID := utils.GenSnowflakeID()
-	err = stmt.QueryRow(snakeID, checkPoint, operation, keyName, regexPolicy, groupPolicyID).Scan(&newID)
+	snowID := utils.GenSnowflakeID()
+	err = stmt.QueryRow(snowID, checkPoint, operation, keyName, regexPolicy, groupPolicyID).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("sqlInsertCheckItem Scan", err)
 	}

@@ -131,7 +131,7 @@ type PrimarySetting struct {
 	// WebSSHEnabled for Web-based SSH
 	WebSSHEnabled bool `json:"webssh_enabled"`
 
-	// BlockHTML, v1.3.3 added
+	// BlockHTML, v1.4.0 added
 	BlockHTML string `json:"block_html"`
 
 	// WAFLogDays for WAF logs
@@ -171,7 +171,7 @@ type NodeShareSetting struct {
 	SkipSEEnabled        bool   `json:"skip_se_enabled"`
 	SearchEnginesPattern string `json:"search_engines_pattern"`
 
-	// BlockHTML, v1.3.3 added
+	// BlockHTML, v1.4.0 added
 	BlockHTML string `json:"block_html"`
 
 	// AuthConfig for authentication

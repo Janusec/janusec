@@ -53,8 +53,8 @@ func (dal *MyDAL) UpdateVipTarget(vipAppID int64, routeType int64, destination s
 // InsertVipTarget create new VipTarget
 func (dal *MyDAL) InsertVipTarget(vipAppID int64, routeType int64, destination string, podsAPI string, podPort string) (newID int64, err error) {
 	const sqlInsertTarget = `INSERT INTO "vip_targets"("id","vip_app_id", "route_type", "destination", "pods_api", "pod_port") VALUES($1,$2,$3,$4,$5,$6) RETURNING "id"`
-	snakeID := utils.GenSnowflakeID()
-	err = dal.db.QueryRow(sqlInsertTarget, snakeID, vipAppID, routeType, destination, podsAPI, podPort).Scan(&newID)
+	snowID := utils.GenSnowflakeID()
+	err = dal.db.QueryRow(sqlInsertTarget, snowID, vipAppID, routeType, destination, podsAPI, podPort).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertVipTarget", err)
 	}

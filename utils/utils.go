@@ -28,8 +28,8 @@ var (
 	// Debug , if it is true, more output
 	Debug = false
 
-	// Snake Node
-	snakeNode, _ = snowflake.NewNode(1)
+	// Snowflake Node
+	snowNode, _ = snowflake.NewNode(1)
 )
 
 // CheckError output to standard console
@@ -234,5 +234,5 @@ func GetResponse(request *http.Request) (respBytes []byte, err error) {
 }
 
 func GenSnowflakeID() int64 {
-	return snakeNode.Generate().Int64()
+	return snowNode.Generate().Int64()
 }
