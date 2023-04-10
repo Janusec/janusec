@@ -37,7 +37,7 @@ type APIStatCountRequest struct {
 }
 
 type HitLogsRequest struct {
-	AppID        int64 `json:"app_id"`
+	AppID        int64 `json:"app_id,string"`
 	StartTime    int64 `json:"start_time"`
 	EndTime      int64 `json:"end_time"`
 	RequestCount int64 `json:"request_count"`
@@ -45,8 +45,12 @@ type HitLogsRequest struct {
 }
 
 type APIHitLogsRequest struct {
-	Action string          `json:"action"`
-	Object *HitLogsRequest `json:"object"`
+	Action       string `json:"action"`
+	AppID        int64  `json:"app_id,string"`
+	StartTime    int64  `json:"start_time"`
+	EndTime      int64  `json:"end_time"`
+	RequestCount int64  `json:"request_count"`
+	Offset       int64  `json:"offset"`
 }
 
 /*

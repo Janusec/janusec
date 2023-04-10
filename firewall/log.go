@@ -241,25 +241,23 @@ func GetWeekStat(body []byte) (weekStat []int64, err error) {
 
 // GetCCLogs ...
 func GetCCLogs(body []byte) ([]*models.SimpleCCLog, error) {
-	var rpcHitLogRequest models.APIHitLogsRequest
-	if err := json.Unmarshal(body, &rpcHitLogRequest); err != nil {
+	var apiHitLogRequest models.APIHitLogsRequest
+	if err := json.Unmarshal(body, &apiHitLogRequest); err != nil {
 		utils.DebugPrintln("GetCCLogs", err)
 		return nil, err
 	}
-	hitLogsReq := rpcHitLogRequest.Object
-	simpleCCLogs := data.DAL.SelectCCLogs(hitLogsReq.AppID, hitLogsReq.StartTime, hitLogsReq.EndTime, hitLogsReq.RequestCount, hitLogsReq.Offset)
+	simpleCCLogs := data.DAL.SelectCCLogs(apiHitLogRequest.AppID, apiHitLogRequest.StartTime, apiHitLogRequest.EndTime, apiHitLogRequest.RequestCount, apiHitLogRequest.Offset)
 	return simpleCCLogs, nil
 }
 
 // GetGroupLogs ...
 func GetGroupLogs(body []byte) ([]*models.SimpleGroupHitLog, error) {
-	var rpcSimpleHitLogRequest models.APIHitLogsRequest
-	if err := json.Unmarshal(body, &rpcSimpleHitLogRequest); err != nil {
+	var apiHitLogRequest models.APIHitLogsRequest
+	if err := json.Unmarshal(body, &apiHitLogRequest); err != nil {
 		utils.DebugPrintln("GetGroupLogs", err)
 		return nil, err
 	}
-	hitLogsReq := rpcSimpleHitLogRequest.Object
-	simpleRegexHitLogs := data.DAL.SelectGroupHitLogs(hitLogsReq.AppID, hitLogsReq.StartTime, hitLogsReq.EndTime, hitLogsReq.RequestCount, hitLogsReq.Offset)
+	simpleRegexHitLogs := data.DAL.SelectGroupHitLogs(apiHitLogRequest.AppID, apiHitLogRequest.StartTime, apiHitLogRequest.EndTime, apiHitLogRequest.RequestCount, apiHitLogRequest.Offset)
 	return simpleRegexHitLogs, nil
 }
 
