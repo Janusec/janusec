@@ -105,12 +105,6 @@ func GetCCPolicies() ([]*models.CCPolicy, error) {
 	return ccPoliciesList, nil
 }
 
-// GetCCPolicyRespByAppID get CC policy by app id
-func GetCCPolicyRespByAppID(appID int64) (*models.CCPolicy, error) {
-	ccPolicy := GetCCPolicyByAppID(appID)
-	return ccPolicy, nil
-}
-
 // IsCCAttack to judge a request is CC attack, return IsCC, CCPolicy, ClientID, NeedLog
 func IsCCAttack(r *http.Request, app *models.Application, srcIP string) (bool, *models.CCPolicy, string, bool) {
 	ccPolicy := GetCCPolicyByAppID(app.ID)
@@ -177,6 +171,14 @@ func InitCCPolicy() {
 	}
 }
 
+func UpdateCCPolicies(ccPolicy *models.CCPolicy) {
+	for i, obj := range ccPoliciesList {
+		if obj.AppID == ccPolicy.AppID {
+			ccPoliciesList[i] = ccPolicy
+		}
+	}
+}
+
 // UpdateCCPolicy update CC policy
 func UpdateCCPolicy(body []byte, clientIP string, authUser *models.AuthUser) error {
 	if !authUser.IsSuperAdmin {
@@ -206,6 +208,8 @@ func UpdateCCPolicy(body []byte, clientIP string, authUser *models.AuthUser) err
 		if err != nil {
 			return err
 		}
+		ccPolicies.Store(ccPolicy.AppID, ccPolicy)
+		UpdateCCPolicies(ccPolicy)
 		// start new ccTicker
 		if ccPolicy.IsEnabled {
 			go CCAttackTick(ccPolicy.AppID)

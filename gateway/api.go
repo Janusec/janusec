@@ -151,7 +151,8 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj = nil
 		err = usermgmt.DeleteUser(apiRequest.ObjectID, clientIP, authUser)
 	case "get_cc_policy":
-		obj, err = firewall.GetCCPolicyRespByAppID(apiRequest.ObjectID)
+		obj = firewall.GetCCPolicyByAppID(apiRequest.ObjectID)
+		err = nil
 	case "del_cc_policy":
 		obj = nil
 		err = firewall.DeleteCCPolicyByAppID(apiRequest.ObjectID, clientIP, authUser, true)
