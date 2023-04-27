@@ -170,6 +170,7 @@ func UpdateCertificate(body []byte, clientIP string, authUser *models.AuthUser) 
 		return nil, err
 	}
 	certItem.TlsCert = tlsCert
+	certItem.ExpireTime = expireTime
 	if certItem.ID == 0 {
 		//new certificate
 		newID := data.DAL.InsertCertificate(certItem.CommonName, certItem.CertContent, encryptedPrivKey, expireTime, certItem.Description)
