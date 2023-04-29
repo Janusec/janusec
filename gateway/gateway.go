@@ -65,7 +65,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		decChan <- 1
 	}()
 	// r.Host may has the format: domain:port, first remove port
-	domainStr := r.Host
+	domainStr := strings.ToLower(r.Host)
 	index := strings.IndexByte(r.Host, ':')
 	if index > 0 {
 		//r.Host = r.Host[0:index]

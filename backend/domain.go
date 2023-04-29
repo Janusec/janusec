@@ -8,6 +8,7 @@
 package backend
 
 import (
+	"strings"
 	"sync"
 
 	"janusec/data"
@@ -75,6 +76,8 @@ func GetDomainByName(domainName string) *models.Domain {
 
 // UpdateDomain ...
 func UpdateDomain(app *models.Application, newDomain *models.Domain) *models.Domain {
+	// First convert domain name to lowercase
+	newDomain.Name = strings.ToLower(strings.TrimSpace(newDomain.Name))
 	if newDomain.ID == 0 {
 		// New domain
 		newDomain.ID = data.DAL.InsertDomain(newDomain.Name, app.ID, newDomain.CertID, newDomain.Redirect, newDomain.Location)
