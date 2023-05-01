@@ -65,11 +65,11 @@ https://doc.janusec.com/cn/
 
 ## 需求   
 
-* PostgreSQL 10/11/12+ (开发环境，及生产环境主节点需要)  
+* SQLite3，或PostgreSQL 10/11/12+ (开发环境，及生产环境主节点需要)  
 * Debian 9/10/11+, CentOS/RHEL 7/8+, 首选Debian 10+    
 * systemd  
 * nftables  
-* Golang 1.15+ (仅开发环境需要)  
+* Golang 1.19+ (仅开发环境需要)  
 
 ## 部署快速指引    
 
@@ -204,11 +204,11 @@ https://janusec.github.io/
 
 ## Requirements    
 
-* PostgreSQL 10/11/12+ (Required by Development and Primary Node of Deployment)  
+* SQLite3 or PostgreSQL 10/11/12+ (Required by Development and Primary Node of Deployment)  
 * Debian 9/10/11+, CentOS/RHEL 7/8+, Debian 10+ is preferred       
 * systemd  
 * nftables  
-* Golang 1.15+ (Required by Development Only)  
+* Golang 1.19+ (Required by Development Only)  
 
 ## Quick Start for Deployment     
 
