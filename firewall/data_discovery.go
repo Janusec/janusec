@@ -160,7 +160,7 @@ func CheckDiscoveryRules(value string, r *http.Request) {
 				// Response: {"status":0, err:null}
 				authKey := data.GenAuthKey(data.DataDiscoveryKey)
 				anonymizedSample := Anonymize(value)
-				body := fmt.Sprintf(`{"auth_key":"%s", "object":{"domain":"%s", "path":"%s", "field_name":"%s", "anonymized_sample":"%s"}}`, authKey, r.URL.Host, routePath, discoveryRule.FieldName, anonymizedSample)
+				body := fmt.Sprintf(`{"auth_key":"%s", "tenant_id":"%s", "object":{"domain":"%s", "path":"%s", "field_name":"%s", "anonymized_sample":"%s"}}`, authKey, data.NodeSetting.DataDiscoveryTenantID, r.URL.Host, routePath, discoveryRule.FieldName, anonymizedSample)
 				request, _ := http.NewRequest("POST", data.NodeSetting.DataDiscoveryAPI, bytes.NewReader([]byte(body)))
 				request.Header.Set("Content-Type", "application/json")
 				resp, err := utils.GetResponse(request)

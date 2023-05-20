@@ -275,6 +275,10 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("data_discovery_api") {
 		DAL.SaveStringSetting("data_discovery_api", "")
 	}
+	if !DAL.ExistsSetting("data_discovery_tenant_id") {
+		// 1.4.0fix5 add tenant_id for SaaS
+		DAL.SaveStringSetting("data_discovery_tenant_id", "")
+	}
 	if !DAL.ExistsSetting("data_discovery_key") {
 		DAL.SaveStringSetting("data_discovery_key", "")
 	}
@@ -324,6 +328,7 @@ func LoadSettings() {
 			PrimarySetting.DataDiscoveryAPI = "http://127.0.0.1:8088/api/v1/data-discoveries"
 			DAL.SaveStringSetting("data_discovery_api", PrimarySetting.DataDiscoveryAPI)
 		}
+		PrimarySetting.DataDiscoveryTenantID = DAL.SelectStringSetting("data_discovery_tenant_id")
 		PrimarySetting.DataDiscoveryKey = DAL.SelectStringSetting("data_discovery_key")
 
 		// NodeSetting
@@ -358,6 +363,7 @@ func LoadSettings() {
 		// v1.3.2 data discovery
 		NodeSetting.DataDiscoveryEnabled = PrimarySetting.DataDiscoveryEnabled
 		NodeSetting.DataDiscoveryAPI = PrimarySetting.DataDiscoveryAPI
+		NodeSetting.DataDiscoveryTenantID = PrimarySetting.DataDiscoveryTenantID
 		NodeSetting.DataDiscoveryKey = PrimarySetting.DataDiscoveryKey
 		DataDiscoveryKey, _ = hex.DecodeString(NodeSetting.DataDiscoveryKey)
 		return
@@ -668,6 +674,7 @@ func UpdatePrimarySetting(r *http.Request, body []byte, clientIP string, authUse
 	DAL.SaveStringSetting("smtp_password", PrimarySetting.SMTP.SMTPPassword)
 	DAL.SaveBoolSetting("data_discovery_enabled", PrimarySetting.DataDiscoveryEnabled)
 	DAL.SaveStringSetting("data_discovery_api", PrimarySetting.DataDiscoveryAPI)
+	DAL.SaveStringSetting("data_discovery_tenant_id", PrimarySetting.DataDiscoveryTenantID)
 	DAL.SaveStringSetting("data_discovery_key", PrimarySetting.DataDiscoveryKey)
 	go utils.OperationLog(clientIP, authUser.Username, "Update Settings", "Global Settings")
 	UpdateBackendLastModified()
