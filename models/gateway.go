@@ -147,9 +147,10 @@ type PrimarySetting struct {
 	SMTP *SMTPSetting `json:"smtp"`
 
 	// Data Discovery, v1.3.2 added
-	DataDiscoveryEnabled bool   `json:"data_discovery_enabled"`
-	DataDiscoveryAPI     string `json:"data_discovery_api"`
-	DataDiscoveryKey     string `json:"data_discovery_key"`
+	DataDiscoveryEnabled  bool   `json:"data_discovery_enabled"`
+	DataDiscoveryAPI      string `json:"data_discovery_api"`
+	DataDiscoveryTenantID string `json:"data_discovery_tenant_id"`
+	DataDiscoveryKey      string `json:"data_discovery_key"`
 }
 
 // NodeShareSetting for sync to replica nodes, v1.2.0
@@ -181,9 +182,10 @@ type NodeShareSetting struct {
 	SMTP *SMTPSetting `json:"smtp"`
 
 	// Data Discovery, v1.3.2 added
-	DataDiscoveryEnabled bool   `json:"data_discovery_enabled"`
-	DataDiscoveryAPI     string `json:"data_discovery_api"`
-	DataDiscoveryKey     string `json:"data_discovery_key"`
+	DataDiscoveryEnabled  bool   `json:"data_discovery_enabled"`
+	DataDiscoveryAPI      string `json:"data_discovery_api"`
+	DataDiscoveryTenantID string `json:"data_discovery_tenant_id"`
+	DataDiscoveryKey      string `json:"data_discovery_key"`
 }
 
 // DiscoveryRule for json body and json response
