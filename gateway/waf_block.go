@@ -31,15 +31,15 @@ func GenerateBlockPage(w http.ResponseWriter, hitInfo *models.HitInfo) {
 	}
 }
 
-// GenerateBlockConcent ...
-func GenerateBlockConcent(hitInfo *models.HitInfo) []byte {
+// GenerateBlockContent ...
+func GenerateBlockContent(hitInfo *models.HitInfo) []byte {
 	if tmplBlockResp == nil {
 		tmplBlockResp, _ = template.New("blockResp").Parse(data.NodeSetting.BlockHTML)
 	}
 	buf := &bytes.Buffer{}
 	err := tmplBlockResp.Execute(buf, hitInfo)
 	if err != nil {
-		utils.DebugPrintln("GenerateBlockConcent tmpl.Execute error", err)
+		utils.DebugPrintln("GenerateBlockContent tmpl.Execute error", err)
 	}
 	return buf.Bytes()
 }

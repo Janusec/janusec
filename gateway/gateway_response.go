@@ -83,7 +83,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 				vulnName, _ := firewall.VulnMap.Load(policy.VulnID)
 				hitInfo := &models.HitInfo{TypeID: 2, PolicyID: policy.ID, VulnName: vulnName.(string)}
 				go firewall.LogGroupHitRequest(r, app.ID, srcIP, policy)
-				blockContent := GenerateBlockConcent(hitInfo)
+				blockContent := GenerateBlockContent(hitInfo)
 				resp.StatusCode = 403
 				resp.Body = io.NopCloser(bytes.NewBuffer(blockContent))
 				resp.ContentLength = int64(len(blockContent))
