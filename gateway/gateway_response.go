@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/andybalholm/brotli"
+	"golang.org/x/net/html"
 
 	"janusec/backend"
 	"janusec/data"
@@ -199,8 +200,105 @@ func rewriteResponse(resp *http.Response) (err error) {
 		}
 	}
 
+	// Test Add DOM to body
+	contentType := resp.Header.Get("Content-Type")
+	if strings.Index(contentType, "text/html") == 0 {
+		doc, err := html.Parse(resp.Body)
+		if err != nil {
+			fmt.Println("html.Parse error", err)
+		}
+		body := getNodeByData(doc, "body")
+		if body != nil {
+			cookieNode, err := html.Parse(strings.NewReader(cookieDiv))
+			if err != nil {
+				fmt.Println("html.Parse error", err)
+			}
+			body.AppendChild(cookieNode)
+
+			head := getNodeByData(doc, "head")
+			if head != nil {
+				cookieStyle, err := html.Parse(strings.NewReader(cookieStyle))
+				if err != nil {
+					fmt.Println("html.Parse error", err)
+				}
+				head.AppendChild(cookieStyle)
+			}
+		}
+		// write back to resp.Body
+		var bytesBuffer bytes.Buffer
+		html.Render(&bytesBuffer, doc)
+		resp.Body = io.NopCloser(bytes.NewReader(bytesBuffer.Bytes()))
+
+	}
+
 	//body, err := httputil.DumpResponse(resp, true)
 	//fmt.Println("Dump Response:")
 	//fmt.Println(string(body))
 	return nil
 }
+
+func getNodeByData(node *html.Node, data string) *html.Node {
+	if node.Type == html.ElementNode && node.Data == data {
+		return node
+	}
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		childNode := getNodeByData(child, data)
+		if childNode != nil {
+			return childNode
+		}
+	}
+	return nil
+}
+
+const cookieDiv = `<div #JanusecCookie class="janusec-cookie-preference">
+<div class="cookie-container">
+	<h3>Cookie Preference</h3>
+	<p>We use necessary cookies to make our site work. We'd also like to set analytics cookies that help us make
+		improvements by measuring how you use the site. These will be set only if you accept.
+		For more detailed information about the cookies we use, see our cookies policy.</p>
+	<div>
+		<button class="btn-cookie-preference">Reject all cookies</button>
+		<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		<button class="btn-cookie-preference">Accept all cookies</button>
+	</div>
+	<hr>
+	<h3>Necessary cookies</h3>
+	<p>Necessary cookies enable core functionality such as security, network management, and accessibility. You
+		may disable these by changing your browser settings, but this may affect how the website functions.</p>
+</div>
+<div class="cookie-window-footer">
+	<small>Powered by JANUSEC</small>
+</div>
+</div>`
+
+const cookieStyle = `<style>
+.janusec-cookie-preference {
+	position: absolute;
+	top: 200px;
+	left: 50%;
+	padding: 0;
+	margin-left: -300px;
+	z-index: 9999;
+	width: 600px;
+	background-color: #f9f9f9;
+	border: 1px solid #e0e0e0;
+	opacity: 1;
+}
+
+.cookie-container {
+	margin: 0 10px;
+}
+
+.btn-cookie-preference {
+	padding: 10px;
+	color: #ffffff;
+	border: solid 1px #303030;
+	background-color: #6699DD;
+}
+
+.cookie-window-footer {
+	background-color: #f0f0f0;
+	text-align: right;
+	padding: 5px;
+}
+</style>`
