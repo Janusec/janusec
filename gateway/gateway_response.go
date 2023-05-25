@@ -17,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 
 	//"net/http/httputil"
@@ -226,14 +227,23 @@ func rewriteResponse(resp *http.Response) (err error) {
 		}
 		// write back to resp.Body
 		var bytesBuffer bytes.Buffer
-		html.Render(&bytesBuffer, doc)
-		resp.Body = io.NopCloser(bytes.NewReader(bytesBuffer.Bytes()))
-
+		err = html.Render(&bytesBuffer, doc)
+		if err != nil {
+			fmt.Println("html.Render error", err)
+		}
+		newBody := bytesBuffer.Bytes()
+		resp.Body = io.NopCloser(bytes.NewBuffer(newBody))
+		resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(newBody)), 10))
 	}
 
-	//body, err := httputil.DumpResponse(resp, true)
-	//fmt.Println("Dump Response:")
-	//fmt.Println(string(body))
+	/*
+		body, err := httputil.DumpResponse(resp, true)
+		if err != nil {
+			fmt.Println("httputil.DumpResponse error", err)
+		}
+		fmt.Println("Dump Response:")
+		fmt.Println(string(body))
+	*/
 	return nil
 }
 
@@ -262,13 +272,51 @@ const cookieDiv = `<div #JanusecCookie class="janusec-cookie-preference">
 		<button class="btn-cookie-preference">Accept all cookies</button>
 	</div>
 	<hr>
-	<h3>Necessary cookies</h3>
-	<p>Necessary cookies enable core functionality such as security, network management, and accessibility. You
-		may disable these by changing your browser settings, but this may affect how the website functions.</p>
+	
+	<div class="tab">
+		<button class="tablinks" onclick="openCity(event, 'Necessary')" id="defaultOpen">Necessary</button>
+		<button class="tablinks" onclick="openCity(event, 'Analytics')">Analytics</button>
+		<button class="tablinks" onclick="openCity(event, 'Marketing')">Marketing</button>
+	</div>
+	  
+	<div id="Necessary" class="tabcontent">
+		<h3>Necessary</h3>
+		<p>Necessary cookies enable core functionality such as security, network management, and accessibility. You
+		may disable these by changing your browser settings, but this may affect how the website functions.
+	</p>
+	</div>
+	  
+	<div id="Analytics" class="tabcontent">
+		<h3>Analytics</h3>
+		<p>These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site. They help us to know which pages are the most and least popular and see how visitors move around the site. All information these cookies collect is aggregated and therefore anonymous. However, the third parties providing these services, they will process your personal data in order to provide the aggregated data.</p> 
+	</div>
+	  
+	<div id="Marketing" class="tabcontent">
+		<h3>Marketing</h3>
+		<p>These cookies are set by our advertising partners. They are used to build a profile of your interests and show relevant ads on other websites, and to also allow you to 'Like' and 'Share' our content on social media. They do not store directly personal information, but are based on uniquely identifying your browser and internet device. Additionally, the third parties setting these cookies may link your personal data with your browsing behaviour if you are logged into their services at the time.</p>
+	</div>
 </div>
 <div class="cookie-window-footer">
 	<small>Powered by JANUSEC</small>
 </div>
+<script>
+function openCity(evt, cityName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(cityName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
 </div>`
 
 const cookieStyle = `<style>
@@ -300,5 +348,52 @@ const cookieStyle = `<style>
 	background-color: #f0f0f0;
 	text-align: right;
 	padding: 5px;
+}
+
+* {box-sizing: border-box}
+body {font-family: "Lato", sans-serif;}
+
+/* Style the tab */
+.tab {
+  float: left;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+  width: 30%;
+  height: 300px;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  display: block;
+  background-color: inherit;
+  color: black;
+  padding: 22px 16px;
+  width: 100%;
+  border: none;
+  outline: none;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current "tab button" class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  float: left;
+  padding: 0px 12px;
+  border: 1px solid #ccc;
+  width: 70%;
+  border-left: none;
+  height: 300px;
 }
 </style>`
