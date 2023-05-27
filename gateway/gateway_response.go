@@ -210,18 +210,11 @@ func rewriteResponse(resp *http.Response) (err error) {
 		}
 		body := getNodeByData(doc, "body")
 		if body != nil {
-			cookieNode, err := html.Parse(strings.NewReader(cookieDiv))
-			if err != nil {
-				fmt.Println("html.Parse error", err)
-			}
+			cookieNode := ConvertStringToHTMLNode(cookieDiv, "div")
 			body.AppendChild(cookieNode)
-
 			head := getNodeByData(doc, "head")
 			if head != nil {
-				cookieStyle, err := html.Parse(strings.NewReader(cookieStyle))
-				if err != nil {
-					fmt.Println("html.Parse error", err)
-				}
+				cookieStyle := ConvertStringToHTMLNode(cookieStyle, "style")
 				head.AppendChild(cookieStyle)
 			}
 		}
@@ -232,7 +225,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 			fmt.Println("html.Render error", err)
 		}
 		newBody := bytesBuffer.Bytes()
-		resp.Body = io.NopCloser(bytes.NewBuffer(newBody))
+		resp.Body = io.NopCloser(bytes.NewReader(newBody))
 		resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(newBody)), 10))
 	}
 
@@ -246,154 +239,3 @@ func rewriteResponse(resp *http.Response) (err error) {
 	*/
 	return nil
 }
-
-func getNodeByData(node *html.Node, data string) *html.Node {
-	if node.Type == html.ElementNode && node.Data == data {
-		return node
-	}
-	for child := node.FirstChild; child != nil; child = child.NextSibling {
-		childNode := getNodeByData(child, data)
-		if childNode != nil {
-			return childNode
-		}
-	}
-	return nil
-}
-
-const cookieDiv = `<div #JanusecCookie class="janusec-cookie-preference">
-<div class="cookie-container">
-	<h3>Cookie Preference</h3>
-	<p>We use necessary cookies to make our site work. We'd also like to set analytics cookies that help us make
-		improvements by measuring how you use the site. These will be set only if you accept.
-		For more detailed information about the cookies we use, see our cookies policy.</p>
-	<div>
-		<button class="btn-cookie-preference">Reject all cookies</button>
-		<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-		<button class="btn-cookie-preference">Accept all cookies</button>
-	</div>
-	<hr>
-	
-	<div class="tab">
-		<button class="tablinks" onclick="openCity(event, 'Necessary')" id="defaultOpen">Necessary</button>
-		<button class="tablinks" onclick="openCity(event, 'Analytics')">Analytics</button>
-		<button class="tablinks" onclick="openCity(event, 'Marketing')">Marketing</button>
-	</div>
-	  
-	<div id="Necessary" class="tabcontent">
-		<h3>Necessary</h3>
-		<p>Necessary cookies enable core functionality such as security, network management, and accessibility. You
-		may disable these by changing your browser settings, but this may affect how the website functions.
-	</p>
-	</div>
-	  
-	<div id="Analytics" class="tabcontent">
-		<h3>Analytics</h3>
-		<p>These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site. They help us to know which pages are the most and least popular and see how visitors move around the site. All information these cookies collect is aggregated and therefore anonymous. However, the third parties providing these services, they will process your personal data in order to provide the aggregated data.</p> 
-	</div>
-	  
-	<div id="Marketing" class="tabcontent">
-		<h3>Marketing</h3>
-		<p>These cookies are set by our advertising partners. They are used to build a profile of your interests and show relevant ads on other websites, and to also allow you to 'Like' and 'Share' our content on social media. They do not store directly personal information, but are based on uniquely identifying your browser and internet device. Additionally, the third parties setting these cookies may link your personal data with your browsing behaviour if you are logged into their services at the time.</p>
-	</div>
-</div>
-<div class="cookie-window-footer">
-	<small>Powered by JANUSEC</small>
-</div>
-<script>
-function openCity(evt, cityName) {
-  var i, tabcontent, tablinks;
-  tabcontent = document.getElementsByClassName("tabcontent");
-  for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
-  }
-  tablinks = document.getElementsByClassName("tablinks");
-  for (i = 0; i < tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" active", "");
-  }
-  document.getElementById(cityName).style.display = "block";
-  evt.currentTarget.className += " active";
-}
-
-// Get the element with id="defaultOpen" and click on it
-document.getElementById("defaultOpen").click();
-</script>
-</div>`
-
-const cookieStyle = `<style>
-.janusec-cookie-preference {
-	position: absolute;
-	top: 200px;
-	left: 50%;
-	padding: 0;
-	margin-left: -300px;
-	z-index: 9999;
-	width: 600px;
-	background-color: #f9f9f9;
-	border: 1px solid #e0e0e0;
-	opacity: 1;
-}
-
-.cookie-container {
-	margin: 0 10px;
-}
-
-.btn-cookie-preference {
-	padding: 10px;
-	color: #ffffff;
-	border: solid 1px #303030;
-	background-color: #6699DD;
-}
-
-.cookie-window-footer {
-	background-color: #f0f0f0;
-	text-align: right;
-	padding: 5px;
-}
-
-* {box-sizing: border-box}
-body {font-family: "Lato", sans-serif;}
-
-/* Style the tab */
-.tab {
-  float: left;
-  border: 1px solid #ccc;
-  background-color: #f1f1f1;
-  width: 30%;
-  height: 300px;
-}
-
-/* Style the buttons inside the tab */
-.tab button {
-  display: block;
-  background-color: inherit;
-  color: black;
-  padding: 22px 16px;
-  width: 100%;
-  border: none;
-  outline: none;
-  text-align: left;
-  cursor: pointer;
-  transition: 0.3s;
-  font-size: 17px;
-}
-
-/* Change background color of buttons on hover */
-.tab button:hover {
-  background-color: #ddd;
-}
-
-/* Create an active/current "tab button" class */
-.tab button.active {
-  background-color: #ccc;
-}
-
-/* Style the tab content */
-.tabcontent {
-  float: left;
-  padding: 0px 12px;
-  border: 1px solid #ccc;
-  width: 70%;
-  border-left: none;
-  height: 300px;
-}
-</style>`
