@@ -12,6 +12,7 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
@@ -201,32 +202,51 @@ func rewriteResponse(resp *http.Response) (err error) {
 		}
 	}
 
-	// Test Add DOM to body
-	contentType := resp.Header.Get("Content-Type")
-	if strings.Index(contentType, "text/html") == 0 {
-		doc, err := html.Parse(resp.Body)
-		if err != nil {
-			fmt.Println("html.Parse error", err)
-		}
-		body := getNodeByData(doc, "body")
-		if body != nil {
-			cookieNode := ConvertStringToHTMLNode(cookieDiv, "div")
-			body.AppendChild(cookieNode)
-			head := getNodeByData(doc, "head")
-			if head != nil {
-				cookieStyle := ConvertStringToHTMLNode(cookieStyle, "style")
-				head.AppendChild(cookieStyle)
+	// Cookie Management,
+	if app.CookieMgmtEnabled {
+		// First check Set-Cookie
+		tobeSetCookies := resp.Cookies()
+		fmt.Println("To Do: tobeSetCookies", tobeSetCookies)
+
+		// Add DOM to body
+		contentType := resp.Header.Get("Content-Type")
+		if strings.Index(contentType, "text/html") == 0 {
+			doc, err := html.Parse(resp.Body)
+			if err != nil {
+				utils.DebugPrintln("html.Parse error", err)
 			}
+			body := getNodeByData(doc, "body")
+			if body != nil {
+				cookieIcon := ConvertStringToHTMLNode(cookieIconTmpl, "div")
+				body.AppendChild(cookieIcon)
+				tmplCookieWindow, err := template.New("cookieWindow").Parse(cookieWindowTmpl)
+				if err != nil {
+					utils.DebugPrintln("template cookieWindow Parse error", err)
+				}
+				var bytesBuffer bytes.Buffer
+				err = tmplCookieWindow.Execute(&bytesBuffer, app)
+				if err != nil {
+					utils.DebugPrintln("tmplCookieWindow.Execute", err)
+				}
+				cookieWindowHTML := bytesBuffer.String()
+				cookieOptWindow := ConvertStringToHTMLNode(cookieWindowHTML, "div")
+				body.AppendChild(cookieOptWindow)
+				head := getNodeByData(doc, "head")
+				if head != nil {
+					cookieStyle := ConvertStringToHTMLNode(cookieStyle, "style")
+					head.AppendChild(cookieStyle)
+				}
+			}
+			// write back to resp.Body
+			var bytesBuffer bytes.Buffer
+			err = html.Render(&bytesBuffer, doc)
+			if err != nil {
+				fmt.Println("html.Render error", err)
+			}
+			newBody := bytesBuffer.Bytes()
+			resp.Body = io.NopCloser(bytes.NewReader(newBody))
+			resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(newBody)), 10))
 		}
-		// write back to resp.Body
-		var bytesBuffer bytes.Buffer
-		err = html.Render(&bytesBuffer, doc)
-		if err != nil {
-			fmt.Println("html.Render error", err)
-		}
-		newBody := bytesBuffer.Bytes()
-		resp.Body = io.NopCloser(bytes.NewReader(newBody))
-		resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(newBody)), 10))
 	}
 
 	/*

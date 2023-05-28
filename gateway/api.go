@@ -258,6 +258,9 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "del_discovery_rule":
 		obj = nil
 		err = firewall.DeleteDiscoveryRuleByID(apiRequest.ObjectID, clientIP, authUser)
+	case "get_app_cookies":
+		obj = backend.GetCookiesByAppID(apiRequest.ObjectID)
+		err = nil
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

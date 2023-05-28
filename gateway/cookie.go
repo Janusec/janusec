@@ -14,7 +14,28 @@ import (
 )
 
 const cookieStyle = `<style>
- .janusec-cookie-preference {
+  #JanusecCookieOptIcon {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    width: 40px;
+    height: 40px;   
+    z-index: 9999;
+  }
+
+  #JanusecCookieOptIcon button {
+    width: 100%;
+    height: 100%;
+    font-size: 24px;
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    opacity: 0.3;
+  }
+
+  #JanusecCookieOptWindow {
     position: fixed;
     top: 120px;
     left: 50%;
@@ -23,13 +44,17 @@ const cookieStyle = `<style>
     z-index: 9999;
     width: 600px;
     background-color: #FFFFFF;
-    border: 1px solid #e0e0e0;
+    border: 2px solid #e0e0e0;
     opacity: 1;
  }
  
+  #JanusecCookieOptWindow div,p,span {
+    text-align: left;
+  }
+
  .cookie-title-line {
-	margin-top: 10px;
-	padding: 5px 0;
+    margin-top: 10px;
+    padding: 5px 0;
  }
 
  .cookie-window-title {
@@ -56,13 +81,14 @@ const cookieStyle = `<style>
 
  .common-text {
 	color: #808080;
+  font-size: 12px;
  }
  
- .btn-cookie-preference {
+ .btn-cookie-save {
     padding: 10px;
     color: #ffffff;
     border: solid 1px #F5F5F5;
-    background-color: #6699DD;
+    background-color: #007bff;
  }
  
  .cookie-window-footer {
@@ -79,9 +105,9 @@ const cookieStyle = `<style>
  
  .cookie-tab {
    float: left;
-   border: 1px solid #ccc;
+   border: 1px solid #c0c0c0;
    width: 30%;
-   height: 220px;
+   height: 300px;
  }
  
  .cookie-tab button {
@@ -109,18 +135,18 @@ const cookieStyle = `<style>
  .tabcontent {
    float: left;
    padding: 0px 12px;
-   border: 1px solid #ccc;
+   border: 1px solid #c0c0c0;
    width: 70%;
-   border-left: 1px solid #f5f5f5;
+   border-left: 1px solid #e0e0e0;
    height: 300px;
  }
 
  .btn-confirm {
 	float: right;
 	padding: 10px;
-    color: #ffffff;
-    border: solid 1px #303030;
-    background-color: #6699DD;
+  color: #ffffff;
+  border: solid 1px #F5F5F5;
+  background-color: #007bff;
  }
 
  .cookie-type-line {
@@ -129,28 +155,33 @@ const cookieStyle = `<style>
 
  .txt-always-on {
 	float: right;
-	color: #6699DD;
+	color: #007bff;
  }
+
+ .txt-janusec-logo {
+  color: #007bff;
+ }
+
  /* toggle button */
 
  .switch-box {
 	float: right;
-    width: 40px;
+  width: 40px;
 }
+
 .switch-box .switch {
-    /* 隐藏checkbox默认样式 */
     display: none;
 }
+
 .switch-box label {
-    /* 通过label扩大点击热区 */
     position: relative;
     display: block;
     margin: 1px;
     height: 20px;
     cursor: pointer;
 }
+
 .switch-box label::before {
-    /* before设置前滚动小圆球 */
     content: '';
     position: absolute;
     top: 50%;
@@ -162,7 +193,6 @@ const cookieStyle = `<style>
     border-radius: 100%;
     background-color: #fff;
     box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.06);
-    /* 通过transform、transition属性控制元素过渡进而形成css3动画 */
     -webkit-transform: translateX(-9px);
     -moz-transform: translateX(-9px);
     transform: translateX(-9px);
@@ -170,16 +200,14 @@ const cookieStyle = `<style>
     -moz-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
+
 .switch-box .switch:checked~label::before {
-    /* 语义：被选中的类名为"switch"元素后面的label元素里的伪类元素，进行更改css样式 */
-    /* 形成伪类结构选择器：":"冒号加布尔值"checked" */
-    /* " Ele1 ~ Ele2 "波浪号在css的作用：连接的元素必须有相同的父元素，选择出现在Ele1后的Ele2（但不必跟在Ele1，也就是说可以并列）  */
     -webkit-transform: translateX(9px);
     -moz-transform: translateX(9px);
     transform: translateX(9px);
 }
+
 .switch-box label::after {
-    /* after设置滚动前背景色 */
     content: "";
     display: block;
     border-radius: 10px;
@@ -189,33 +217,45 @@ const cookieStyle = `<style>
     -moz-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
+
 .switch-box .switch:checked~label::after {
-    background-color: #6699DD;
+    background-color: #007bff;
 }
+
 /* end toggle button */
+
  </style>`
 
-const cookieDiv = `
-<div #JanusecCookie class="janusec-cookie-preference">
+const cookieIconTmpl = `
+<div id="JanusecCookieOptIcon">
+    <button onclick="toggleCookieOptWindow()">C</button>
+</div>`
+
+const cookieWindowTmpl = `
+<div id="JanusecCookieOptWindow">
 <div class="cookie-outer-container">
-    <div class="cookie-title-line">
+  <div class="cookie-title-line">
     <span class="cookie-window-title">Cookie Preference</span>
-	<span><button class="btn-cookie-window-close">×</button></span>
-    </div>
-	<p class="common-text">We use necessary cookies to make our site work. We'd also like to set analytics cookies that help us make
-		improvements by measuring how you use the site. These will be set only if you accept.
-		For more detailed information about the cookies we use, see our cookies policy.</p>
+    <span>
+      <button class="btn-cookie-window-close" onclick="closeCookieOptWindow()">×</button>
+    </span>
+  </div>
+  <p class="common-text">
+    {{ .ConciseNotice }} For more detailed information about the cookies we use, see our 
+    <a href="{{ .LongNoticeLink }}" target="_blank">cookies notice</a>.
+  </p>
 	<div>
-		<button class="btn-cookie-preference">Reject all cookies</button>
+		<button class="btn-cookie-save" onclick="rejectAllCookies()">Reject all Cookies</button>
 		<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-		<button class="btn-cookie-preference">Accept all cookies</button>
+		<button class="btn-cookie-save" onclick="acceptAllCookies()">Accept all Cookies</button>
 	</div>
 	<hr>
 	<div class="cookie-div-container">
 		<div class="cookie-tab">
-			<button class="tablinks" onclick="openCity(event, 'Necessary')" id="defaultOpen">Necessary Cookies</button>
-			<button class="tablinks" onclick="openCity(event, 'Analytics')">Analytics Cookies</button>
-			<button class="tablinks" onclick="openCity(event, 'Marketing')">Marketing Cookies</button>
+			<button class="tablinks" onclick="openCookieTab(event, 'Necessary')" id="defaultOpen">Necessary Cookies</button>
+			<button class="tablinks" onclick="openCookieTab(event, 'Analytics')">Analytics Cookies</button>
+			<button class="tablinks" onclick="openCookieTab(event, 'Marketing')">Marketing Cookies</button>
+      <button class="tablinks" onclick="openCookieTab(event, 'Unclassified')">Unclassified Cookies</button>
 		</div>
 		
 		<div id="Necessary" class="tabcontent">
@@ -223,22 +263,20 @@ const cookieDiv = `
 			<span>Necessary Cookies</span>
 			<span class="txt-always-on">Always On</span>
 			</div>
-			<p class="common-text">Necessary cookies enable core functionality such as security, network management, and accessibility. You
-			may disable these by changing your browser settings, but this may affect how the website functions.
-		</p>
+			<p class="common-text">{{ .NecessaryNotice }}</p>
 		</div>
 		
 		<div id="Analytics" class="tabcontent">
-		    <div class="cookie-type-line">
+		  <div class="cookie-type-line">
 			<span>Analytics Cookies</span>
 			<span>
 			<div class="switch-box">
-				<input id="switchButton" type="checkbox" class="switch" />
-				<label for="switchButton"></label>
+				<input id="analyticsPermit" type="checkbox" class="switch" />
+				<label for="analyticsPermit"></label>
 			</div>
 			</span>
 			</div>
-			<p class="common-text">These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site. They help us to know which pages are the most and least popular and see how visitors move around the site. All information these cookies collect is aggregated and therefore anonymous. However, the third parties providing these services, they will process your personal data in order to provide the aggregated data.</p> 
+			<p class="common-text">{{ .AnalyticsNotice }}</p> 
 		</div>
 		
 		<div id="Marketing" class="tabcontent">
@@ -246,25 +284,48 @@ const cookieDiv = `
 			<span>Marketing Cookies</span>
 			<span>
 			<div class="switch-box">
-				<input id="switchButton2" type="checkbox" class="switch" />
-				<label for="switchButton2"></label>
+				<input id="marketingPermit" type="checkbox" class="switch" />
+				<label for="marketingPermit"></label>
 			</div>
 			</span>
 			</div>
-			<p class="common-text">These cookies are set by our advertising partners. They are used to build a profile of your interests and show relevant ads on other websites. They do not store directly personal information, but are based on uniquely identifying your browser and internet device. Additionally, the third parties setting these cookies may link your personal data with your browsing behaviour if you are logged into their services at the time.</p>
+			<p class="common-text">{{ .MarketingNotice }}</p>
 		</div>
+
+    <div id="Unclassified" class="tabcontent">
+			<div class="cookie-type-line">
+			<span>Unclassified Cookies</span>
+			<span>
+			<div class="switch-box">
+				<input id="unclassifiedPermit" type="checkbox" class="switch" />
+				<label for="unclassifiedPermit"></label>
+			</div>
+			</span>
+			</div>
+			<p class="common-text">{{ .UnclassifiedNotice }}</p>
+		</div>
+
 	</div>
 	<div class="cookie-div-container">
 	<br>
-		<button class="btn-confirm">Confirm My Choice</button>
+		<button class="btn-confirm" onclick="saveCookiePreference()">Confirm My Choice</button>
 	</div>
 </div>
 <br>
 <div class="cookie-window-footer">
-	<small>Powered by JANUSEC</small>
+	<small><span>Powered by </span><span class="txt-janusec-logo">JANUSEC</span></small>
 </div>
 <script>
-function openCity(evt, cityName) {
+function toggleCookieOptWindow() {
+  var display = document.getElementById("JanusecCookieOptWindow").style.display;
+  if(display=='none') {
+    document.getElementById("JanusecCookieOptWindow").style.display = 'block';
+  } else {
+    document.getElementById("JanusecCookieOptWindow").style.display = 'none';
+  }
+}
+
+function openCookieTab(evt, cookieTab) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tabcontent");
   for (i = 0; i < tabcontent.length; i++) {
@@ -274,12 +335,92 @@ function openCity(evt, cityName) {
   for (i = 0; i < tablinks.length; i++) {
     tablinks[i].className = tablinks[i].className.replace(" active", "");
   }
-  document.getElementById(cityName).style.display = "block";
+  document.getElementById(cookieTab).style.display = "block";
   evt.currentTarget.className += " active";
+}
+
+function getCookie(cname) {
+  const name = cname + "=";
+  const ca = document.cookie.split(";");
+  for(let i=0; i<ca.length; i++)
+  {
+      const c = ca[i].trim();
+      if (c.indexOf(name)===0) return c.substring(name.length,c.length);
+  }
+  return "";
+}
+
+function setCookie(cname,cvalue,exdays){
+  const d = new Date();
+  d.setTime(d.getTime()+(exdays*24*60*60*1000));
+  const expires = "expires=" + d.toUTCString();
+  document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+
+function closeCookieOptWindow() {
+  document.getElementById("JanusecCookieOptWindow").style.display = "none";
+}
+
+function initCookieOptValue() {
+  var optConsent = +getCookie("CookieOptConsent");
+  console.log("optConsent", optConsent);
+  if(optConsent==0) {
+    document.getElementById("JanusecCookieOptWindow").style.display = "block";
+    {{ if .EnableAnalytics }}
+    document.getElementById("analyticsPermit").checked = true;
+    {{ end }}
+    {{ if .EnableMarketing }}
+    document.getElementById("marketingPermit").checked = true;
+    {{ end }}
+    {{ if .EnableUnclassified }}
+    document.getElementById("unclassifiedPermit").checked = true;
+    {{ end }}
+    return;
+  }
+  if((optConsent & 2)>0) {
+    document.getElementById("analyticsPermit").checked = true;
+  }
+  if((optConsent & 4)>0) {
+    document.getElementById("marketingPermit").checked = true;
+  }
+  if((optConsent & 512)>0) {
+    document.getElementById("unclassifiedPermit").checked = true;
+  }
+  closeCookieOptWindow();
+}
+
+function saveCookiePreference() {
+  // initial:0, necessary: 1, analytics: 2, marketing: 4;
+  var optConsent = 1;
+  var analyticsPermit = document.getElementById("analyticsPermit").checked;
+  if(analyticsPermit) optConsent += 2;
+  var marketingPermit = document.getElementById("marketingPermit").checked;
+  if(marketingPermit) optConsent += 4;
+  var unclassifiedPermit = document.getElementById("unclassifiedPermit").checked;
+  if(unclassifiedPermit) optConsent += 512;
+  setCookie("CookieOptConsent", optConsent, 365);
+  closeCookieOptWindow();
+}
+
+function rejectAllCookies() {
+  document.getElementById("analyticsPermit").checked = false;
+  document.getElementById("marketingPermit").checked = false;
+  document.getElementById("unclassifiedPermit").checked = false;
+  setCookie("CookieOptConsent", 1, 365);
+  closeCookieOptWindow();
+}
+
+function acceptAllCookies() {
+  document.getElementById("analyticsPermit").checked = true;
+  document.getElementById("marketingPermit").checked = true;
+  document.getElementById("unclassifiedPermit").checked = true;
+  setCookie("CookieOptConsent", 1+2+4+512, 365);
+  closeCookieOptWindow();
 }
 
 // Get the element with id="defaultOpen" and click on it
 document.getElementById("defaultOpen").click();
+initCookieOptValue();
 </script>
 </div>`
 
