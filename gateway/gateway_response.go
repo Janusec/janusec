@@ -204,9 +204,85 @@ func rewriteResponse(resp *http.Response) (err error) {
 
 	// Cookie Management,
 	if app.CookieMgmtEnabled {
-		// First check Set-Cookie
-		tobeSetCookies := resp.Cookies()
-		fmt.Println("To Do: tobeSetCookies", tobeSetCookies)
+		// check consent of user
+		var optConsentValue int64
+		optConsentCookie, err := r.Cookie("CookieOptConsent")
+		if err != nil {
+			optConsentValue = 0
+		} else {
+			optConsentValue, err = strconv.ParseInt(optConsentCookie.Value, 10, 64)
+			if err != nil {
+				utils.DebugPrintln("Parse CookieOptConsent error", err)
+				optConsentValue = 0
+			}
+		}
+
+		fmt.Println("0000", optConsentValue)
+
+		// check Set-Cookie
+		for _, httpCookie := range resp.Cookies() {
+			exists, cookie := backend.ExistsCookie(app, httpCookie.Name)
+			if !exists {
+				cookie := &models.Cookie{
+					ID:          utils.GenSnowflakeID(),
+					AppID:       app.ID,
+					Name:        httpCookie.Name,
+					Path:        httpCookie.Path,
+					Vendor:      "",
+					Type:        models.Cookie_Unclassified,
+					Description: "",
+					AccessTime:  time.Now().Unix(),
+					Source:      r.RequestURI,
+				}
+				err := data.DAL.InsertNewCookie(cookie)
+				if err != nil {
+					utils.DebugPrintln("InsertNewCookie", err)
+				}
+				app.Cookies = append(app.Cookies, cookie)
+				if optConsentValue == 0 {
+					// user not set and not permit by default
+					if !app.EnableUnclassified {
+						// Remove cookie when Unclassified Cookie not permitted
+						httpCookie.MaxAge = -1
+					}
+
+				} else if (optConsentValue & int64(models.Cookie_Unclassified)) == 0 {
+					// user has not give consent for unclassified cookies
+					httpCookie.MaxAge = -1
+					fmt.Println("0001 remove", cookie.Name)
+				}
+			} else {
+				// cookie exists in database
+				if optConsentValue == 0 {
+					switch cookie.Type {
+					case models.Cookie_Functional:
+						if !app.EnableFunctional {
+							httpCookie.MaxAge = -1
+						}
+					case models.Cookie_Analytics:
+						if !app.EnableAnalytics {
+							httpCookie.MaxAge = -1
+						}
+					case models.Cookie_Marketing:
+						if !app.EnableMarketing {
+							httpCookie.MaxAge = -1
+						}
+					case models.Cookie_Unclassified:
+						if !app.EnableUnclassified {
+							// Remove cookie when Unclassified Cookie not permitted
+							httpCookie.MaxAge = -1
+						}
+					}
+					fmt.Println("0002", cookie.Type)
+				} else if (optConsentValue & int64(models.Cookie_Unclassified)) == 0 {
+					// user has not give consent for unclassified cookies
+					httpCookie.MaxAge = -1
+					fmt.Println("0003 remove", cookie.Name)
+				}
+
+			}
+
+		}
 
 		// Add DOM to body
 		contentType := resp.Header.Get("Content-Type")

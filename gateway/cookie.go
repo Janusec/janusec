@@ -253,6 +253,7 @@ const cookieWindowTmpl = `
 	<div class="cookie-div-container">
 		<div class="cookie-tab">
 			<button class="tablinks" onclick="openCookieTab(event, 'Necessary')" id="defaultOpen">Necessary Cookies</button>
+      <button class="tablinks" onclick="openCookieTab(event, 'Functional')">Functional Cookies</button>
 			<button class="tablinks" onclick="openCookieTab(event, 'Analytics')">Analytics Cookies</button>
 			<button class="tablinks" onclick="openCookieTab(event, 'Marketing')">Marketing Cookies</button>
       <button class="tablinks" onclick="openCookieTab(event, 'Unclassified')">Unclassified Cookies</button>
@@ -264,6 +265,19 @@ const cookieWindowTmpl = `
 			<span class="txt-always-on">Always On</span>
 			</div>
 			<p class="common-text">{{ .NecessaryNotice }}</p>
+		</div>
+
+    <div id="Functional" class="tabcontent">
+		  <div class="cookie-type-line">
+			<span>Functional Cookies</span>
+			<span>
+			<div class="switch-box">
+				<input id="functionalPermit" type="checkbox" class="switch" />
+				<label for="functionalPermit"></label>
+			</div>
+			</span>
+			</div>
+			<p class="common-text">{{ .FunctionalNotice }}</p> 
 		</div>
 		
 		<div id="Analytics" class="tabcontent">
@@ -366,6 +380,9 @@ function initCookieOptValue() {
   console.log("optConsent", optConsent);
   if(optConsent==0) {
     document.getElementById("JanusecCookieOptWindow").style.display = "block";
+    {{ if .EnableFunctional }}
+    document.getElementById("functionalPermit").checked = true;
+    {{ end }}
     {{ if .EnableAnalytics }}
     document.getElementById("analyticsPermit").checked = true;
     {{ end }}
@@ -378,9 +395,12 @@ function initCookieOptValue() {
     return;
   }
   if((optConsent & 2)>0) {
-    document.getElementById("analyticsPermit").checked = true;
+    document.getElementById("functionalPermit").checked = true;
   }
   if((optConsent & 4)>0) {
+    document.getElementById("analyticsPermit").checked = true;
+  }
+  if((optConsent & 8)>0) {
     document.getElementById("marketingPermit").checked = true;
   }
   if((optConsent & 512)>0) {
@@ -390,12 +410,14 @@ function initCookieOptValue() {
 }
 
 function saveCookiePreference() {
-  // initial:0, necessary: 1, analytics: 2, marketing: 4;
+  // initial:0, necessary: 1, functional: 2, analytics: 4, marketing: 8;
   var optConsent = 1;
+  var functionalPermit = document.getElementById("functionalPermit").checked;
+  if(functionalPermit) optConsent += 2;
   var analyticsPermit = document.getElementById("analyticsPermit").checked;
-  if(analyticsPermit) optConsent += 2;
+  if(analyticsPermit) optConsent += 4;
   var marketingPermit = document.getElementById("marketingPermit").checked;
-  if(marketingPermit) optConsent += 4;
+  if(marketingPermit) optConsent += 8;
   var unclassifiedPermit = document.getElementById("unclassifiedPermit").checked;
   if(unclassifiedPermit) optConsent += 512;
   setCookie("CookieOptConsent", optConsent, 365);
@@ -403,6 +425,7 @@ function saveCookiePreference() {
 }
 
 function rejectAllCookies() {
+  document.getElementById("functionalPermit").checked = false;
   document.getElementById("analyticsPermit").checked = false;
   document.getElementById("marketingPermit").checked = false;
   document.getElementById("unclassifiedPermit").checked = false;
@@ -411,10 +434,11 @@ function rejectAllCookies() {
 }
 
 function acceptAllCookies() {
+  document.getElementById("functionalPermit").checked = true;
   document.getElementById("analyticsPermit").checked = true;
   document.getElementById("marketingPermit").checked = true;
   document.getElementById("unclassifiedPermit").checked = true;
-  setCookie("CookieOptConsent", 1+2+4+512, 365);
+  setCookie("CookieOptConsent", 1+2+4+8+512, 365);
   closeCookieOptWindow();
 }
 

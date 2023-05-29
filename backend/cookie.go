@@ -7,10 +7,24 @@
 package backend
 
 import (
-	"janusec/data"
 	"janusec/models"
+	"janusec/utils"
 )
 
 func GetCookiesByAppID(appID int64) []*models.Cookie {
-	return data.DAL.SelectCookiesByAppID(appID)
+	app, err := GetApplicationByID(appID)
+	if err != nil {
+		utils.DebugPrintln("GetCookiesByAppID", err)
+		return []*models.Cookie{}
+	}
+	return app.Cookies
+}
+
+func ExistsCookie(app *models.Application, name string) (bool, *models.Cookie) {
+	for _, cookie := range app.Cookies {
+		if cookie.Name == name {
+			return true, cookie
+		}
+	}
+	return false, nil
 }

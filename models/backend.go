@@ -46,16 +46,19 @@ type Application struct {
 	CacheEnabled bool `json:"cache_enabled"`
 
 	// Cookie Consent Management v1.4.1
-	CookieMgmtEnabled  bool   `json:"cookie_mgmt_enabled"`
-	ConciseNotice      string `json:"concise_notice"`
-	LongNoticeLink     string `json:"long_notice_link"`
-	NecessaryNotice    string `json:"necessary_notice"`
-	AnalyticsNotice    string `json:"analytics_notice"`
-	EnableAnalytics    bool   `json:"enable_analytics"`
-	MarketingNotice    string `json:"marketing_notice"`
-	EnableMarketing    bool   `json:"enable_marketing"`
-	UnclassifiedNotice string `json:"unclassified_notice"`
-	EnableUnclassified bool   `json:"enable_unclassified"`
+	CookieMgmtEnabled  bool      `json:"cookie_mgmt_enabled"`
+	ConciseNotice      string    `json:"concise_notice"`
+	LongNoticeLink     string    `json:"long_notice_link"`
+	NecessaryNotice    string    `json:"necessary_notice"`
+	FunctionalNotice   string    `json:"functional_notice"`
+	EnableFunctional   bool      `json:"enable_functional"`
+	AnalyticsNotice    string    `json:"analytics_notice"`
+	EnableAnalytics    bool      `json:"enable_analytics"`
+	MarketingNotice    string    `json:"marketing_notice"`
+	EnableMarketing    bool      `json:"enable_marketing"`
+	UnclassifiedNotice string    `json:"unclassified_notice"`
+	EnableUnclassified bool      `json:"enable_unclassified"`
+	Cookies            []*Cookie `json:"-"`
 }
 
 // DBApplication for storage in database
@@ -86,6 +89,8 @@ type DBApplication struct {
 	ConciseNotice      string `json:"concise_notice"`
 	LongNoticeLink     string `json:"long_notice_link"`
 	NecessaryNotice    string `json:"necessary_notice"`
+	FunctionalNotice   string `json:"functional_notice"`
+	EnableFunctional   bool   `json:"enable_functional"`
 	AnalyticsNotice    string `json:"analytics_notice"`
 	EnableAnalytics    bool   `json:"enable_analytics"`
 	MarketingNotice    string `json:"marketing_notice"`

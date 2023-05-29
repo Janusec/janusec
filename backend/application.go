@@ -169,6 +169,8 @@ func LoadApps() {
 				ConciseNotice:      dbApp.ConciseNotice,
 				LongNoticeLink:     dbApp.LongNoticeLink,
 				NecessaryNotice:    dbApp.NecessaryNotice,
+				FunctionalNotice:   dbApp.FunctionalNotice,
+				EnableFunctional:   dbApp.EnableFunctional,
 				AnalyticsNotice:    dbApp.AnalyticsNotice,
 				EnableAnalytics:    dbApp.EnableAnalytics,
 				MarketingNotice:    dbApp.MarketingNotice,
@@ -176,6 +178,9 @@ func LoadApps() {
 				UnclassifiedNotice: dbApp.UnclassifiedNotice,
 				EnableUnclassified: dbApp.EnableUnclassified,
 			}
+			// Load Cookies of each App
+			app.Cookies = data.DAL.SelectCookiesByAppID(app.ID)
+
 			Apps = append(Apps, app)
 		}
 	} else {
@@ -334,11 +339,11 @@ func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) 
 	app := rpcAppRequest.Object
 	if app.ID == 0 {
 		// new application
-		app.ID = data.DAL.InsertApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, app.CookieMgmtEnabled, app.ConciseNotice, app.LongNoticeLink, app.NecessaryNotice, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified)
+		app.ID = data.DAL.InsertApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, app.CookieMgmtEnabled, app.ConciseNotice, app.LongNoticeLink, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified)
 		Apps = append(Apps, app)
 		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {
-		err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, app.CookieMgmtEnabled, app.ConciseNotice, app.LongNoticeLink, app.NecessaryNotice, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified, app.ID)
+		err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, app.CookieMgmtEnabled, app.ConciseNotice, app.LongNoticeLink, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified, app.ID)
 		if err != nil {
 			utils.DebugPrintln("UpdateApplication", err)
 		}
