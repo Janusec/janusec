@@ -8,6 +8,7 @@ package gateway
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -469,4 +470,9 @@ func ConvertStringToHTMLNode(text string, labelData string) *html.Node {
 	labelNode2 := getNodeByData(labelNode, labelData)
 	labelNode2.Parent = nil
 	return labelNode2
+}
+
+func DeleteResponseCookie(resp *http.Response, httpCookie *http.Cookie) {
+	httpCookie.MaxAge = -1
+	resp.Header.Add("Set-Cookie", httpCookie.String())
 }

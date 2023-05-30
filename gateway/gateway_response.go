@@ -217,8 +217,6 @@ func rewriteResponse(resp *http.Response) (err error) {
 			}
 		}
 
-		fmt.Println("0000", optConsentValue)
-
 		// check Set-Cookie
 		for _, httpCookie := range resp.Cookies() {
 			exists, cookie := backend.ExistsCookie(app, httpCookie.Name)
@@ -243,41 +241,39 @@ func rewriteResponse(resp *http.Response) (err error) {
 					// user not set and not permit by default
 					if !app.EnableUnclassified {
 						// Remove cookie when Unclassified Cookie not permitted
-						httpCookie.MaxAge = -1
+						DeleteResponseCookie(resp, httpCookie)
 					}
-
 				} else if (optConsentValue & int64(models.Cookie_Unclassified)) == 0 {
 					// user has not give consent for unclassified cookies
-					httpCookie.MaxAge = -1
+					DeleteResponseCookie(resp, httpCookie)
 					fmt.Println("0001 remove", cookie.Name)
 				}
 			} else {
 				// cookie exists in database
 				if optConsentValue == 0 {
+					// when user has not confirmed his choice
 					switch cookie.Type {
 					case models.Cookie_Functional:
 						if !app.EnableFunctional {
-							httpCookie.MaxAge = -1
+							DeleteResponseCookie(resp, httpCookie)
 						}
 					case models.Cookie_Analytics:
 						if !app.EnableAnalytics {
-							httpCookie.MaxAge = -1
+							DeleteResponseCookie(resp, httpCookie)
 						}
 					case models.Cookie_Marketing:
 						if !app.EnableMarketing {
-							httpCookie.MaxAge = -1
+							DeleteResponseCookie(resp, httpCookie)
 						}
 					case models.Cookie_Unclassified:
 						if !app.EnableUnclassified {
 							// Remove cookie when Unclassified Cookie not permitted
-							httpCookie.MaxAge = -1
+							DeleteResponseCookie(resp, httpCookie)
 						}
 					}
-					fmt.Println("0002", cookie.Type)
 				} else if (optConsentValue & int64(models.Cookie_Unclassified)) == 0 {
-					// user has not give consent for unclassified cookies
-					httpCookie.MaxAge = -1
-					fmt.Println("0003 remove", cookie.Name)
+					// when user has confirmed but not give consent for unclassified cookies
+					DeleteResponseCookie(resp, httpCookie)
 				}
 
 			}
