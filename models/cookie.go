@@ -10,8 +10,8 @@ type CookieType int64
 
 const (
 	Cookie_Necessary    CookieType = 1
-	Cookie_Analytics    CookieType = 1 << 1
-	Cookie_Functional   CookieType = 1 << 2
+	Cookie_Functional   CookieType = 1 << 1
+	Cookie_Analytics    CookieType = 1 << 2
 	Cookie_Marketing    CookieType = 1 << 3
 	Cookie_Unclassified CookieType = 1 << 9 // 512
 )
