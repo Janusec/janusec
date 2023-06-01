@@ -21,7 +21,9 @@ type Cookie struct {
 	ID          int64      `json:"id,string"`
 	AppID       int64      `json:"app_id,string"`
 	Name        string     `json:"name"`
+	Domain      string     `json:"domain"`
 	Path        string     `json:"path"`
+	Retention   string     `json:"retention"`
 	Vendor      string     `json:"vendor"`
 	Type        CookieType `json:"type"`
 	Description string     `json:"description"`
@@ -29,8 +31,8 @@ type Cookie struct {
 	Source      string     `json:"source"`
 }
 
-// CookieBase used for classification automatically
-type CookieBase struct {
+// CookieRef used for classification automatically
+type CookieRef struct {
 	ID          int64      `json:"id,string"`
 	Name        string     `json:"name"`
 	Vendor      string     `json:"vendor"`

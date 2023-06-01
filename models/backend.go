@@ -58,7 +58,7 @@ type Application struct {
 	EnableMarketing    bool      `json:"enable_marketing"`
 	UnclassifiedNotice string    `json:"unclassified_notice"`
 	EnableUnclassified bool      `json:"enable_unclassified"`
-	Cookies            []*Cookie `json:"-"`
+	Cookies            []*Cookie `json:"cookies"`
 }
 
 // DBApplication for storage in database

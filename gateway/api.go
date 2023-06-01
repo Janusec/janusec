@@ -261,6 +261,8 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_app_cookies":
 		obj = backend.GetCookiesByAppID(apiRequest.ObjectID)
 		err = nil
+	case "update_cookie":
+		obj, err = backend.UpdateCookie(bodyBuf, clientIP, authUser)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

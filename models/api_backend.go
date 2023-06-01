@@ -37,3 +37,9 @@ type APIAppUserRequest struct {
 	ObjectID int64         `json:"id,string"`
 	Object   *FrontAppUser `json:"object"`
 }
+
+type APICookieRequest struct {
+	Action   string  `json:"action"`
+	ObjectID int64   `json:"id,string"`
+	Object   *Cookie `json:"object"`
+}

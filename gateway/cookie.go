@@ -474,5 +474,6 @@ func ConvertStringToHTMLNode(text string, labelData string) *html.Node {
 
 func DeleteResponseCookie(resp *http.Response, httpCookie *http.Cookie) {
 	httpCookie.MaxAge = -1
+	httpCookie.Value = ""
 	resp.Header.Add("Set-Cookie", httpCookie.String())
 }
