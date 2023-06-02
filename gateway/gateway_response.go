@@ -227,7 +227,7 @@ func rewriteResponse(resp *http.Response) (err error) {
 					Name:        httpCookie.Name,
 					Domain:      httpCookie.Domain,
 					Path:        httpCookie.Path,
-					Retention:   backend.GetCookieRetention(httpCookie),
+					Duration:    backend.GetCookieDuration(httpCookie),
 					Vendor:      "",
 					Type:        models.Cookie_Unclassified,
 					Description: "",

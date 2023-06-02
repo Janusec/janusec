@@ -8,6 +8,7 @@ package backend
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"janusec/data"
 	"janusec/models"
@@ -73,16 +74,49 @@ func UpdateAppCookies(app *models.Application, cookie *models.Cookie) {
 	}
 }
 
-func GetCookieRetention(httpCookie *http.Cookie) string {
-	cookieRetentionMinutes := math.Ceil(time.Until(httpCookie.Expires).Minutes())
-	if cookieRetentionMinutes > (24 * 60) {
+func GetCookieDuration(httpCookie *http.Cookie) string {
+	cookieDurationMinutes := math.Ceil(time.Until(httpCookie.Expires).Minutes())
+	if cookieDurationMinutes > (24 * 60) {
 		// days
-		return fmt.Sprintf("%d days", int64(cookieRetentionMinutes)/(24*60))
+		return fmt.Sprintf("%d days", int64(cookieDurationMinutes)/(24*60))
 	}
-	if cookieRetentionMinutes > (60) {
+	if cookieDurationMinutes > (60) {
 		// hours
-		return fmt.Sprintf("%.2f hours", cookieRetentionMinutes/(60))
+		return fmt.Sprintf("%.2f hours", cookieDurationMinutes/(60))
 	}
 	// minutes
-	return fmt.Sprintf("%.2f minutes", cookieRetentionMinutes)
+	return fmt.Sprintf("%.2f minutes", cookieDurationMinutes)
+}
+
+func DeleteCookie(cookieID int64, clientIP string, authUser *models.AuthUser) error {
+	cookie, err := data.DAL.SelectCookieByID(cookieID)
+	if err != nil {
+		return err
+	}
+	err = data.DAL.DeleteCookieByID(cookie.ID)
+	if err != nil {
+		utils.DebugPrintln("DeleteCookie ", err)
+		return err
+	}
+	app, err := GetApplicationByID(cookie.AppID)
+	if err != nil {
+		utils.DebugPrintln("DeleteCookie GetApp", err)
+	}
+	err = DeleteCookieFromAppCookies(app, cookie)
+	if err != nil {
+		utils.DebugPrintln("DeleteCookieFromAppCookies", err)
+	}
+	go utils.OperationLog(clientIP, authUser.Username, "Delete Cookie", cookie.Name)
+	data.UpdateBackendLastModified()
+	return nil
+}
+
+func DeleteCookieFromAppCookies(app *models.Application, cookieA *models.Cookie) error {
+	for i, cookie := range app.Cookies {
+		if cookie.ID == cookieA.ID {
+			app.Cookies = append(app.Cookies[:i], app.Cookies[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("cookie not found")
 }

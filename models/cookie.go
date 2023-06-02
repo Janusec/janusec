@@ -23,7 +23,7 @@ type Cookie struct {
 	Name        string     `json:"name"`
 	Domain      string     `json:"domain"`
 	Path        string     `json:"path"`
-	Retention   string     `json:"retention"`
+	Duration    string     `json:"duration"`
 	Vendor      string     `json:"vendor"`
 	Type        CookieType `json:"type"`
 	Description string     `json:"description"`

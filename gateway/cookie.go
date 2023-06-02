@@ -41,9 +41,9 @@ const cookieStyle = `<style>
     top: 120px;
     left: 50%;
     padding: 0;
-    margin-left: -300px;
+    margin-left: -400px;
     z-index: 9999;
-    width: 600px;
+    width: 800px;
     background-color: #FFFFFF;
     border: 2px solid #e0e0e0;
     opacity: 1;
@@ -117,6 +117,7 @@ const cookieStyle = `<style>
    color: black;
    padding: 22px 16px;
    width: 100%;
+   height: 60px;
    border: none;
    outline: none;
    text-align: left;
@@ -140,6 +141,19 @@ const cookieStyle = `<style>
    width: 70%;
    border-left: 1px solid #e0e0e0;
    height: 300px;
+   overflow: scroll;
+ }
+
+ .cookie-preference-table {
+  width: 100%;  
+  font-size: 10px;
+  border-collapse: collapse;
+  border: none;
+ }
+
+ .cookie-preference-table th,td {  
+  border: dotted 1px;
+  padding: 2px;
  }
 
  .btn-confirm {
@@ -266,6 +280,15 @@ const cookieWindowTmpl = `
 			<span class="txt-always-on">Always On</span>
 			</div>
 			<p class="common-text">{{ .NecessaryNotice }}</p>
+      <table class="cookie-preference-table">
+      <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
+      <tr> <td>CookieOptConsent</td>  <td></td> <td>/</td> <td>365 days</td> <td></td> <td>Cookie Management</td> </tr>
+      {{ range .Cookies }}
+          {{ if (eq .Type 1) }}
+          <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
+          {{ end }}
+      {{ end }}
+      </table>
 		</div>
 
     <div id="Functional" class="tabcontent">
@@ -279,6 +302,14 @@ const cookieWindowTmpl = `
 			</span>
 			</div>
 			<p class="common-text">{{ .FunctionalNotice }}</p> 
+      <table class="cookie-preference-table">
+      <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
+      {{ range .Cookies }}
+          {{ if (eq .Type 2) }}
+          <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
+          {{ end }}
+      {{ end }}
+      </table>
 		</div>
 		
 		<div id="Analytics" class="tabcontent">
@@ -292,6 +323,14 @@ const cookieWindowTmpl = `
 			</span>
 			</div>
 			<p class="common-text">{{ .AnalyticsNotice }}</p> 
+      <table class="cookie-preference-table">
+      <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
+      {{ range .Cookies }}
+          {{ if (eq .Type 4) }}
+          <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
+          {{ end }}
+      {{ end }}
+      </table>
 		</div>
 		
 		<div id="Marketing" class="tabcontent">
@@ -305,6 +344,14 @@ const cookieWindowTmpl = `
 			</span>
 			</div>
 			<p class="common-text">{{ .MarketingNotice }}</p>
+      <table class="cookie-preference-table">
+      <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
+      {{ range .Cookies }}
+          {{ if (eq .Type 8) }}
+          <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
+          {{ end }}
+      {{ end }}
+      </table>
 		</div>
 
     <div id="Unclassified" class="tabcontent">
@@ -318,6 +365,14 @@ const cookieWindowTmpl = `
 			</span>
 			</div>
 			<p class="common-text">{{ .UnclassifiedNotice }}</p>
+      <table class="cookie-preference-table">
+      <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
+      {{ range .Cookies }}
+          {{ if (eq .Type 512) }}
+          <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
+          {{ end }}
+      {{ end }}
+      </table>
 		</div>
 
 	</div>

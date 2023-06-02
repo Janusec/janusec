@@ -263,6 +263,8 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		err = nil
 	case "update_cookie":
 		obj, err = backend.UpdateCookie(bodyBuf, clientIP, authUser)
+	case "del_cookie":
+		obj, err = nil, backend.DeleteCookie(apiRequest.ObjectID, clientIP, authUser)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil
