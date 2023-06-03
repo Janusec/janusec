@@ -179,6 +179,7 @@ func LoadApps() {
 				EnableUnclassified: dbApp.EnableUnclassified,
 			}
 			// Load Cookies of each App
+			InitAppConsentCookie(app.ID)
 			app.Cookies = data.DAL.SelectCookiesByAppID(app.ID)
 
 			Apps = append(Apps, app)

@@ -67,3 +67,13 @@ func (dal *MyDAL) SelectCookieByID(id int64) (*models.Cookie, error) {
 	err := dal.db.QueryRow(sqlSelectCookies, id).Scan(&cookie.AppID, &cookie.Name, &cookie.Domain, &cookie.Path, &cookie.Duration, &cookie.Vendor, &cookie.Type, &cookie.Description, &cookie.AccessTime, &cookie.Source)
 	return &cookie, err
 }
+
+func (dal *MyDAL) SelectCookiesCount(appID int64) int64 {
+	var count int64
+	const sqlSelectCookiesCount = `SELECT COUNT(1) FROM "cookies" WHERE "app_id"=$1`
+	err := dal.db.QueryRow(sqlSelectCookiesCount, appID).Scan(&count)
+	if err != nil {
+		utils.DebugPrintln("SelectCookiesCount QueryRow", err)
+	}
+	return count
+}

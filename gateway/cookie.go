@@ -281,7 +281,6 @@ const cookieWindowTmpl = `
 			<p class="common-text">{{ .NecessaryNotice }}</p>
       <table class="cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
-      <tr> <td>CookieOptConsent</td>  <td></td> <td>/</td> <td>365 days</td> <td></td> <td>Cookie Management</td> </tr>
       {{ range .Cookies }}
           {{ if (eq .Type 1) }}
           <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>

@@ -126,7 +126,8 @@ func DeleteCookieFromAppCookies(app *models.Application, cookieA *models.Cookie)
 }
 
 func HandleResponseCookies(resp *http.Response, app *models.Application, reqURI string, optConsentValue int64) {
-	for _, httpCookie := range resp.Cookies() {
+	allHttpCookies := append(resp.Request.Cookies(), resp.Cookies()...)
+	for _, httpCookie := range allHttpCookies {
 		exists, cookie := ExistsCookie(app, httpCookie.Name)
 		if !exists {
 			cookieVendor := ""
@@ -219,4 +220,24 @@ func DeleteResponseCookie(resp *http.Response, httpCookie *http.Cookie) {
 	httpCookie.MaxAge = -1
 	httpCookie.Value = ""
 	resp.Header.Add("Set-Cookie", httpCookie.String())
+}
+
+func InitAppConsentCookie(appID int64) {
+	count := data.DAL.SelectCookiesCount(appID)
+	if count == 0 {
+		cookie := &models.Cookie{
+			ID:          utils.GenSnowflakeID(),
+			AppID:       appID,
+			Name:        "CookieOptConsent",
+			Domain:      "",
+			Path:        "/",
+			Duration:    "365 days",
+			Vendor:      "JANUSEC",
+			Type:        models.Cookie_Necessary,
+			Description: "Cookie Management",
+			Source:      "/",
+		}
+		data.DAL.InsertCookie(cookie)
+
+	}
 }
