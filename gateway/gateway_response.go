@@ -202,103 +202,13 @@ func rewriteResponse(resp *http.Response) (err error) {
 		}
 	}
 
-	// Cookie Management,
+	// Cookie Management
 	if app.CookieMgmtEnabled {
 		// check consent of user
-		var optConsentValue int64
-		optConsentCookie, err := r.Cookie("CookieOptConsent")
-		if err != nil {
-			optConsentValue = 0
-		} else {
-			optConsentValue, err = strconv.ParseInt(optConsentCookie.Value, 10, 64)
-			if err != nil {
-				utils.DebugPrintln("Parse CookieOptConsent error", err)
-				optConsentValue = 0
-			}
-		}
+		optConsentValue := GetCookieOptConsent(r)
 
 		// check Set-Cookie
-		for _, httpCookie := range resp.Cookies() {
-			exists, cookie := backend.ExistsCookie(app, httpCookie.Name)
-			if !exists {
-				cookie := &models.Cookie{
-					ID:          utils.GenSnowflakeID(),
-					AppID:       app.ID,
-					Name:        httpCookie.Name,
-					Domain:      httpCookie.Domain,
-					Path:        httpCookie.Path,
-					Duration:    backend.GetCookieDuration(httpCookie),
-					Vendor:      "",
-					Type:        models.Cookie_Unclassified,
-					Description: "",
-					AccessTime:  time.Now().Unix(),
-					Source:      r.RequestURI,
-				}
-				err := data.DAL.InsertCookie(cookie)
-				if err != nil {
-					utils.DebugPrintln("InsertCookie", err)
-				}
-				app.Cookies = append(app.Cookies, cookie)
-				if optConsentValue == 0 {
-					// user not set and not permit by default
-					if !app.EnableUnclassified {
-						// Remove cookie when Unclassified Cookie not permitted
-						DeleteResponseCookie(resp, httpCookie)
-					}
-				} else if (optConsentValue & int64(models.Cookie_Unclassified)) == 0 {
-					// user has not give consent for unclassified cookies
-					DeleteResponseCookie(resp, httpCookie)
-				}
-			} else {
-				// cookie exists in database
-				if optConsentValue == 0 {
-					// when user has not confirmed his choice
-					switch cookie.Type {
-					case models.Cookie_Functional:
-						if !app.EnableFunctional {
-							DeleteResponseCookie(resp, httpCookie)
-						}
-					case models.Cookie_Analytics:
-						if !app.EnableAnalytics {
-							DeleteResponseCookie(resp, httpCookie)
-						}
-					case models.Cookie_Marketing:
-						if !app.EnableMarketing {
-							DeleteResponseCookie(resp, httpCookie)
-						}
-					case models.Cookie_Unclassified:
-						if !app.EnableUnclassified {
-							// Remove cookie when Unclassified Cookie not permitted
-							DeleteResponseCookie(resp, httpCookie)
-						}
-					}
-				} else {
-					// user has confirmed his choice
-					switch cookie.Type {
-					case models.Cookie_Functional:
-						if (optConsentValue & int64(models.Cookie_Functional)) == 0 {
-							fmt.Println("delete Cookie_Functional", httpCookie.Name)
-							DeleteResponseCookie(resp, httpCookie)
-						}
-					case models.Cookie_Analytics:
-						if (optConsentValue & int64(models.Cookie_Analytics)) == 0 {
-							fmt.Println("delete Cookie_Analytics", httpCookie.Name)
-							DeleteResponseCookie(resp, httpCookie)
-						}
-					case models.Cookie_Marketing:
-						if (optConsentValue & int64(models.Cookie_Marketing)) == 0 {
-							fmt.Println("delete Cookie_Marketing", httpCookie.Name)
-							DeleteResponseCookie(resp, httpCookie)
-						}
-					case models.Cookie_Unclassified:
-						if (optConsentValue & int64(models.Cookie_Unclassified)) == 0 {
-							fmt.Println("delete Cookie_Unclassified", httpCookie.Name)
-							DeleteResponseCookie(resp, httpCookie)
-						}
-					}
-				}
-			}
-		}
+		backend.HandleResponseCookies(resp, app, r.RequestURI, optConsentValue)
 
 		// Add DOM to body
 		contentType := resp.Header.Get("Content-Type")
@@ -350,4 +260,19 @@ func rewriteResponse(resp *http.Response) (err error) {
 		fmt.Println(string(body))
 	*/
 	return nil
+}
+
+func GetCookieOptConsent(r *http.Request) int64 {
+	var optConsentValue int64
+	optConsentCookie, err := r.Cookie("CookieOptConsent")
+	if err != nil {
+		optConsentValue = 0
+	} else {
+		optConsentValue, err = strconv.ParseInt(optConsentCookie.Value, 10, 64)
+		if err != nil {
+			utils.DebugPrintln("Parse CookieOptConsent error", err)
+			optConsentValue = 0
+		}
+	}
+	return optConsentValue
 }

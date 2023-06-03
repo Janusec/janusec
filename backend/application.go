@@ -383,6 +383,7 @@ func DeleteApplicationByID(appID int64, clientIP string, authUser *models.AuthUs
 	}
 	DeleteDomainsByApp(app)
 	DeleteDestinationsByApp(appID)
+	DeleteCookiesByApp(app)
 	err = firewall.DeleteCCPolicyByAppID(appID, clientIP, authUser, false)
 	if err != nil {
 		utils.DebugPrintln("DeleteApplicationByID DeleteCCPolicyByAppID", err)

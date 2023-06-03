@@ -53,6 +53,12 @@ func (dal *MyDAL) DeleteCookieByID(id int64) error {
 	return err
 }
 
+func (dal *MyDAL) DeleteCookiesByAppID(appID int64) error {
+	const sqlDelCookies = `DELETE FROM "cookies" WHERE "app_id"=$1`
+	_, err := dal.db.Exec(sqlDelCookies, appID)
+	return err
+}
+
 func (dal *MyDAL) SelectCookieByID(id int64) (*models.Cookie, error) {
 	cookie := models.Cookie{
 		ID: id,

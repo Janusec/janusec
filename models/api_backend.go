@@ -43,3 +43,9 @@ type APICookieRequest struct {
 	ObjectID int64   `json:"id,string"`
 	Object   *Cookie `json:"object"`
 }
+
+type APICookieRefRequest struct {
+	Action   string     `json:"action"`
+	ObjectID int64      `json:"id,string"`
+	Object   *CookieRef `json:"object"`
+}

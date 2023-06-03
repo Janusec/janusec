@@ -188,6 +188,11 @@ func InitDatabase() {
 	if err != nil {
 		utils.DebugPrintln("InitDatabase cookies", err)
 	}
+	err = dal.CreateTableIfNotExistsCookieRefs()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase cookieRefs", err)
+	}
+	InitCookieRefs()
 }
 
 // LoadAppConfiguration ...
@@ -195,6 +200,7 @@ func LoadAppConfiguration() {
 	utils.DebugPrintln("LoadAppConfiguration")
 	LoadCerts()
 	LoadApps()
+	LoadCookieRefs()
 	LoadVipApps()
 	if data.IsPrimary {
 		LoadDestinations()

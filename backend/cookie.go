@@ -48,7 +48,6 @@ func UpdateCookie(body []byte, clientIP string, authUser *models.AuthUser) (*mod
 		// new cookie
 		cookie.ID = utils.GenSnowflakeID()
 		data.DAL.InsertCookie(cookie)
-
 		app.Cookies = append(app.Cookies, cookie)
 		go utils.OperationLog(clientIP, authUser.Username, "Add Cookie", cookie.Name)
 	} else {
@@ -111,6 +110,11 @@ func DeleteCookie(cookieID int64, clientIP string, authUser *models.AuthUser) er
 	return nil
 }
 
+func DeleteCookiesByApp(app *models.Application) {
+	data.DAL.DeleteCookiesByAppID(app.ID)
+	app.Cookies = nil
+}
+
 func DeleteCookieFromAppCookies(app *models.Application, cookieA *models.Cookie) error {
 	for i, cookie := range app.Cookies {
 		if cookie.ID == cookieA.ID {
@@ -119,4 +123,100 @@ func DeleteCookieFromAppCookies(app *models.Application, cookieA *models.Cookie)
 		}
 	}
 	return errors.New("cookie not found")
+}
+
+func HandleResponseCookies(resp *http.Response, app *models.Application, reqURI string, optConsentValue int64) {
+	for _, httpCookie := range resp.Cookies() {
+		exists, cookie := ExistsCookie(app, httpCookie.Name)
+		if !exists {
+			cookieVendor := ""
+			cookieType := models.Cookie_Unclassified
+			cookieDesc := ""
+			// first check relevant CookieRef and update Vendor, Type, and Description
+			cookieRef := GetCookieRefByName(httpCookie.Name)
+			if cookieRef != nil {
+				cookieVendor = cookieRef.Vendor
+				cookieType = cookieRef.Type
+				cookieDesc = cookieRef.Description
+			}
+			cookie := &models.Cookie{
+				ID:          utils.GenSnowflakeID(),
+				AppID:       app.ID,
+				Name:        httpCookie.Name,
+				Domain:      httpCookie.Domain,
+				Path:        httpCookie.Path,
+				Duration:    GetCookieDuration(httpCookie),
+				Vendor:      cookieVendor,
+				Type:        cookieType,
+				Description: cookieDesc,
+				AccessTime:  time.Now().Unix(),
+				Source:      reqURI,
+			}
+			err := data.DAL.InsertCookie(cookie)
+			if err != nil {
+				utils.DebugPrintln("InsertCookie", err)
+			}
+			app.Cookies = append(app.Cookies, cookie)
+			if optConsentValue == 0 {
+				// user not set and not permit by default
+				if !app.EnableUnclassified {
+					// Remove cookie when Unclassified Cookie not permitted
+					DeleteResponseCookie(resp, httpCookie)
+				}
+			} else if (optConsentValue & int64(models.Cookie_Unclassified)) == 0 {
+				// user has not give consent for unclassified cookies
+				DeleteResponseCookie(resp, httpCookie)
+			}
+		} else {
+			// cookie exists in database
+			if optConsentValue == 0 {
+				// when user has not confirmed his choice
+				switch cookie.Type {
+				case models.Cookie_Functional:
+					if !app.EnableFunctional {
+						DeleteResponseCookie(resp, httpCookie)
+					}
+				case models.Cookie_Analytics:
+					if !app.EnableAnalytics {
+						DeleteResponseCookie(resp, httpCookie)
+					}
+				case models.Cookie_Marketing:
+					if !app.EnableMarketing {
+						DeleteResponseCookie(resp, httpCookie)
+					}
+				case models.Cookie_Unclassified:
+					if !app.EnableUnclassified {
+						// Remove cookie when Unclassified Cookie not permitted
+						DeleteResponseCookie(resp, httpCookie)
+					}
+				}
+			} else {
+				// user has confirmed his choice
+				switch cookie.Type {
+				case models.Cookie_Functional:
+					if (optConsentValue & int64(models.Cookie_Functional)) == 0 {
+						DeleteResponseCookie(resp, httpCookie)
+					}
+				case models.Cookie_Analytics:
+					if (optConsentValue & int64(models.Cookie_Analytics)) == 0 {
+						DeleteResponseCookie(resp, httpCookie)
+					}
+				case models.Cookie_Marketing:
+					if (optConsentValue & int64(models.Cookie_Marketing)) == 0 {
+						DeleteResponseCookie(resp, httpCookie)
+					}
+				case models.Cookie_Unclassified:
+					if (optConsentValue & int64(models.Cookie_Unclassified)) == 0 {
+						DeleteResponseCookie(resp, httpCookie)
+					}
+				}
+			}
+		}
+	}
+}
+
+func DeleteResponseCookie(resp *http.Response, httpCookie *http.Cookie) {
+	httpCookie.MaxAge = -1
+	httpCookie.Value = ""
+	resp.Header.Add("Set-Cookie", httpCookie.String())
 }

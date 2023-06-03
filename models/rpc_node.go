@@ -119,3 +119,8 @@ type RPCDiscoveryRules struct {
 	Error  *string          `json:"err"`
 	Object []*DiscoveryRule `json:"object"`
 }
+
+type RPCCookieRefs struct {
+	Error  *string      `json:"err"`
+	Object []*CookieRef `json:"object"`
+}

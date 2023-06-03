@@ -33,9 +33,18 @@ type Cookie struct {
 
 // CookieRef used for classification automatically
 type CookieRef struct {
-	ID          int64      `json:"id,string"`
-	Name        string     `json:"name"`
-	Vendor      string     `json:"vendor"`
-	Type        CookieType `json:"type"`
-	Destination string     `json:"description"`
+	ID          int64           `json:"id,string"`
+	Name        string          `json:"name"`
+	Vendor      string          `json:"vendor"`
+	Type        CookieType      `json:"type"`
+	Description string          `json:"description"`
+	Operation   CookieOperation `json:"operation"`
 }
+
+type CookieOperation int64
+
+const (
+	CookieOperation_EqualsString    CookieOperation = 1
+	CookieOperation_BeginWithString CookieOperation = 1 << 1
+	CookieOperation_RegexMatch      CookieOperation = 1 << 2
+)

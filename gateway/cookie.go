@@ -8,7 +8,6 @@ package gateway
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -107,7 +106,7 @@ const cookieStyle = `<style>
  .cookie-tab {
    float: left;
    border: 1px solid #c0c0c0;
-   width: 30%;
+   width: 25%;
    height: 300px;
  }
  
@@ -138,7 +137,7 @@ const cookieStyle = `<style>
    float: left;
    padding: 0px 12px;
    border: 1px solid #c0c0c0;
-   width: 70%;
+   width: 75%;
    border-left: 1px solid #e0e0e0;
    height: 300px;
    overflow: scroll;
@@ -525,10 +524,4 @@ func ConvertStringToHTMLNode(text string, labelData string) *html.Node {
 	labelNode2 := getNodeByData(labelNode, labelData)
 	labelNode2.Parent = nil
 	return labelNode2
-}
-
-func DeleteResponseCookie(resp *http.Response, httpCookie *http.Cookie) {
-	httpCookie.MaxAge = -1
-	httpCookie.Value = ""
-	resp.Header.Add("Set-Cookie", httpCookie.String())
 }
