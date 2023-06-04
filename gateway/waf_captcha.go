@@ -8,6 +8,7 @@
 package gateway
 
 import (
+	"html"
 	"net/http"
 	"sync"
 	"text/template"
@@ -32,7 +33,7 @@ const (
 // ShowCaptchaHandlerFunc ...
 func ShowCaptchaHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	go ClearExpiredCapthchaHitInfo()
-	id := r.FormValue("id")
+	id := html.EscapeString(r.FormValue("id"))
 	captchaContext := models.CaptchaContext{CaptchaId: captcha.New(), ClientID: id}
 	if err := formTemplate.Execute(w, &captchaContext); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
