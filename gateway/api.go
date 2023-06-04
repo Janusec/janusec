@@ -272,6 +272,20 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = backend.UpdateCookieRef(bodyBuf, clientIP, authUser)
 	case "del_cookie_ref":
 		obj, err = nil, backend.DeleteCookieRef(apiRequest.ObjectID, clientIP, authUser)
+	case "get_dns_domains":
+		obj, err = backend.GetDNSDomains(authUser)
+	case "get_dns_domain":
+		obj, err = backend.GetDNSDomainByID(apiRequest.ObjectID)
+	case "update_dns_domain":
+		obj, err = backend.UpdateDNSDomain(bodyBuf, clientIP, authUser)
+	case "del_dns_domain":
+		obj, err = nil, backend.DeleteDNSDomain(apiRequest.ObjectID, clientIP, authUser)
+	case "get_dns_records":
+		obj, err = backend.GetDNSRecordsByDomainID(authUser, apiRequest.ObjectID)
+	case "update_dns_record":
+		obj, err = backend.UpdateDNSRecord(bodyBuf, clientIP, authUser)
+	case "del_dns_record":
+		obj, err = nil, backend.DeleteDNSRecord(apiRequest.ObjectID, clientIP, authUser)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

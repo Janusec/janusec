@@ -49,3 +49,15 @@ type APICookieRefRequest struct {
 	ObjectID int64      `json:"id,string"`
 	Object   *CookieRef `json:"object"`
 }
+
+type APIDNSDomainRequest struct {
+	Action   string     `json:"action"`
+	ObjectID int64      `json:"id,string"`
+	Object   *DNSDomain `json:"object"`
+}
+
+type APIDNSRecordRequest struct {
+	Action   string     `json:"action"`
+	ObjectID int64      `json:"id,string"`
+	Object   *DNSRecord `json:"object"`
+}

@@ -283,6 +283,11 @@ func InitDefaultSettings() {
 		DAL.SaveStringSetting("data_discovery_key", "")
 	}
 
+	// DNS 1.4.1
+	if !DAL.ExistsSetting("dns_enabled") {
+		DAL.SaveBoolSetting("dns_enabled", false)
+	}
+
 	// Other
 	if !DAL.ExistsSetting("init_time") {
 		// 0.9.13 +
@@ -330,6 +335,8 @@ func LoadSettings() {
 		}
 		PrimarySetting.DataDiscoveryTenantID = DAL.SelectStringSetting("data_discovery_tenant_id")
 		PrimarySetting.DataDiscoveryKey = DAL.SelectStringSetting("data_discovery_key")
+		// v1.4.1 DNS
+		PrimarySetting.DNSEnabled = DAL.SelectBoolSetting("dns_enabled")
 
 		// NodeSetting
 		NodeSetting = &models.NodeShareSetting{}
@@ -676,6 +683,7 @@ func UpdatePrimarySetting(r *http.Request, body []byte, clientIP string, authUse
 	DAL.SaveStringSetting("data_discovery_api", PrimarySetting.DataDiscoveryAPI)
 	DAL.SaveStringSetting("data_discovery_tenant_id", PrimarySetting.DataDiscoveryTenantID)
 	DAL.SaveStringSetting("data_discovery_key", PrimarySetting.DataDiscoveryKey)
+	DAL.SaveBoolSetting("dns_enabled", PrimarySetting.DNSEnabled)
 	go utils.OperationLog(clientIP, authUser.Username, "Update Settings", "Global Settings")
 	UpdateBackendLastModified()
 	return PrimarySetting, nil

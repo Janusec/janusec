@@ -183,7 +183,7 @@ func InitDatabase() {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications add cookie management", err)
 		}
 	}
-	// v1.4.1
+	// v1.4.1 Cookie
 	err = dal.CreateTableIfNotExistsCookies()
 	if err != nil {
 		utils.DebugPrintln("InitDatabase cookies", err)
@@ -193,6 +193,17 @@ func InitDatabase() {
 		utils.DebugPrintln("InitDatabase cookieRefs", err)
 	}
 	InitCookieRefs()
+
+	// v1.4.1 DNS
+	err = dal.CreateTableIfNotExistsDNSDomains()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase DNSDomains", err)
+	}
+	err = dal.CreateTableIfNotExistsDNSRecords()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase DNSRecords", err)
+	}
+	LoadDNSDomains()
 }
 
 // LoadAppConfiguration ...

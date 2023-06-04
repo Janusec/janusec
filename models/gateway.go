@@ -151,6 +151,9 @@ type PrimarySetting struct {
 	DataDiscoveryAPI      string `json:"data_discovery_api"`
 	DataDiscoveryTenantID string `json:"data_discovery_tenant_id"`
 	DataDiscoveryKey      string `json:"data_discovery_key"`
+
+	// DNS GSLB, v1.4.1 added
+	DNSEnabled bool `json:"dns_enabled"`
 }
 
 // NodeShareSetting for sync to replica nodes, v1.2.0
