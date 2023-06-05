@@ -9,51 +9,10 @@ package backend
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
-	"net"
-
-	"github.com/miekg/dns"
 )
-
-func DNSHandler(writer dns.ResponseWriter, req *dns.Msg) {
-	var resp dns.Msg
-	resp.SetReply(req)
-	for _, question := range req.Question {
-		fmt.Println("question:", question, question.Qtype)
-		switch question.Qtype {
-		case dns.TypeA:
-			recordA := dns.A{
-				Hdr: dns.RR_Header{
-					Name:   question.Name,
-					Rrtype: dns.TypeA,
-					Class:  dns.ClassINET,
-					Ttl:    30,
-				},
-				A: net.ParseIP("127.0.0.1").To4(),
-			}
-			resp.Answer = append(resp.Answer, &recordA)
-		case dns.TypeAAAA:
-			recordAAAA := dns.AAAA{
-				Hdr: dns.RR_Header{
-					Name:   question.Name,
-					Rrtype: dns.TypeAAAA,
-					Class:  dns.ClassINET,
-					Ttl:    30,
-				},
-				AAAA: net.ParseIP("::1").To16(),
-			}
-			resp.Answer = append(resp.Answer, &recordAAAA)
-		}
-	}
-	fmt.Println("resp.Answer:", resp.Answer)
-	err := writer.WriteMsg(&resp)
-	if err != nil {
-		return
-	}
-}
 
 func GetDNSRecordsByDomainID(authUser *models.AuthUser, dnsDomainID int64) ([]*models.DNSRecord, error) {
 	if authUser.IsSuperAdmin {
@@ -68,7 +27,7 @@ func GetDNSRecordsByDomainID(authUser *models.AuthUser, dnsDomainID int64) ([]*m
 func UpdateDNSRecord(body []byte, clientIP string, authUser *models.AuthUser) (*models.DNSRecord, error) {
 	var rpcDNSRecordRequest models.APIDNSRecordRequest
 	if err := json.Unmarshal(body, &rpcDNSRecordRequest); err != nil {
-		utils.DebugPrintln("UpdateDNSRecord", err)
+		utils.DebugPrintln("UpdateDNSRecord Unmarshal", err)
 		return nil, err
 	}
 	dnsRecord := rpcDNSRecordRequest.Object
@@ -79,7 +38,10 @@ func UpdateDNSRecord(body []byte, clientIP string, authUser *models.AuthUser) (*
 	if dnsRecord.ID == 0 {
 		// new dnsRecord
 		dnsRecord.ID = utils.GenSnowflakeID()
-		data.DAL.InsertDNSRecord(dnsRecord)
+		err = data.DAL.InsertDNSRecord(dnsRecord)
+		if err != nil {
+			utils.DebugPrintln("InsertDNSRecord", err)
+		}
 		dnsDomain.DNSRecords = append(dnsDomain.DNSRecords, dnsRecord)
 		go utils.OperationLog(clientIP, authUser.Username, "Add DNSRecord", dnsRecord.Name)
 	} else {

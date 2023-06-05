@@ -42,6 +42,15 @@ func GetDNSDomainByID(dnsDomainID int64) (*models.DNSDomain, error) {
 	return nil, errors.New("not found")
 }
 
+func GetDNSDomainByName(domainName string) (*models.DNSDomain, error) {
+	for _, dnsDomain := range dnsDomains {
+		if dnsDomain.Name == domainName {
+			return dnsDomain, nil
+		}
+	}
+	return nil, errors.New("not found")
+}
+
 func UpdateDNSDomain(body []byte, clientIP string, authUser *models.AuthUser) (*models.DNSDomain, error) {
 	var rpcDNSDomainRequest models.APIDNSDomainRequest
 	if err := json.Unmarshal(body, &rpcDNSDomainRequest); err != nil {

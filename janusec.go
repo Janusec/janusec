@@ -169,17 +169,21 @@ func main() {
 
 	// DNS Management
 	if data.PrimarySetting.DNSEnabled {
-		dns.HandleFunc(".", backend.DNSHandler)
+		dns.HandleFunc(".", gateway.DNSHandler)
 		go func() {
+			utils.DebugPrintln("DNS Listen UDP 53")
 			err := dns.ListenAndServe(":53", "udp", nil)
 			if err != nil {
 				utils.DebugPrintln("DNS UDP", err)
+				os.Exit(1)
 			}
 		}()
 		go func() {
+			utils.DebugPrintln("DNS Listen TCP 53")
 			err := dns.ListenAndServe(":53", "tcp", nil)
 			if err != nil {
 				utils.DebugPrintln("DNS TCP", err)
+				os.Exit(1)
 			}
 		}()
 	}

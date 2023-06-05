@@ -36,7 +36,7 @@ func (dal *MyDAL) SelectDNSRecordsByDomainID(dnsDomainID int64) []*models.DNSRec
 }
 
 func (dal *MyDAL) InsertDNSRecord(dnsRecord *models.DNSRecord) error {
-	const sqlInsertDNSRecord = `INSERT INTO "dns_records"("id","dns_domain_id","rrtype","name","value","ttl","auto","internal") VALUES($1,$2,$3,$4,$5,$6,$7)`
+	const sqlInsertDNSRecord = `INSERT INTO "dns_records"("id","dns_domain_id","rrtype","name","value","ttl","auto","internal") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`
 	_, err := dal.db.Exec(sqlInsertDNSRecord, dnsRecord.ID, dnsRecord.DNSDomainID, dnsRecord.Rrtype, dnsRecord.Name, dnsRecord.Value, dnsRecord.TTL, dnsRecord.Auto, dnsRecord.Internal)
 	return err
 }
