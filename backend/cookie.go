@@ -73,8 +73,8 @@ func UpdateAppCookies(app *models.Application, cookie *models.Cookie) {
 	}
 }
 
-func GetCookieDuration(httpCookie *http.Cookie) string {
-	cookieDurationMinutes := math.Ceil(time.Until(httpCookie.Expires).Minutes())
+func GetCookieDuration(cookieDurationMinutes float64) string {
+	// cookieDurationMinutes := math.Ceil(time.Until(httpCookie.Expires).Minutes())
 	if cookieDurationMinutes > (24 * 60) {
 		// days
 		return fmt.Sprintf("%d days", int64(cookieDurationMinutes)/(24*60))
@@ -82,6 +82,9 @@ func GetCookieDuration(httpCookie *http.Cookie) string {
 	if cookieDurationMinutes > (60) {
 		// hours
 		return fmt.Sprintf("%.2f hours", cookieDurationMinutes/(60))
+	}
+	if cookieDurationMinutes < 0 {
+		return "unknown"
 	}
 	// minutes
 	return fmt.Sprintf("%.2f minutes", cookieDurationMinutes)
@@ -125,7 +128,7 @@ func DeleteCookieFromAppCookies(app *models.Application, cookieA *models.Cookie)
 	return errors.New("cookie not found")
 }
 
-func HandleResponseCookies(resp *http.Response, app *models.Application, reqURI string, optConsentValue int64) {
+func HandleCookies(resp *http.Response, app *models.Application, reqURI string, optConsentValue int64) {
 	allHttpCookies := append(resp.Request.Cookies(), resp.Cookies()...)
 	for _, httpCookie := range allHttpCookies {
 		exists, cookie := ExistsCookie(app, httpCookie.Name)
@@ -133,7 +136,11 @@ func HandleResponseCookies(resp *http.Response, app *models.Application, reqURI 
 			cookieVendor := ""
 			cookieType := models.Cookie_Unclassified
 			cookieDesc := ""
-			// first check relevant CookieRef and update Vendor, Type, and Description
+			cookieDurationMinutes := math.Ceil(time.Until(httpCookie.Expires).Minutes())
+			if cookieDurationMinutes < 0 {
+				cookieDesc = "From user request, possibly forged"
+			}
+			// check relevant CookieRef and update Vendor, Type, and Description
 			cookieRef := GetCookieRefByName(httpCookie.Name)
 			if cookieRef != nil {
 				cookieVendor = cookieRef.Vendor
@@ -146,7 +153,7 @@ func HandleResponseCookies(resp *http.Response, app *models.Application, reqURI 
 				Name:        httpCookie.Name,
 				Domain:      httpCookie.Domain,
 				Path:        httpCookie.Path,
-				Duration:    GetCookieDuration(httpCookie),
+				Duration:    GetCookieDuration(cookieDurationMinutes),
 				Vendor:      cookieVendor,
 				Type:        cookieType,
 				Description: cookieDesc,

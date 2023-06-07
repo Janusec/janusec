@@ -232,3 +232,9 @@ func (w ZipResponseWriter) Write(b []byte) (int, error) {
 type APIKey struct {
 	HexAPIKey string `json:"api_key"`
 }
+
+// CookieTmplObj take application and other variables into Cookie Window Template
+type CookieTmplObj struct {
+	App                 *Application
+	UnclassifiedEnabled bool
+}

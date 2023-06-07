@@ -255,8 +255,8 @@ const cookieWindowTmpl = `
     </span>
   </div>
   <p class="common-text">
-    {{ .ConciseNotice }} For more detailed information about the cookies we use, see our 
-    <a href="{{ .LongNoticeLink }}" target="_blank">cookies notice</a>.
+    {{ .App.ConciseNotice }} For more detailed information about the cookies we use, see our 
+    <a href="{{ .App.LongNoticeLink }}" target="_blank">cookies notice</a>.
   </p>
 	<div>
 		<button class="btn-cookie-save" onclick="rejectAllCookies()">Reject all Cookies</button>
@@ -278,10 +278,10 @@ const cookieWindowTmpl = `
 			<span>Necessary Cookies</span>
 			<span class="txt-always-on">Always On</span>
 			</div>
-			<p class="common-text">{{ .NecessaryNotice }}</p>
+			<p class="common-text">{{ .App.NecessaryNotice }}</p>
       <table class="cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
-      {{ range .Cookies }}
+      {{ range .App.Cookies }}
           {{ if (eq .Type 1) }}
           <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
           {{ end }}
@@ -299,10 +299,10 @@ const cookieWindowTmpl = `
 			</div>
 			</span>
 			</div>
-			<p class="common-text">{{ .FunctionalNotice }}</p> 
+			<p class="common-text">{{ .App.FunctionalNotice }}</p> 
       <table class="cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
-      {{ range .Cookies }}
+      {{ range .App.Cookies }}
           {{ if (eq .Type 2) }}
           <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
           {{ end }}
@@ -320,10 +320,10 @@ const cookieWindowTmpl = `
 			</div>
 			</span>
 			</div>
-			<p class="common-text">{{ .AnalyticsNotice }}</p> 
+			<p class="common-text">{{ .App.AnalyticsNotice }}</p> 
       <table class="cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
-      {{ range .Cookies }}
+      {{ range .App.Cookies }}
           {{ if (eq .Type 4) }}
           <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
           {{ end }}
@@ -341,10 +341,10 @@ const cookieWindowTmpl = `
 			</div>
 			</span>
 			</div>
-			<p class="common-text">{{ .MarketingNotice }}</p>
+			<p class="common-text">{{ .App.MarketingNotice }}</p>
       <table class="cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
-      {{ range .Cookies }}
+      {{ range .App.Cookies }}
           {{ if (eq .Type 8) }}
           <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
           {{ end }}
@@ -362,13 +362,15 @@ const cookieWindowTmpl = `
 			</div>
 			</span>
 			</div>
-			<p class="common-text">{{ .UnclassifiedNotice }}</p>
+			<p class="common-text">{{ .App.UnclassifiedNotice }}</p>
       <table class="cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
-      {{ range .Cookies }}
-          {{ if (eq .Type 512) }}
-          <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
-          {{ end }}
+      {{ if .UnclassifiedEnabled }}
+        {{ range .App.Cookies }}
+            {{ if (eq .Type 512) }}
+            <tr> <td>{{ .Name }}</td>  <td>{{ .Domain }}</td> <td>{{ .Path }}</td> <td>{{ .Duration }}</td> <td>{{ .Vendor }}</td> <td>{{ .Description }}</td> </tr>
+            {{ end }}
+        {{ end }}
       {{ end }}
       </table>
 		</div>
@@ -434,16 +436,16 @@ function initCookieOptValue() {
   console.log("optConsent", optConsent);
   if(optConsent==0) {
     document.getElementById("JanusecCookieOptWindow").style.display = "block";
-    {{ if .EnableFunctional }}
+    {{ if .App.EnableFunctional }}
     document.getElementById("functionalPermit").checked = true;
     {{ end }}
-    {{ if .EnableAnalytics }}
+    {{ if .App.EnableAnalytics }}
     document.getElementById("analyticsPermit").checked = true;
     {{ end }}
-    {{ if .EnableMarketing }}
+    {{ if .App.EnableMarketing }}
     document.getElementById("marketingPermit").checked = true;
     {{ end }}
-    {{ if .EnableUnclassified }}
+    {{ if .App.EnableUnclassified }}
     document.getElementById("unclassifiedPermit").checked = true;
     {{ end }}
     return;

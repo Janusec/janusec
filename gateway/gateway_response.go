@@ -207,8 +207,8 @@ func rewriteResponse(resp *http.Response) (err error) {
 		// check consent of user
 		optConsentValue := GetCookieOptConsent(r)
 
-		// check Set-Cookie
-		backend.HandleResponseCookies(resp, app, r.RequestURI, optConsentValue)
+		// check Set-Cookie and request.Cookies
+		backend.HandleCookies(resp, app, r.RequestURI, optConsentValue)
 
 		// Add DOM to body
 		contentType := resp.Header.Get("Content-Type")
@@ -226,7 +226,11 @@ func rewriteResponse(resp *http.Response) (err error) {
 					utils.DebugPrintln("template cookieWindow Parse error", err)
 				}
 				var bytesBuffer bytes.Buffer
-				err = tmplCookieWindow.Execute(&bytesBuffer, app)
+				cookieTmplObj := &models.CookieTmplObj{
+					App:                 app,
+					UnclassifiedEnabled: (optConsentValue & int64(models.Cookie_Unclassified)) > 0,
+				}
+				err = tmplCookieWindow.Execute(&bytesBuffer, cookieTmplObj)
 				if err != nil {
 					utils.DebugPrintln("tmplCookieWindow.Execute", err)
 				}
