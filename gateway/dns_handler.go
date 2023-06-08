@@ -27,23 +27,26 @@ func DNSHandler(writer dns.ResponseWriter, req *dns.Msg) {
 		if err != nil {
 			utils.DebugPrintln("DNSHandler GetDNSDomainByName", err)
 		}
+		if dnsDomain == nil {
+			continue
+		}
+		dnsRecords := GetDNSRecords(dnsDomain, dns.Type(question.Qtype))
+
 		switch question.Qtype {
 		case dns.TypeA:
-			dnsRecordsA := GetDNSRecords(dnsDomain, dns.Type(dns.TypeA))
-			for _, dnsRecordA := range dnsRecordsA {
+			for _, dnsRecord := range dnsRecords {
 				var ip string
-				if dnsRecordA.Auto {
-					ip = "127.0.0.1"
-					fmt.Println("To Do")
+				if dnsRecord.Auto {
+					ip = GetAvailableNodesIP()
 				} else {
-					ip = dnsRecordA.Value
+					ip = dnsRecord.Value
 				}
 				recordA := dns.A{
 					Hdr: dns.RR_Header{
 						Name:   question.Name,
-						Rrtype: dns.TypeA,
+						Rrtype: question.Qtype,
 						Class:  dns.ClassINET,
-						Ttl:    30,
+						Ttl:    dnsRecord.TTL,
 					},
 					A: net.ParseIP(ip).To4(),
 				}
@@ -51,21 +54,19 @@ func DNSHandler(writer dns.ResponseWriter, req *dns.Msg) {
 			}
 
 		case dns.TypeAAAA:
-			dnsRecordsAAAA := GetDNSRecords(dnsDomain, dns.Type(dns.TypeAAAA))
-			for _, dnsRecordAAAA := range dnsRecordsAAAA {
+			for _, dnsRecord := range dnsRecords {
 				var ip string
-				if dnsRecordAAAA.Auto {
-					ip = "127.0.0.1"
-					fmt.Println("To Do")
+				if dnsRecord.Auto {
+					ip = GetAvailableNodesIP()
 				} else {
-					ip = dnsRecordAAAA.Value
+					ip = dnsRecord.Value
 				}
 				recordAAAA := dns.AAAA{
 					Hdr: dns.RR_Header{
 						Name:   question.Name,
-						Rrtype: dns.TypeAAAA,
+						Rrtype: question.Qtype,
 						Class:  dns.ClassINET,
-						Ttl:    30,
+						Ttl:    dnsRecord.TTL,
 					},
 					AAAA: net.ParseIP(ip).To16(),
 				}
@@ -91,10 +92,28 @@ func GetDNSDomainByQuestionName(qName string) string {
 
 func GetDNSRecords(dnsDomain *models.DNSDomain, qtype dns.Type) []*models.DNSRecord {
 	dnsRecords := []*models.DNSRecord{}
-	for _, dnsRecord := range dnsDomain.DNSRecords {
-		if dnsRecord.Rrtype == qtype {
-			dnsRecords = append(dnsRecords, dnsRecord)
+	if dnsDomain != nil {
+		for _, dnsRecord := range dnsDomain.DNSRecords {
+			if dnsRecord.Rrtype == qtype {
+				dnsRecords = append(dnsRecords, dnsRecord)
+			}
 		}
 	}
 	return dnsRecords
+}
+
+func GetAvailableNodesIP() string {
+	fmt.Println("GetAvailableNodesIP To Do")
+	return "127.0.0.1"
+}
+
+func GetPublicIP() string {
+	conn, error := net.Dial("udp", "8.8.8.8:80")
+	if error != nil {
+		fmt.Println(error)
+	}
+	defer conn.Close()
+	ipAddress := conn.LocalAddr().(*net.UDPAddr)
+	fmt.Println(ipAddress, ipAddress.IP.String())
+	return ipAddress.IP.String()
 }
