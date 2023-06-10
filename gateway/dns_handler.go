@@ -7,7 +7,6 @@
 package gateway
 
 import (
-	"fmt"
 	"janusec/backend"
 	"janusec/models"
 	"janusec/utils"
@@ -18,10 +17,11 @@ import (
 )
 
 func DNSHandler(writer dns.ResponseWriter, req *dns.Msg) {
+	clientIP := removeAddrPort(writer.RemoteAddr().String())
 	var resp dns.Msg
 	resp.SetReply(req)
 	for _, question := range req.Question {
-		fmt.Println("question:", question.Name, question.Qtype)
+		//fmt.Println("question:", question.Name, question.Qtype)
 		dnsDomainName := GetDNSDomainByQuestionName(question.Name)
 		dnsDomain, err := backend.GetDNSDomainByName(dnsDomainName)
 		if err != nil {
@@ -31,13 +31,12 @@ func DNSHandler(writer dns.ResponseWriter, req *dns.Msg) {
 			continue
 		}
 		dnsRecords := GetDNSRecords(dnsDomain, dns.Type(question.Qtype))
-
 		switch question.Qtype {
 		case dns.TypeA:
 			for _, dnsRecord := range dnsRecords {
 				var ip string
 				if dnsRecord.Auto {
-					ip = GetAvailableNodesIP()
+					ip = backend.GetAvailableNodeIP(clientIP, dnsRecord.Internal)
 				} else {
 					ip = dnsRecord.Value
 				}
@@ -57,7 +56,7 @@ func DNSHandler(writer dns.ResponseWriter, req *dns.Msg) {
 			for _, dnsRecord := range dnsRecords {
 				var ip string
 				if dnsRecord.Auto {
-					ip = GetAvailableNodesIP()
+					ip = backend.GetAvailableNodeIP(clientIP, dnsRecord.Internal)
 				} else {
 					ip = dnsRecord.Value
 				}
@@ -102,18 +101,10 @@ func GetDNSRecords(dnsDomain *models.DNSDomain, qtype dns.Type) []*models.DNSRec
 	return dnsRecords
 }
 
-func GetAvailableNodesIP() string {
-	fmt.Println("GetAvailableNodesIP To Do")
-	return "127.0.0.1"
-}
-
-func GetPublicIP() string {
-	conn, error := net.Dial("udp", "8.8.8.8:80")
-	if error != nil {
-		fmt.Println(error)
+func removeAddrPort(addr string) string {
+	index := strings.IndexByte(addr, ':')
+	if index > 0 {
+		return addr[0:index]
 	}
-	defer conn.Close()
-	ipAddress := conn.LocalAddr().(*net.UDPAddr)
-	fmt.Println(ipAddress, ipAddress.IP.String())
-	return ipAddress.IP.String()
+	return addr
 }

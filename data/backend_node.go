@@ -27,19 +27,19 @@ func (dal *MyDAL) DeleteNodeByID(id int64) error {
 }
 
 // SelectAllNodes ...
-func (dal *MyDAL) SelectAllNodes() []*models.DBNode {
+func (dal *MyDAL) SelectAllNodes() []*models.Node {
 	rows, err := dal.db.Query(sqlSelectAllNodes)
 	if err != nil {
 		utils.DebugPrintln("SelectAllNodes", err)
 	}
 	defer rows.Close()
-	dbNodes := []*models.DBNode{}
+	nodes := []*models.Node{}
 	for rows.Next() {
-		dbNode := &models.DBNode{}
-		_ = rows.Scan(&dbNode.ID, &dbNode.Version, &dbNode.LastIP, &dbNode.LastRequestTime)
-		dbNodes = append(dbNodes, dbNode)
+		node := &models.Node{}
+		_ = rows.Scan(&node.ID, &node.Version, &node.LastIP, &node.LastRequestTime)
+		nodes = append(nodes, node)
 	}
-	return dbNodes
+	return nodes
 }
 
 // CreateTableIfNotExistsNodes ...

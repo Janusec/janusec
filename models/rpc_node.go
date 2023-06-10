@@ -18,6 +18,9 @@ type RPCRequest struct {
 	NodeVersion string      `json:"node_version"`
 	AuthKey     string      `json:"auth_key"`
 	Object      interface{} `json:"object"`
+
+	// PublicIP used for dns load balance, added v1.4.1
+	PublicIP string `json:"public_ip"`
 }
 
 type RPCGroupHitLogRequest struct {

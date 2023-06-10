@@ -168,7 +168,7 @@ func main() {
 	// gateMux.HandleFunc("/.auth/test", gateway.Test)
 
 	// DNS Management
-	if data.PrimarySetting.DNSEnabled {
+	if data.IsPrimary && data.PrimarySetting.DNSEnabled {
 		dns.HandleFunc(".", gateway.DNSHandler)
 		go func() {
 			utils.DebugPrintln("DNS Listen UDP 53")

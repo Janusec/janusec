@@ -36,6 +36,7 @@ func GenAuthKey(key []byte) string {
 func GetRPCResponse(rpcReq *models.RPCRequest) (respBytes []byte, err error) {
 	rpcReq.NodeVersion = Version
 	rpcReq.AuthKey = GenAuthKey(NodesKey)
+	rpcReq.PublicIP = GetPublicIP()
 	bytesData, err := json.Marshal(rpcReq)
 	if err != nil {
 		utils.DebugPrintln("GetRPCResponse Marshal", err)

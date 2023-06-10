@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
@@ -25,6 +26,9 @@ var (
 
 	// PrimarySetting include oauth, logs retention, smtp etc.
 	PrimarySetting *models.PrimarySetting
+
+	// publicIP used for dns load balance
+	publicIP string
 
 	blockHTML string = `<!DOCTYPE html>
 	<html>
@@ -716,7 +720,9 @@ func GetNodeSetting() *models.NodeShareSetting {
 
 func RPCGetNodeSetting() *models.NodeShareSetting {
 	rpcRequest := &models.RPCRequest{
-		Action: "get_node_setting", Object: nil}
+		Action: "get_node_setting",
+		Object: nil,
+	}
 	resp, err := GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.DebugPrintln("RPCGetNodeSetting", err)
@@ -732,4 +738,20 @@ func RPCGetNodeSetting() *models.NodeShareSetting {
 		utils.DebugPrintln("RPCGetNodeSetting failed, please check config.json and server time")
 	}
 	return rpcObject.Object
+}
+
+// GetPublicIP used for DNS load balance
+func GetPublicIP() string {
+	if len(publicIP) > 0 {
+		return publicIP
+	}
+	conn, error := net.Dial("udp", "8.8.8.8:80")
+	if error != nil {
+		fmt.Println(error)
+	}
+	defer conn.Close()
+	ipAddress := conn.LocalAddr().(*net.UDPAddr)
+	publicIP = ipAddress.IP.String()
+	fmt.Println("GetPublicIP", publicIP)
+	return ipAddress.IP.String()
 }

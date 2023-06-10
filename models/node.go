@@ -12,14 +12,19 @@ type Node struct {
 	Version         string `json:"version"`
 	LastIP          string `json:"last_ip"`
 	LastRequestTime int64  `json:"last_req_time"`
+
+	// PublicIP used for dns load balance, added v1.4.1
+	PublicIP string `json:"public_ip"`
 }
 
+/*
 type DBNode struct {
 	ID              int64  `json:"id,string"`
 	Version         string `json:"version"`
 	LastIP          string `json:"last_ip"`
 	LastRequestTime int64  `json:"last_req_time"`
 }
+*/
 
 type AuthTime struct {
 	CurTime int64 `json:"cur_time"`
