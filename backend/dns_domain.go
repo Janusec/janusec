@@ -61,7 +61,12 @@ func UpdateDNSDomain(body []byte, clientIP string, authUser *models.AuthUser) (*
 	if dnsDomain.ID == 0 {
 		// new dnsDomain
 		dnsDomain.ID = utils.GenSnowflakeID()
-		data.DAL.InsertDNSDomain(dnsDomain)
+		err := data.DAL.InsertDNSDomain(dnsDomain)
+		if err != nil {
+			utils.DebugPrintln("InsertDNSDomain", err)
+			return nil, err
+		}
+		dnsDomains = append(dnsDomains, dnsDomain)
 		go utils.OperationLog(clientIP, authUser.Username, "Add DNSDomain", dnsDomain.Name)
 	} else {
 		// update
@@ -69,9 +74,18 @@ func UpdateDNSDomain(body []byte, clientIP string, authUser *models.AuthUser) (*
 		if err != nil {
 			utils.DebugPrintln("UpdateDNSDomain", err)
 		}
+		UpdateDNSDomains(dnsDomain)
 		go utils.OperationLog(clientIP, authUser.Username, "Update DNSDomain", dnsDomain.Name)
 	}
 	return dnsDomain, nil
+}
+
+func UpdateDNSDomains(dnsDomain *models.DNSDomain) {
+	for i, obj := range dnsDomains {
+		if obj.ID == dnsDomain.ID {
+			dnsDomains[i] = dnsDomain
+		}
+	}
 }
 
 func DeleteDNSDomain(dnsDomainID int64, clientIP string, authUser *models.AuthUser) error {
@@ -90,6 +104,20 @@ func DeleteDNSDomain(dnsDomainID int64, clientIP string, authUser *models.AuthUs
 		utils.DebugPrintln("DeleteDNSDomain ", err)
 		return err
 	}
+	err = DeleteFromDNSDomains(dnsDomain)
+	if err != nil {
+		utils.DebugPrintln("DeleteDNSRecordFromDNSRecords", err)
+	}
 	go utils.OperationLog(clientIP, authUser.Username, "Delete DNSDomain", dnsDomain.Name)
 	return nil
+}
+
+func DeleteFromDNSDomains(dnsDomain *models.DNSDomain) error {
+	for i, obj := range dnsDomains {
+		if obj.ID == dnsDomain.ID {
+			dnsDomains = append(dnsDomains[:i], dnsDomains[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("dnsRecord not found")
 }
