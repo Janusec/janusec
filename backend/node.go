@@ -168,20 +168,40 @@ func GetAvailableNodeIP(srcIP string, isInternal bool) string {
 		} else {
 			return nodes[0].PublicIP
 		}
-	} else {
-		// nodesLen > 1
-		// According to Hash(IP)
-		h := fnv.New32a()
-		_, err := h.Write([]byte(srcIP))
-		if err != nil {
-			utils.DebugPrintln("SelectBackendRoute h.Write", err)
-		}
-		hashUInt32 := h.Sum32()
-		nodeIndex := hashUInt32 % nodesLen
-		if isInternal {
-			return nodes[nodeIndex].LastIP
-		} else {
-			return nodes[nodeIndex].PublicIP
+	}
+	// nodesLen > 1, filter LastRequestTime < 3 minutes
+	var onlineNodes []*models.Node
+	now := time.Now().Unix()
+	for _, node := range nodes {
+		if (now - node.LastRequestTime) < 180 {
+			onlineNodes = append(onlineNodes, node)
 		}
 	}
+	nodesLen = uint32(len(onlineNodes))
+	if nodesLen == 0 {
+		// return primary node itself
+		primaryIP := data.GetPublicIP()
+		return primaryIP
+	}
+	if nodesLen == 1 {
+		if isInternal {
+			return nodes[0].LastIP
+		} else {
+			return nodes[0].PublicIP
+		}
+	}
+	// According to Hash(IP)
+	h := fnv.New32a()
+	_, err := h.Write([]byte(srcIP))
+	if err != nil {
+		utils.DebugPrintln("SelectBackendRoute h.Write", err)
+	}
+	hashUInt32 := h.Sum32()
+	nodeIndex := hashUInt32 % nodesLen
+	if isInternal {
+		return onlineNodes[nodeIndex].LastIP
+	} else {
+		return onlineNodes[nodeIndex].PublicIP
+	}
+
 }
