@@ -30,8 +30,7 @@ var (
 // LoadNodes ...
 func LoadNodes() {
 	nodes = data.DAL.SelectAllNodes()
-	for _, dbNode := range nodes {
-		node := &models.Node{ID: dbNode.ID, Version: dbNode.Version, LastIP: dbNode.LastIP, LastRequestTime: dbNode.LastRequestTime}
+	for _, node := range nodes {
 		nodesMap.Store(node.LastIP, node)
 	}
 }
