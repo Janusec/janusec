@@ -103,7 +103,7 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "get_nodes":
 		obj, err = backend.GetNodes()
 	case "get_node":
-		obj, err = backend.GetDBNodeByID(apiRequest.ObjectID)
+		obj, err = backend.GetNodeByID(apiRequest.ObjectID)
 	case "del_node":
 		obj = nil
 		err = backend.DeleteNodeByID(apiRequest.ObjectID)

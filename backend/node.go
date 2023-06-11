@@ -23,29 +23,29 @@ import (
 )
 
 var (
-	dbNodes  = []*models.DBNode{}
+	nodes    = []*models.Node{}
 	nodesMap = sync.Map{} //map[ip string]*models.Node
 )
 
 // LoadNodes ...
 func LoadNodes() {
-	dbNodes = data.DAL.SelectAllNodes()
-	for _, dbNode := range dbNodes {
+	nodes = data.DAL.SelectAllNodes()
+	for _, dbNode := range nodes {
 		node := &models.Node{ID: dbNode.ID, Version: dbNode.Version, LastIP: dbNode.LastIP, LastRequestTime: dbNode.LastRequestTime}
 		nodesMap.Store(node.LastIP, node)
 	}
 }
 
 // GetNodes ...
-func GetNodes() ([]*models.DBNode, error) {
-	return dbNodes, nil
+func GetNodes() ([]*models.Node, error) {
+	return nodes, nil
 }
 
-// GetDBNodeByID ...
-func GetDBNodeByID(id int64) (*models.DBNode, error) {
-	for _, dbNode := range dbNodes {
-		if dbNode.ID == id {
-			return dbNode, nil
+// GetNodeByID ...
+func GetNodeByID(id int64) (*models.Node, error) {
+	for _, node := range nodes {
+		if node.ID == id {
+			return node, nil
 		}
 	}
 	return nil, errors.New("not found")
@@ -59,16 +59,15 @@ func GetNodeByIP(ip string, nodeVersion string) *models.Node {
 	curTime := time.Now().Unix()
 	newID := data.DAL.InsertNode(nodeVersion, ip, curTime)
 	node := &models.Node{ID: newID, Version: nodeVersion, LastIP: ip, LastRequestTime: curTime}
-	dbNode := &models.DBNode{ID: newID, Version: nodeVersion, LastIP: ip, LastRequestTime: curTime}
 	nodesMap.Store(ip, node)
-	dbNodes = append(dbNodes, dbNode)
+	nodes = append(nodes, node)
 	return node
 }
 
-// GetDBNodeIndex ...
-func GetDBNodeIndex(nodeID int64) int {
-	for i := 0; i < len(dbNodes); i++ {
-		if dbNodes[i].ID == nodeID {
+// GetNodeIndex ...
+func GetNodeIndex(nodeID int64) int {
+	for i := 0; i < len(nodes); i++ {
+		if nodes[i].ID == nodeID {
 			return i
 		}
 	}
@@ -77,15 +76,15 @@ func GetDBNodeIndex(nodeID int64) int {
 
 // DeleteNodeByID ...
 func DeleteNodeByID(id int64) error {
-	dbNode, err := GetDBNodeByID(id)
+	dbNode, err := GetNodeByID(id)
 	if err != nil {
 		utils.DebugPrintln("DeleteNodeByID", err)
 		return err
 	}
 	nodesMap.Delete(dbNode.LastIP)
 	err = data.DAL.DeleteNodeByID(id)
-	i := GetDBNodeIndex(id)
-	dbNodes = append(dbNodes[:i], dbNodes[i+1:]...)
+	i := GetNodeIndex(id)
+	nodes = append(nodes[:i], nodes[i+1:]...)
 	return err
 }
 
@@ -145,9 +144,9 @@ func IsValidAuthKeyFromReplicaNode(r *http.Request, param map[string]interface{}
 	node.Version = nodeVersion
 	node.LastIP = srcIP
 	node.LastRequestTime = curTime
-	dbNode, err := GetDBNodeByID(node.ID)
+	dbNode, err := GetNodeByID(node.ID)
 	if err != nil {
-		utils.DebugPrintln("IsValidAuthKey GetDBNodeByID", err)
+		utils.DebugPrintln("IsValidAuthKey GetNodeByID", err)
 	}
 	dbNode.Version = nodeVersion
 	dbNode.LastIP = srcIP
