@@ -14,12 +14,14 @@ type Node struct {
 	LastRequestTime int64  `json:"last_req_time"`
 }
 
+/*
 type DBNode struct {
 	ID              int64  `json:"id,string"`
 	Version         string `json:"version"`
 	LastIP          string `json:"last_ip"`
 	LastRequestTime int64  `json:"last_req_time"`
 }
+*/
 
 type AuthTime struct {
 	CurTime int64 `json:"cur_time"`
