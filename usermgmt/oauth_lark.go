@@ -103,21 +103,27 @@ func LarkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 		utils.DebugPrintln("LarkCallbackWithCode json.Unmarshal error", err)
 	}
 	if state == "admin" {
-		// Insert into db if not existed
-		id, err := data.DAL.InsertIfNotExistsAppUser(larkUser.Data.EnName, "", "", "", false, false, false, false)
-		if err != nil {
-			w.WriteHeader(403)
-			w.Write([]byte("Error: " + err.Error()))
-			return
+		appUser := data.DAL.SelectAppUserByName(larkUser.Data.EnName)
+		var userID int64
+		if appUser == nil {
+			// Insert into db if not existed
+			userID, err = data.DAL.InsertIfNotExistsAppUser(larkUser.Data.EnName, "", "", "", false, false, false, false)
+			if err != nil {
+				w.WriteHeader(403)
+				w.Write([]byte("Error: " + err.Error()))
+				return
+			}
+		} else {
+			userID = appUser.ID
 		}
 		// create session
 		authUser := &models.AuthUser{
-			UserID:        id,
+			UserID:        userID,
 			Username:      larkUser.Data.EnName,
 			Logged:        true,
-			IsSuperAdmin:  false,
-			IsCertAdmin:   false,
-			IsAppAdmin:    false,
+			IsSuperAdmin:  appUser.IsSuperAdmin,
+			IsCertAdmin:   appUser.IsCertAdmin,
+			IsAppAdmin:    appUser.IsAppAdmin,
 			NeedModifyPWD: false}
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser

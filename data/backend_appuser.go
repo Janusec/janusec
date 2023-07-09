@@ -86,6 +86,7 @@ func (dal *MyDAL) SelectAppUserByName(username string) *models.AppUser {
 		&appUser.NeedModifyPWD)
 	if err != nil {
 		utils.DebugPrintln("SelectAppUserByName", err)
+		return nil
 	}
 	return appUser
 }

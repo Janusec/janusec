@@ -52,7 +52,10 @@ func Login(w http.ResponseWriter, r *http.Request, body []byte, clientIP string)
 	}
 	loginUser := apiLoginUserRequest.Object
 	appUser := data.DAL.SelectAppUserByName(loginUser.Username)
-
+	if appUser == nil {
+		// not exists
+		return nil, errors.New("wrong authentication credentials")
+	}
 	tmpHashpwd := data.SHA256Hash(loginUser.Password + appUser.Salt)
 	if tmpHashpwd != appUser.HashPwd {
 		return nil, errors.New("wrong authentication credentials")
