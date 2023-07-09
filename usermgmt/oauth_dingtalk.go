@@ -82,21 +82,27 @@ func DingtalkCallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	}
 	dingtalkUser := dingtalkResponse.UserInfo
 	if state == "admin" {
-		// Insert into db if not existed
-		id, err := data.DAL.InsertIfNotExistsAppUser(dingtalkUser.Nick, "", "", "", false, false, false, false)
-		if err != nil {
-			w.WriteHeader(403)
-			w.Write([]byte("Error: " + err.Error()))
-			return
+		appUser := data.DAL.SelectAppUserByName(dingtalkUser.Nick)
+		var userID int64
+		if appUser == nil {
+			// Insert into db if not existed
+			userID, err = data.DAL.InsertIfNotExistsAppUser(dingtalkUser.Nick, "", "", "", false, false, false, false)
+			if err != nil {
+				w.WriteHeader(403)
+				w.Write([]byte("Error: " + err.Error()))
+				return
+			}
+		} else {
+			userID = appUser.ID
 		}
 		// create session
 		authUser := &models.AuthUser{
-			UserID:        id,
+			UserID:        userID,
 			Username:      dingtalkUser.Nick,
 			Logged:        true,
-			IsSuperAdmin:  false,
-			IsCertAdmin:   false,
-			IsAppAdmin:    false,
+			IsSuperAdmin:  appUser.IsSuperAdmin,
+			IsCertAdmin:   appUser.IsCertAdmin,
+			IsAppAdmin:    appUser.IsAppAdmin,
 			NeedModifyPWD: false}
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser

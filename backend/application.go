@@ -220,7 +220,7 @@ func LoadAppDomainNames() {
 
 // GetApplications ...
 func GetApplications(authUser *models.AuthUser) ([]*models.Application, error) {
-	if authUser.IsAppAdmin {
+	if authUser.IsAppAdmin || authUser.IsSuperAdmin {
 		return Apps, nil
 	}
 	myApps := []*models.Application{}
