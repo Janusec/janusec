@@ -68,22 +68,27 @@ func CAS2CallbackWithCode(w http.ResponseWriter, r *http.Request) {
 	casUser := casServiceResponse.AuthenticationSuccess.CASUser
 
 	if state == "admin" {
-		// To do: for janusec-admin
-		// Insert into db if not existed
-		id, err := data.DAL.InsertIfNotExistsAppUser(casUser, "", "", "", false, false, false, false)
-		if err != nil {
-			w.WriteHeader(403)
-			w.Write([]byte("Error: " + err.Error()))
-			return
+		appUser := data.DAL.SelectAppUserByName(casUser)
+		var userID int64
+		if appUser == nil {
+			// Insert into db if not existed
+			userID, err = data.DAL.InsertIfNotExistsAppUser(casUser, "", "", "", false, false, false, false)
+			if err != nil {
+				w.WriteHeader(403)
+				w.Write([]byte("Error: " + err.Error()))
+				return
+			}
+		} else {
+			userID = appUser.ID
 		}
 		// create session
 		authUser := &models.AuthUser{
-			UserID:        id,
+			UserID:        userID,
 			Username:      casUser,
 			Logged:        true,
-			IsSuperAdmin:  false,
-			IsCertAdmin:   false,
-			IsAppAdmin:    false,
+			IsSuperAdmin:  appUser.IsSuperAdmin,
+			IsCertAdmin:   appUser.IsCertAdmin,
+			IsAppAdmin:    appUser.IsAppAdmin,
 			NeedModifyPWD: false}
 		session, _ := store.Get(r, "sessionid")
 		session.Values["authuser"] = authUser
