@@ -21,7 +21,6 @@ func DNSHandler(writer dns.ResponseWriter, reqMsg *dns.Msg) {
 	var respMsg dns.Msg
 	respMsg.SetReply(reqMsg)
 	for i := 0; i < len(reqMsg.Question); i++ {
-		//fmt.Println("for i=", i, "len=", len(reqMsg.Question))
 		question := reqMsg.Question[i]
 		//fmt.Println("question:", question.Name, question.Qtype)
 		rrName, dnsDomainName := GetRNameDomainNameByQuestionName(question.Name)
@@ -35,6 +34,16 @@ func DNSHandler(writer dns.ResponseWriter, reqMsg *dns.Msg) {
 		dnsRecords := GetDNSRecords(dnsDomain, dns.Type(question.Qtype), rrName)
 		switch question.Qtype {
 		case dns.TypeA:
+			if len(dnsRecords) == 0 {
+				// forward to cname if no TypeA record
+				newQuestion := dns.Question{
+					Name:   question.Name,
+					Qtype:  dns.TypeCNAME,
+					Qclass: dns.ClassINET,
+				}
+				reqMsg.Question = append(reqMsg.Question, newQuestion)
+				continue
+			}
 			for _, dnsRecord := range dnsRecords {
 				var ip string
 				if dnsRecord.Auto {
