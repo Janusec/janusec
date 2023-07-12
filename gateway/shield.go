@@ -78,7 +78,7 @@ func SecondShieldAuthorization(w http.ResponseWriter, r *http.Request) {
 // GenerateShieldPage for first access if 5-second shield enabled
 func GenerateShieldPage(w http.ResponseWriter, r *http.Request, urlPath string) {
 	if tmplShieldReq == nil {
-		tmplShieldReq, _ = template.New("shieldReq").Parse(shieldHTML)
+		tmplShieldReq, _ = template.New("shieldReq").Parse(data.NodeSetting.ShieldHTML)
 	}
 	session, _ := store.Get(r, "janusec-token")
 	session.Values["timestamp"] = time.Now().Unix()
@@ -94,57 +94,3 @@ func GenerateShieldPage(w http.ResponseWriter, r *http.Request, urlPath string) 
 		utils.DebugPrintln("GenerateShieldPage tmpl.Execute error", err)
 	}
 }
-
-const shieldHTML = `<!DOCTYPE html>
-<html>
-<head>
-<title>Checking</title>
-</head>
-<style>
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-}
-
-.text-logo {
-    display: block;
-	width: 260px;
-    font-size: 48px;  
-    background-color: #F9F9F9;    
-    color: #f5f5f5;    
-    text-decoration: none;
-    text-shadow: 2px 2px 4px #000000;
-    box-shadow: 2px 2px 3px #D5D5D5;
-    padding: 15px; 
-    margin: auto;    
-}
-
-.block_div {
-    padding: 10px;
-    width: 70%;    
-    margin: auto;
-}
-
-</style>
-<body>
-<div class="block_div">
-<h1 class="text-logo">JANUSEC</h1>
-<hr>
-<p>
-Checking your browser, please wait <span id="countdown">5</span> seconds ...
-</p>
-</div>
-<script>
-var t=5;
-var countdown=setInterval(function(){	
-	t--;
-	document.getElementById("countdown").innerHTML=t;
-	if(t<=0) {
-		clearInterval(countdown);
-		window.location.href = "/.auth/shield?callback={{ .Callback }}";
-	}
-}, 1000);
-</script>
-</body>
-</html>
-`
