@@ -37,7 +37,7 @@ func IsCrawler(r *http.Request, srcIP string) bool {
 	count, found := shieldCache.Get(srcIP)
 	if found {
 		nowCount := count.(int64) + int64(1)
-		if nowCount > 3 {
+		if nowCount > 30 {
 			// Found crawler
 			return true
 		}
