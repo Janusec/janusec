@@ -21,8 +21,7 @@ import (
 )
 
 var (
-	tmplShieldReq *template.Template
-	shieldCache   = cache.New(5*time.Second, 5*time.Second)
+	shieldCache = cache.New(5*time.Second, 5*time.Second)
 )
 
 func IsSearchEngine(ua string) bool {
@@ -37,7 +36,7 @@ func IsCrawler(r *http.Request, srcIP string) bool {
 	count, found := shieldCache.Get(srcIP)
 	if found {
 		nowCount := count.(int64) + int64(1)
-		if nowCount > 3 {
+		if nowCount > 30 {
 			// Found crawler
 			return true
 		}
@@ -77,8 +76,8 @@ func SecondShieldAuthorization(w http.ResponseWriter, r *http.Request) {
 
 // GenerateShieldPage for first access if 5-second shield enabled
 func GenerateShieldPage(w http.ResponseWriter, r *http.Request, urlPath string) {
-	if tmplShieldReq == nil {
-		tmplShieldReq, _ = template.New("shieldReq").Parse(data.NodeSetting.ShieldHTML)
+	if data.TmplShield == nil {
+		data.TmplShield, _ = template.New("tmplShield").Parse(data.NodeSetting.ShieldHTML)
 	}
 	session, _ := store.Get(r, "janusec-token")
 	session.Values["timestamp"] = time.Now().Unix()
@@ -89,7 +88,7 @@ func GenerateShieldPage(w http.ResponseWriter, r *http.Request, urlPath string) 
 		utils.DebugPrintln("session save error", err)
 	}
 	w.WriteHeader(200)
-	err = tmplShieldReq.Execute(w, models.ShieldInfo{Callback: urlPath})
+	err = data.TmplShield.Execute(w, models.ShieldInfo{Callback: urlPath})
 	if err != nil {
 		utils.DebugPrintln("GenerateShieldPage tmpl.Execute error", err)
 	}

@@ -14,14 +14,14 @@ import (
 
 // CreateTableIfNotExistsApplications ...
 func (dal *MyDAL) CreateTableIfNotExistsApplications() error {
-	const sqlCreateTableIfNotExistsApplications = `CREATE TABLE IF NOT EXISTS "applications"("id" bigserial PRIMARY KEY,"name" VARCHAR(128) NOT NULL,"internal_scheme" VARCHAR(8) NOT NULL,"redirect_https" boolean,"hsts_enabled" boolean,"waf_enabled" boolean,"shield_enabled" boolean,"ip_method" bigint,"description" VARCHAR(256) NOT NULL,"oauth_required" boolean,"session_seconds" bigint default 7200,"owner" VARCHAR(128) NOT NULL,"csp_enabled" boolean default false,"csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self''',"cache_enabled" boolean default true)`
+	const sqlCreateTableIfNotExistsApplications = `CREATE TABLE IF NOT EXISTS "applications"("id" bigserial PRIMARY KEY,"name" VARCHAR(128) NOT NULL,"internal_scheme" VARCHAR(8) NOT NULL,"redirect_https" boolean,"hsts_enabled" boolean,"waf_enabled" boolean,"shield_enabled" boolean,"ip_method" bigint,"description" VARCHAR(256) NOT NULL,"oauth_required" boolean,"session_seconds" bigint default 7200,"owner" VARCHAR(128) NOT NULL,"csp_enabled" boolean default false,"csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self''',"cache_enabled" boolean default true,"custom_headers" VARCHAR(1024) DEFAULT '')`
 	_, err := dal.db.Exec(sqlCreateTableIfNotExistsApplications)
 	return err
 }
 
 // SelectApplications ...
 func (dal *MyDAL) SelectApplications() []*models.DBApplication {
-	const sqlSelectApplications = `SELECT "id","name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","shield_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp","cache_enabled" FROM "applications"`
+	const sqlSelectApplications = `SELECT "id","name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","shield_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp","cache_enabled","custom_headers" FROM "applications"`
 	rows, err := dal.db.Query(sqlSelectApplications)
 	if err != nil {
 		utils.DebugPrintln("SelectApplications", err)
@@ -46,7 +46,9 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 			&dbApp.Owner,
 			&dbApp.CSPEnabled,
 			&dbApp.CSP,
-			&dbApp.CacheEnabled)
+			&dbApp.CacheEnabled,
+			&dbApp.CustomHeaders,
+		)
 		if err != nil {
 			utils.DebugPrintln("SelectApplications rows.Scan", err)
 		}
@@ -56,10 +58,10 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 }
 
 // InsertApplication insert an Application to DB
-func (dal *MyDAL) InsertApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, shieldEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string, cacheEnabled bool) (newID int64) {
-	const sqlInsertApplication = `INSERT INTO "applications"("id","name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","shield_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp","cache_enabled") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING "id"`
+func (dal *MyDAL) InsertApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, shieldEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string, cacheEnabled bool, customHeaders string) (newID int64) {
+	const sqlInsertApplication = `INSERT INTO "applications"("id","name","internal_scheme","redirect_https","hsts_enabled","waf_enabled","shield_enabled","ip_method","description","oauth_required","session_seconds","owner","csp_enabled","csp","cache_enabled","custom_headers") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING "id"`
 	id := utils.GenSnowflakeID()
-	err := dal.db.QueryRow(sqlInsertApplication, id, appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled).Scan(&newID)
+	err := dal.db.QueryRow(sqlInsertApplication, id, appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled, customHeaders).Scan(&newID)
 	if err != nil {
 		utils.DebugPrintln("InsertApplication", err)
 	}
@@ -67,11 +69,11 @@ func (dal *MyDAL) InsertApplication(appName string, internalScheme string, redir
 }
 
 // UpdateApplication update an Application
-func (dal *MyDAL) UpdateApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, shieldEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string, cacheEnabled bool, appID int64) error {
-	const sqlUpdateApplication = `UPDATE "applications" SET "name"=$1,"internal_scheme"=$2,"redirect_https"=$3,"hsts_enabled"=$4,"waf_enabled"=$5,"shield_enabled"=$6,"ip_method"=$7,"description"=$8,"oauth_required"=$9,"session_seconds"=$10,"owner"=$11,"csp_enabled"=$12,"csp"=$13,"cache_enabled"=$14 WHERE "id"=$15`
+func (dal *MyDAL) UpdateApplication(appName string, internalScheme string, redirectHTTPS bool, hstsEnabled bool, wafEnabled bool, shieldEnabled bool, ipMethod models.IPMethod, description string, oauthRequired bool, sessionSeconds int64, owner string, cspEnabled bool, csp string, cacheEnabled bool, customHeaders string, appID int64) error {
+	const sqlUpdateApplication = `UPDATE "applications" SET "name"=$1,"internal_scheme"=$2,"redirect_https"=$3,"hsts_enabled"=$4,"waf_enabled"=$5,"shield_enabled"=$6,"ip_method"=$7,"description"=$8,"oauth_required"=$9,"session_seconds"=$10,"owner"=$11,"csp_enabled"=$12,"csp"=$13,"cache_enabled"=$14,"custom_headers"=$15 WHERE "id"=$16`
 	stmt, _ := dal.db.Prepare(sqlUpdateApplication)
 	defer stmt.Close()
-	_, err := stmt.Exec(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled, appID)
+	_, err := stmt.Exec(appName, internalScheme, redirectHTTPS, hstsEnabled, wafEnabled, shieldEnabled, ipMethod, description, oauthRequired, sessionSeconds, owner, cspEnabled, csp, cacheEnabled, customHeaders, appID)
 	if err != nil {
 		utils.DebugPrintln("UpdateApplication", err)
 	}
