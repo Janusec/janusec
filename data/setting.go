@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"net"
 	"net/http"
 	"time"
@@ -28,13 +29,14 @@ var (
 	PrimarySetting *models.PrimarySetting
 
 	// publicIP used for dns load balance
-	publicIP string
+	publicIP   string
+	TmplWAF    *template.Template
+	TmplShield *template.Template
 
 	blockHTML string = `<!DOCTYPE html>
 	<html>
 	<head>
 	<title>403 Forbidden</title>
-	</head>
 	<style>
 	body {
 		font-family: Arial, Helvetica, sans-serif;
@@ -59,8 +61,8 @@ var (
 		width: 70%;    
 		margin: auto;
 	}
-
 	</style>
+	</head>
 	<body>
 	<div class="block_div">
 	<h1 class="text-logo">JANUSEC</h1>
@@ -70,6 +72,58 @@ var (
 	</body>
 	</html>
 	`
+
+	shieldHTML string = `<!DOCTYPE html>
+	<html>
+	<head>
+	<title>Checking</title>
+	<style>
+	body {
+		font-family: Arial, Helvetica, sans-serif;
+		text-align: center;
+	}
+
+	.text-logo {
+		display: block;
+		width: 260px;
+		font-size: 48px;  
+		background-color: #F9F9F9;    
+		color: #f5f5f5;    
+		text-decoration: none;
+		text-shadow: 2px 2px 4px #000000;
+		box-shadow: 2px 2px 3px #D5D5D5;
+		padding: 15px; 
+		margin: auto;    
+	}
+
+	.block_div {
+		padding: 10px;
+		width: 70%;    
+		margin: auto;
+	}
+	</style>
+	</head>
+	<body>
+	<div class="block_div">
+	<h1 class="text-logo">JANUSEC</h1>
+	<hr>
+	<p>
+	Checking your browser, please wait <span id="countdown">5</span> seconds ...
+	</p>
+	</div>
+	<script>
+	var t=5;
+	var countdown=setInterval(function(){	
+		t--;
+		document.getElementById("countdown").innerHTML=t;
+		if(t<=0) {
+			clearInterval(countdown);
+			window.location.href = "/.auth/shield?callback={{ .Callback }}";
+		}
+	}, 1000);
+	</script>
+	</body>
+	</html>`
 )
 
 // UpdateBackendLastModified ...
@@ -147,6 +201,10 @@ func InitDefaultSettings() {
 	}
 	if !DAL.ExistsSetting("block_html") {
 		_ = DAL.SaveStringSetting("block_html", blockHTML)
+	}
+	if !DAL.ExistsSetting("shield_html") {
+		// v1.4.1 added
+		_ = DAL.SaveStringSetting("shield_html", shieldHTML)
 	}
 
 	// SMTP shared with PrimarySetting
@@ -322,6 +380,7 @@ func LoadSettings() {
 		PrimarySetting.SearchEngines = DAL.SelectStringSetting("search_engines")
 		PrimarySetting.WebSSHEnabled = DAL.SelectBoolSetting("webssh_enabled")
 		PrimarySetting.BlockHTML = DAL.SelectStringSetting("block_html")
+		PrimarySetting.ShieldHTML = DAL.SelectStringSetting("shield_html") // v1.4.1 added
 		// v1.2.0 add SMTP
 		smtpSetting := &models.SMTPSetting{}
 		smtpSetting.SMTPEnabled = DAL.SelectBoolSetting("smtp_enabled")
@@ -351,6 +410,7 @@ func LoadSettings() {
 		NodeSetting.SkipSEEnabled = PrimarySetting.SkipSEEnabled
 		NodeSetting.SearchEnginesPattern = UpdateSecondShieldPattern(PrimarySetting.SearchEngines)
 		NodeSetting.BlockHTML = PrimarySetting.BlockHTML
+		NodeSetting.ShieldHTML = PrimarySetting.ShieldHTML
 		// NodeSetting.SMTP and PrimarySetting.SMTP point to the same SMTP setting
 		NodeSetting.SMTP = smtpSetting
 		// LoadAuthConfig
@@ -678,6 +738,10 @@ func UpdatePrimarySetting(r *http.Request, body []byte, clientIP string, authUse
 	NodeSetting.SearchEnginesPattern = UpdateSecondShieldPattern(PrimarySetting.SearchEngines)
 	DAL.SaveStringSetting("block_html", PrimarySetting.BlockHTML)
 	NodeSetting.BlockHTML = PrimarySetting.BlockHTML
+	UpdateBlockTemplate()
+	DAL.SaveStringSetting("shield_html", PrimarySetting.ShieldHTML)
+	NodeSetting.ShieldHTML = PrimarySetting.ShieldHTML
+	UpdateShieldTemplate()
 	DAL.SaveBoolSetting("smtp_enabled", PrimarySetting.SMTP.SMTPEnabled)
 	DAL.SaveStringSetting("smtp_server", PrimarySetting.SMTP.SMTPServer)
 	DAL.SaveStringSetting("smtp_port", PrimarySetting.SMTP.SMTPPort)
@@ -754,4 +818,14 @@ func GetPublicIP() string {
 	publicIP = ipAddress.IP.String()
 	fmt.Println("GetPublicIP", publicIP)
 	return ipAddress.IP.String()
+}
+
+// UpdateShieldTemplate for 5-second shield
+func UpdateShieldTemplate() {
+	TmplShield, _ = template.New("tmplShield").Parse(NodeSetting.ShieldHTML)
+}
+
+// UpdateBlockTemplate for WAF
+func UpdateBlockTemplate() {
+	TmplWAF, _ = template.New("tmplWAF").Parse(NodeSetting.BlockHTML)
 }

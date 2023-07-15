@@ -59,6 +59,8 @@ type Application struct {
 	UnclassifiedNotice string    `json:"unclassified_notice"`
 	EnableUnclassified bool      `json:"enable_unclassified"`
 	Cookies            []*Cookie `json:"cookies"`
+	// CustomHeader add by gateway, v1.4.2
+	CustomHeaders []*CustomHeader `json:"custom_headers"`
 }
 
 // DBApplication for storage in database
@@ -97,6 +99,13 @@ type DBApplication struct {
 	EnableMarketing    bool   `json:"enable_marketing"`
 	UnclassifiedNotice string `json:"unclassified_notice"`
 	EnableUnclassified bool   `json:"enable_unclassified"`
+	// CustomHeaders add by gateway, v1.4.2
+	CustomHeaders string `json:"custom_headers"`
+}
+
+type CustomHeader struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type DomainRelation struct {

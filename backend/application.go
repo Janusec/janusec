@@ -177,6 +177,7 @@ func LoadApps() {
 				EnableMarketing:    dbApp.EnableMarketing,
 				UnclassifiedNotice: dbApp.UnclassifiedNotice,
 				EnableUnclassified: dbApp.EnableUnclassified,
+				CustomHeaders:      GetCustomHeaders(dbApp.CustomHeaders),
 			}
 			// Load Cookies of each App
 			InitAppConsentCookie(app.ID)
@@ -191,6 +192,36 @@ func LoadApps() {
 			Apps = rpcApps
 		}
 	}
+}
+
+// GetCustomHeaders convert string to slice, "HeaderA:ValueA||HeaderB:ValueB" --> [{},{}]
+func GetCustomHeaders(customHeaders string) []*models.CustomHeader {
+	resultHeaders := []*models.CustomHeader{}
+	if len(customHeaders) == 0 {
+		return resultHeaders
+	}
+	singleLineHeaders := strings.Split(customHeaders, "||")
+	for _, singleLineHeader := range singleLineHeaders {
+		keyValue := strings.Split(singleLineHeader, ":")
+		customHeader := &models.CustomHeader{
+			Key:   keyValue[0],
+			Value: strings.Join(keyValue[1:], ":"),
+		}
+		resultHeaders = append(resultHeaders, customHeader)
+	}
+	return resultHeaders
+}
+
+// GetCustomHeadersString convert slice to string, [{},{}] --> "HeaderA:ValueA||HeaderB:ValueB"
+func GetCustomHeadersString(customHeaders []*models.CustomHeader) string {
+	var headersStr string
+	for _, customHeader := range customHeaders {
+		if len(headersStr) > 0 {
+			headersStr += "||"
+		}
+		headersStr += customHeader.Key + ":" + customHeader.Value
+	}
+	return headersStr
 }
 
 // LoadDestinations ...
@@ -338,13 +369,14 @@ func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) 
 		return nil, err
 	}
 	app := rpcAppRequest.Object
+	customHeaders := GetCustomHeadersString(app.CustomHeaders)
 	if app.ID == 0 {
 		// new application
-		app.ID = data.DAL.InsertApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, app.CookieMgmtEnabled, app.ConciseNotice, app.LongNoticeLink, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified)
+		app.ID = data.DAL.InsertApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, customHeaders, app.CookieMgmtEnabled, app.ConciseNotice, app.LongNoticeLink, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified)
 		Apps = append(Apps, app)
 		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {
-		err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, app.CookieMgmtEnabled, app.ConciseNotice, app.LongNoticeLink, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified, app.ID)
+		err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, customHeaders, app.CookieMgmtEnabled, app.ConciseNotice, app.LongNoticeLink, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified, app.ID)
 		if err != nil {
 			utils.DebugPrintln("UpdateApplication", err)
 		}

@@ -204,6 +204,16 @@ func InitDatabase() {
 		utils.DebugPrintln("InitDatabase DNSRecords", err)
 	}
 	LoadDNSDomains()
+	// v1.4.0 extend string_value from varchar 1024 to 8192 for postgresql. sqlite not limit the length., v1.4.2 to 16384
+	_ = dal.ExecSQL(`ALTER TABLE "settings" ALTER COLUMN "string_value" TYPE VARCHAR(16384)`)
+
+	if !dal.ExistColumnInTable("applications", "custom_headers") {
+		// v1.4.2 add custom headers
+		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "custom_headers" VARCHAR(1024) DEFAULT ''`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE applications add custom_headers", err)
+		}
+	}
 }
 
 // LoadAppConfiguration ...

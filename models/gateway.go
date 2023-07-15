@@ -134,6 +134,9 @@ type PrimarySetting struct {
 	// BlockHTML, v1.4.0 added
 	BlockHTML string `json:"block_html"`
 
+	// ShieldHTML for 5-second shield, v1.4.1 added
+	ShieldHTML string `json:"shield_html"`
+
 	// WAFLogDays for WAF logs
 	WAFLogDays int64 `json:"waf_log_days"`
 
@@ -177,6 +180,9 @@ type NodeShareSetting struct {
 
 	// BlockHTML, v1.4.0 added
 	BlockHTML string `json:"block_html"`
+
+	// ShieldHTML for 5-second shield, v1.4.1 added
+	ShieldHTML string `json:"shield_html"`
 
 	// AuthConfig for authentication
 	AuthConfig *OAuthConfig `json:"auth_config"`
