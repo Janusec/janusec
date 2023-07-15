@@ -44,6 +44,9 @@ type Application struct {
 
 	// CacheEnabled cache static files v1.2.5
 	CacheEnabled bool `json:"cache_enabled"`
+
+	// CustomHeader add by gateway, v1.4.2
+	CustomHeaders []*CustomHeader `json:"custom_headers"`
 }
 
 // DBApplication for storage in database
@@ -68,6 +71,14 @@ type DBApplication struct {
 	CSP        string `json:"csp"`
 	// CacheEnabled cache static files v1.2.5
 	CacheEnabled bool `json:"cache_enabled"`
+
+	// CustomHeaders add by gateway, v1.4.2
+	CustomHeaders string `json:"custom_headers"`
+}
+
+type CustomHeader struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type DomainRelation struct {

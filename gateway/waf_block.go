@@ -17,15 +17,13 @@ import (
 	"janusec/utils"
 )
 
-var tmplBlockReq, tmplBlockResp *template.Template
-
 // GenerateBlockPage ...
 func GenerateBlockPage(w http.ResponseWriter, hitInfo *models.HitInfo) {
-	if tmplBlockReq == nil {
-		tmplBlockReq, _ = template.New("blockReq").Parse(data.NodeSetting.BlockHTML)
+	if data.TmplWAF == nil {
+		data.TmplWAF, _ = template.New("tmplWAF").Parse(data.NodeSetting.BlockHTML)
 	}
 	w.WriteHeader(403)
-	err := tmplBlockReq.Execute(w, hitInfo)
+	err := data.TmplWAF.Execute(w, hitInfo)
 	if err != nil {
 		utils.DebugPrintln("GenerateBlockPage tmpl.Execute error", err)
 	}
@@ -33,11 +31,11 @@ func GenerateBlockPage(w http.ResponseWriter, hitInfo *models.HitInfo) {
 
 // GenerateBlockContent ...
 func GenerateBlockContent(hitInfo *models.HitInfo) []byte {
-	if tmplBlockResp == nil {
-		tmplBlockResp, _ = template.New("blockResp").Parse(data.NodeSetting.BlockHTML)
+	if data.TmplWAF == nil {
+		data.TmplWAF, _ = template.New("tmplWAF").Parse(data.NodeSetting.BlockHTML)
 	}
 	buf := &bytes.Buffer{}
-	err := tmplBlockResp.Execute(buf, hitInfo)
+	err := data.TmplWAF.Execute(buf, hitInfo)
 	if err != nil {
 		utils.DebugPrintln("GenerateBlockContent tmpl.Execute error", err)
 	}

@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -25,6 +26,9 @@ var (
 
 	// PrimarySetting include oauth, logs retention, smtp etc.
 	PrimarySetting *models.PrimarySetting
+
+	TmplWAF    *template.Template
+	TmplShield *template.Template
 
 	blockHTML string = `<!DOCTYPE html>
 	<html>
@@ -724,8 +728,10 @@ func UpdatePrimarySetting(r *http.Request, body []byte, clientIP string, authUse
 	NodeSetting.SearchEnginesPattern = UpdateSecondShieldPattern(PrimarySetting.SearchEngines)
 	DAL.SaveStringSetting("block_html", PrimarySetting.BlockHTML)
 	NodeSetting.BlockHTML = PrimarySetting.BlockHTML
+	UpdateBlockTemplate()
 	DAL.SaveStringSetting("shield_html", PrimarySetting.ShieldHTML)
 	NodeSetting.ShieldHTML = PrimarySetting.ShieldHTML
+	UpdateShieldTemplate()
 	DAL.SaveBoolSetting("smtp_enabled", PrimarySetting.SMTP.SMTPEnabled)
 	DAL.SaveStringSetting("smtp_server", PrimarySetting.SMTP.SMTPServer)
 	DAL.SaveStringSetting("smtp_port", PrimarySetting.SMTP.SMTPPort)
@@ -783,4 +789,14 @@ func RPCGetNodeSetting() *models.NodeShareSetting {
 		utils.DebugPrintln("RPCGetNodeSetting failed, please check config.json and server time")
 	}
 	return rpcObject.Object
+}
+
+// UpdateShieldTemplate for 5-second shield
+func UpdateShieldTemplate() {
+	TmplShield, _ = template.New("tmplShield").Parse(NodeSetting.ShieldHTML)
+}
+
+// UpdateBlockTemplate for WAF
+func UpdateBlockTemplate() {
+	TmplWAF, _ = template.New("tmplWAF").Parse(NodeSetting.BlockHTML)
 }

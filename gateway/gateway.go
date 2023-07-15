@@ -332,6 +332,11 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Add custom headers
+	for _, customHeader := range app.CustomHeaders {
+		r.Header.Set(customHeader.Key, customHeader.Value)
+	}
+
 	// Add access log and statistics
 	go utils.AccessLog(domainStr, r.Method, srcIP, r.RequestURI, ua)
 	go IncAccessStat(app.ID, r.URL.Path)
