@@ -47,6 +47,7 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 			&dbApp.CSPEnabled,
 			&dbApp.CSP,
 			&dbApp.CacheEnabled,
+			&dbApp.CustomHeaders,
 			&dbApp.CookieMgmtEnabled,
 			&dbApp.ConciseNotice,
 			&dbApp.LongNoticeLink,
@@ -59,7 +60,6 @@ func (dal *MyDAL) SelectApplications() []*models.DBApplication {
 			&dbApp.EnableMarketing,
 			&dbApp.UnclassifiedNotice,
 			&dbApp.EnableUnclassified,
-			&dbApp.CustomHeaders,
 		)
 		if err != nil {
 			utils.DebugPrintln("SelectApplications rows.Scan", err)
