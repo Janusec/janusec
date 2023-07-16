@@ -84,7 +84,6 @@ func DNSHandler(writer dns.ResponseWriter, reqMsg *dns.Msg) {
 			}
 		case dns.TypeCNAME:
 			for _, dnsRecord := range dnsRecords {
-				//value := dnsRecord.Value
 				recordCName := dns.CNAME{
 					Hdr: dns.RR_Header{
 						Name:   question.Name,
@@ -105,7 +104,6 @@ func DNSHandler(writer dns.ResponseWriter, reqMsg *dns.Msg) {
 			}
 		case dns.TypeTXT:
 			for _, dnsRecord := range dnsRecords {
-				//value := dnsRecord.Value
 				recordTxt := dns.TXT{
 					Hdr: dns.RR_Header{
 						Name:   question.Name,
@@ -116,6 +114,19 @@ func DNSHandler(writer dns.ResponseWriter, reqMsg *dns.Msg) {
 					Txt: []string{dnsRecord.Value},
 				}
 				respMsg.Answer = append(respMsg.Answer, &recordTxt)
+			}
+		case dns.TypeNS:
+			for _, dnsRecord := range dnsRecords {
+				recordNS := dns.NS{
+					Hdr: dns.RR_Header{
+						Name:   question.Name,
+						Rrtype: question.Qtype,
+						Class:  dns.ClassINET,
+						Ttl:    dnsRecord.TTL,
+					},
+					Ns: strings.TrimSuffix(dnsRecord.Value, ".") + ".",
+				}
+				respMsg.Answer = append(respMsg.Answer, &recordNS)
 			}
 		}
 	}
