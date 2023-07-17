@@ -65,15 +65,15 @@ https://doc.janusec.com/cn/
 
 ## 需求   
 
-* SQLite3，或PostgreSQL 10/11/12+ (开发环境，及生产环境主节点需要)  
-* Debian 9/10/11+, CentOS/RHEL 7/8+, 首选Debian 10+    
+* SQLite3，或PostgreSQL 10/11/12/13+ (开发环境，及生产环境主节点需要)  
+* Debian 9/10/11+, CentOS/RHEL 7/8+, 首选Debian 10/11+    
 * systemd  
 * nftables  
 * Golang 1.19+ (仅开发环境需要)  
 
 ## 部署快速指引    
 
-详细文档可在这里获取： [Janusec应用网关快速入门](https://doc.janusec.com/cn/quick-start/)  
+详细文档可在这里获取： [快速入门](https://doc.janusec.com/cn/quick-start/)  
 
 如希望快速体验，可尝试使用 [Docker镜像](https://doc.janusec.com/cn/appendix-docker/)    
 
@@ -131,6 +131,17 @@ Web化管理所需的文件在 `./static/janusec-admin/` 目录, 源码在 [Janu
 ## 许可证  
 
 Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)授权.    
+
+## 增强特性  
+
+增强体验版是在开源版本基础上进一步增强，增强特性部分不开源，仅用于测试或体验。  
+
+增强特性包括：
+
+* Cookie合规管理(提供Cookie Banner与用户同意管理) ， v1.4.2版本开始提供  
+* GSLB (全局负载均衡，自带DNS服务器) ， v1.4.2版本开始提供  
+
+增强体验版的下载链接可以在 [快速入门](https://doc.janusec.com/cn/quick-start/) 找到。   
 
 ## 支持  
 
@@ -204,8 +215,8 @@ https://janusec.github.io/
 
 ## Requirements    
 
-* SQLite3 or PostgreSQL 10/11/12+ (Required by Development and Primary Node of Deployment)  
-* Debian 9/10/11+, CentOS/RHEL 7/8+, Debian 10+ is preferred       
+* SQLite3 or PostgreSQL 10/11/12/13+ (Required by Development and Primary Node of Deployment)  
+* Debian 9/10/11+, CentOS/RHEL 7/8+, Debian 10/11+ is preferred       
 * systemd  
 * nftables  
 * Golang 1.19+ (Required by Development Only)  
@@ -269,6 +280,17 @@ Release directory is `./static/janusec-admin/` , and source code is available at
 ## LICENSE   
 
 Janusec Application Gateway source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)).   
+
+## Professional Plus Edition    
+
+The Professional Plus Edition is a further enhancement based on the open source version. The enhanced features are not open source and are only used for testing or experience.  
+
+Professional features：
+
+* Cookie Compliance Management, include Cookie Banner, Consent Management and Cookie Discovery etc., provided from v1.4.2  
+* GSLB (Global Server Load Balance, with DNS Server) , provided from v1.4.2  
+
+The download link is available at： [Quick Start](https://janusec.github.io/documentation/quick-start/).  
 
 ## Support   
 
