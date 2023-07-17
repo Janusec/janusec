@@ -128,6 +128,20 @@ func DNSHandler(writer dns.ResponseWriter, reqMsg *dns.Msg) {
 				}
 				respMsg.Answer = append(respMsg.Answer, &recordNS)
 			}
+		case dns.TypeMX:
+			for _, dnsRecord := range dnsRecords {
+				recordMX := dns.MX{
+					Hdr: dns.RR_Header{
+						Name:   question.Name,
+						Rrtype: question.Qtype,
+						Class:  dns.ClassINET,
+						Ttl:    dnsRecord.TTL,
+					},
+					Preference: 0,
+					Mx:         strings.TrimSuffix(dnsRecord.Value, ".") + ".",
+				}
+				respMsg.Answer = append(respMsg.Answer, &recordMX)
+			}
 		}
 	}
 	//fmt.Println("resp.Answer:", respMsg.Answer)

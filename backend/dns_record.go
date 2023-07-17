@@ -12,6 +12,8 @@ import (
 	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
+
+	"github.com/miekg/dns"
 )
 
 func GetDNSRecordsByDomainID(authUser *models.AuthUser, dnsDomainID int64) ([]*models.DNSRecord, error) {
@@ -34,6 +36,10 @@ func UpdateDNSRecord(body []byte, clientIP string, authUser *models.AuthUser) (*
 	dnsDomain, err := GetDNSDomainByID(dnsRecord.DNSDomainID)
 	if err != nil {
 		return nil, err
+	}
+	if uint16(dnsRecord.Rrtype) == dns.TypeMX {
+		// Modify Name for MX
+		dnsRecord.Name = dnsDomain.Name + "."
 	}
 	if dnsRecord.ID == 0 {
 		// new dnsRecord
