@@ -129,7 +129,13 @@ func DeleteCookieFromAppCookies(app *models.Application, cookieA *models.Cookie)
 }
 
 func HandleCookies(resp *http.Response, app *models.Application, reqURI string, optConsentValue int64) {
-	allHttpCookies := append(resp.Request.Cookies(), resp.Cookies()...)
+	var allHttpCookies []*http.Cookie
+	if (optConsentValue & int64(models.Cookie_Unclassified)) > 0 {
+		// if user gave his consent to unclassified cookies, include cookies which from requests
+		allHttpCookies = append(resp.Request.Cookies(), resp.Cookies()...)
+	} else {
+		allHttpCookies = resp.Cookies()
+	}
 	for _, httpCookie := range allHttpCookies {
 		exists, cookie := ExistsCookie(app, httpCookie.Name)
 		if !exists {
