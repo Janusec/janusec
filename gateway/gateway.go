@@ -387,16 +387,19 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// var transport http.RoundTripper
 	transport := &http.Transport{
 		TLSHandshakeTimeout:   30 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
 		IdleConnTimeout:       30 * time.Second,
-		ExpectContinueTimeout: 5 * time.Second,
+		ExpectContinueTimeout: 10 * time.Second,
+		MaxIdleConns:          100,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			conn, err := net.Dial("tcp", targetDest)
 			dest.CheckTime = nowTimeStamp
+			conn, err := net.Dial("tcp", targetDest)
 			if err != nil {
 				dest.Mutex.Lock()
 				defer dest.Mutex.Unlock()
 				dest.Online = false
-				utils.DebugPrintln("DialContext error", err)
+				timeout := time.Now().Unix() - nowTimeStamp
+				utils.DebugPrintln("DialContext error", err, timeout, "seconds")
 				if data.NodeSetting.SMTP.SMTPEnabled {
 					sendOfflineNotification(app, targetDest)
 				}
@@ -408,12 +411,12 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			return conn, err
 		},
 		DialTLS: func(network, addr string) (net.Conn, error) {
-			conn, err := net.Dial("tcp", targetDest)
 			dest.CheckTime = nowTimeStamp
+			conn, err := net.Dial("tcp", targetDest)
 			if err != nil {
 				dest.Online = false
-				dest.CheckTime = nowTimeStamp
-				utils.DebugPrintln("DialContext error", err)
+				timeout := time.Now().Unix() - nowTimeStamp
+				utils.DebugPrintln("DialTLS error", err, timeout, "seconds")
 				if data.NodeSetting.SMTP.SMTPEnabled {
 					sendOfflineNotification(app, targetDest)
 				}
