@@ -144,7 +144,6 @@ func DNSHandler(writer dns.ResponseWriter, reqMsg *dns.Msg) {
 			}
 		}
 	}
-	//fmt.Println("resp.Answer:", respMsg.Answer)
 	respMsg.Authoritative = true
 	respMsg.RecursionAvailable = true
 	err := writer.WriteMsg(&respMsg)
@@ -160,13 +159,20 @@ func GetRNameDomainNameByQuestionName(qName string) (string, string) {
 	// then split to [a, b, example, com]
 	domainFields := strings.Split(strings.TrimSuffix(qName, "."), ".")
 	lenDomainFields := len(domainFields)
+	if lenDomainFields < 2 {
+		return "", ""
+	}
 	dnsDomain := domainFields[lenDomainFields-2] + "." + domainFields[lenDomainFields-1]
 	rName := strings.TrimSuffix(qName, "."+dnsDomain+".")
 	return rName, dnsDomain
 }
 
 func GetDNSRecords(dnsDomain *models.DNSDomain, qtype dns.Type, rrName string) []*models.DNSRecord {
+	//fmt.Println("GetDNSRecords", dnsDomain, qtype, rrName, dnsDomain.DNSRecords)
 	dnsRecords := []*models.DNSRecord{}
+	if rrName == "" {
+		return dnsRecords
+	}
 	if dnsDomain != nil {
 		for _, dnsRecord := range dnsDomain.DNSRecords {
 			if (dnsRecord.Rrtype == qtype) && (dnsRecord.Name == rrName) {
