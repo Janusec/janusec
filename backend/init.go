@@ -159,7 +159,7 @@ func InitDatabase() {
 
 	// v1.2.4 add constraint to access_stats
 	if !dal.ExistConstraint("access_stats", "stat_id") {
-		_ = dal.ExecSQL(`ALTER TABLE "access_stats" ADD CONSTRAINT "stat_id" unique ("app_id","url_path","stat_date")`)
+		_ = dal.ExecSQL(`ALTER TABLE "access_stats" ADD CONSTRAINT "stat_id" UNIQUE("app_id","url_path","stat_date")`)
 		//if err != nil {
 		//utils.DebugPrintln("InitDatabase ALTER TABLE access_stats add constraint", err)
 		//}
@@ -181,6 +181,14 @@ func InitDatabase() {
 		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "custom_headers" VARCHAR(1024) DEFAULT ''`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications add custom_headers", err)
+		}
+	}
+
+	// v1.4.2fix2 ALTER TABLE "destinations" ADD CONSTRAINT "unidest" UNIQUE("app_id","request_route","route_type","destination");
+	if !dal.ExistConstraint("destinations", "unidest") {
+		_ = dal.ExecSQL(`ALTER TABLE "destinations" ADD CONSTRAINT "unidest" UNIQUE("app_id","request_route","route_type","destination")`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE destinations add constraint", err)
 		}
 	}
 }
