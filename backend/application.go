@@ -302,18 +302,24 @@ func UpdateDestinations(app *models.Application, destinations []*models.Destinat
 		}
 		var err error
 		if destination.ID == 0 {
+			// new
 			destination.ID, err = data.DAL.InsertDestination(int64(destination.RouteType), destination.RequestRoute, destination.BackendRoute, destination.Destination, destination.PodsAPI, destination.PodPort, app.ID, destination.NodeID)
 			if err != nil {
 				utils.DebugPrintln("InsertDestination", err)
+			} else {
+				destination.Online = true
+				newDestinations = append(newDestinations, destination)
 			}
 		} else {
+			// update
 			err = data.DAL.UpdateDestinationNode(int64(destination.RouteType), destination.RequestRoute, destination.BackendRoute, destination.Destination, destination.PodsAPI, destination.PodPort, app.ID, destination.NodeID, destination.ID)
 			if err != nil {
 				utils.DebugPrintln("UpdateDestinationNode", err)
+			} else {
+				destination.Online = true
+				newDestinations = append(newDestinations, destination)
 			}
 		}
-		destination.Online = true
-		newDestinations = append(newDestinations, destination)
 	}
 	app.Destinations = newDestinations
 
