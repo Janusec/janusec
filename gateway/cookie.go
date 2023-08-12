@@ -52,46 +52,47 @@ const cookieStyle = `<style>
     text-align: left;
   }
 
- .cookie-title-line {
+ .janusec-cookie-title-line {
     margin-top: 10px;
     padding: 5px 0;
+    padding: 5px;
  }
 
- .cookie-window-title {
-    font-size: 16px;
+ .janusec-cookie-window-title {
+    font-size: 20px;
  }
 
- .btn-cookie-window-close {
-	float: right;
+ .janusec-btn-cookie-window-close {
+	  float: right;
     border: none;
     font-size: 16px;
-	background-color: #FCFCFC;
+	  background-color: #FCFCFC;
  }
 
- .cookie-outer-container {
+ .janusec-cookie-outer-container {
     margin: 0 10px;
+	  /* clear float */
+	  overflow: hidden;
+ }
+
+ .janusec-cookie-div-container {
 	/* clear float */
 	overflow: hidden;
  }
 
- .cookie-div-container {
-	/* clear float */
-	overflow: hidden;
- }
-
- .common-text {
+ .janusec-cookie-common-text {
 	color: #808080;
   font-size: 12px;
  }
  
- .btn-cookie-save {
+ .janusec-btn-cookie-save {
     padding: 10px;
     color: #ffffff;
     border: solid 1px #F5F5F5;
     background-color: #007bff;
  }
  
- .cookie-window-footer {
+ .janusec-cookie-window-footer {
     display: block;
     float: none;
     background-color: #f0f0f0;
@@ -99,18 +100,14 @@ const cookieStyle = `<style>
     padding: 5px;
  }
  
- * {
-    box-sizing: border-box
- }
- 
- .cookie-tab {
+ .janusec-cookie-tab {
    float: left;
    border: 1px solid #c0c0c0;
    width: 25%;
    height: 300px;
  }
  
- .cookie-tab button {
+ .janusec-cookie-tab button {
    display: block;
    background-color: inherit;
    color: black;
@@ -125,15 +122,15 @@ const cookieStyle = `<style>
    font-size: 14px;
  }
  
- .cookie-tab button:hover {
+ .janusec-cookie-tab button:hover {
    background-color: #ddd;
  }
  
- .cookie-tab button.active {
+ .janusec-cookie-tab button.active {
    background-color: #f0f0f0;
  }
  
- .tabcontent {
+ .janusec-cookie-tabcontent {
    float: left;
    padding: 0px 12px;
    border: 1px solid #c0c0c0;
@@ -143,19 +140,19 @@ const cookieStyle = `<style>
    overflow: scroll;
  }
 
- .cookie-preference-table {
+ .janusec-cookie-preference-table {
   width: 100%;  
   font-size: 10px;
   border-collapse: collapse;
   border: none;
  }
 
- .cookie-preference-table th,td {  
+ .janusec-cookie-preference-table th,td {  
   border: dotted 1px;
   padding: 2px;
  }
 
- .btn-confirm {
+ .janusec-btn-confirm {
 	float: right;
 	padding: 10px;
   color: #ffffff;
@@ -163,11 +160,11 @@ const cookieStyle = `<style>
   background-color: #007bff;
  }
 
- .cookie-type-line {
+ .janusec-cookie-type-line {
 	margin: 10px 0;
  }
 
- .txt-always-on {
+ .janusec-txt-always-on {
 	float: right;
 	color: #007bff;
  }
@@ -176,18 +173,16 @@ const cookieStyle = `<style>
   color: #007bff;
  }
 
- /* toggle button */
-
- .switch-box {
+.janusec-cookie-switch-box {
 	float: right;
   width: 40px;
 }
 
-.switch-box .switch {
+.janusec-cookie-switch-box .switch {
     display: none;
 }
 
-.switch-box label {
+.janusec-cookie-switch-box label {
     position: relative;
     display: block;
     margin: 1px;
@@ -195,7 +190,7 @@ const cookieStyle = `<style>
     cursor: pointer;
 }
 
-.switch-box label::before {
+.janusec-cookie-switch-box label::before {
     content: '';
     position: absolute;
     top: 50%;
@@ -215,13 +210,13 @@ const cookieStyle = `<style>
     transition: all 0.3s ease;
 }
 
-.switch-box .switch:checked~label::before {
+.janusec-cookie-switch-box .switch:checked~label::before {
     -webkit-transform: translateX(9px);
     -moz-transform: translateX(9px);
     transform: translateX(9px);
 }
 
-.switch-box label::after {
+.janusec-cookie-switch-box label::after {
     content: "";
     display: block;
     border-radius: 10px;
@@ -232,11 +227,13 @@ const cookieStyle = `<style>
     transition: all 0.3s ease;
 }
 
-.switch-box .switch:checked~label::after {
+.janusec-cookie-switch-box .switch:checked~label::after {
     background-color: #007bff;
 }
 
-/* end toggle button */
+.janusec-cookie-div-container * {
+  box-sizing: border-box
+}
 
  </style>`
 
@@ -247,25 +244,25 @@ const cookieIconTmpl = `
 
 const cookieWindowTmpl = `
 <div id="JanusecCookieOptWindow">
-<div class="cookie-outer-container">
-  <div class="cookie-title-line">
-    <span class="cookie-window-title">Cookie Preference</span>
+<div class="janusec-cookie-outer-container">
+  <div class="janusec-cookie-title-line">
+    <span class="janusec-cookie-window-title">Cookie Preferences</span>
     <span>
-      <button class="btn-cookie-window-close" onclick="closeCookieOptWindow()">×</button>
+      <button class="janusec-btn-cookie-window-close" onclick="closeCookieOptWindow()">×</button>
     </span>
   </div>
-  <p class="common-text">
+  <p class="janusec-cookie-common-text">
     {{ .App.ConciseNotice }} For more detailed information about the cookies we use, see our 
     <a href="{{ .App.LongNoticeLink }}" target="_blank">cookies notice</a>.
   </p>
 	<div>
-		<button class="btn-cookie-save" onclick="rejectAllCookies()">Reject all Cookies</button>
+		<button class="janusec-btn-cookie-save" onclick="rejectAllCookies()">Reject all Cookies</button>
 		<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-		<button class="btn-cookie-save" onclick="acceptAllCookies()">Accept all Cookies</button>
+		<button class="janusec-btn-cookie-save" onclick="acceptAllCookies()">Accept all Cookies</button>
 	</div>
 	<hr>
-	<div class="cookie-div-container">
-		<div class="cookie-tab">
+	<div class="janusec-cookie-div-container">
+		<div class="janusec-cookie-tab">
 			<button class="tablinks" onclick="openCookieTab(event, 'Necessary')" id="defaultOpen">Necessary Cookies</button>
       <button class="tablinks" onclick="openCookieTab(event, 'Functional')">Functional Cookies</button>
 			<button class="tablinks" onclick="openCookieTab(event, 'Analytics')">Analytics Cookies</button>
@@ -273,13 +270,13 @@ const cookieWindowTmpl = `
       <button class="tablinks" onclick="openCookieTab(event, 'Unclassified')">Unclassified Cookies</button>
 		</div>
 		
-		<div id="Necessary" class="tabcontent">
-			<div class="cookie-type-line">
+		<div id="Necessary" class="janusec-cookie-tabcontent">
+			<div class="janusec-cookie-type-line">
 			<span>Necessary Cookies</span>
-			<span class="txt-always-on">Always On</span>
+			<span class="janusec-txt-always-on">Always On</span>
 			</div>
-			<p class="common-text">{{ .App.NecessaryNotice }}</p>
-      <table class="cookie-preference-table">
+			<p class="janusec-cookie-common-text">{{ .App.NecessaryNotice }}</p>
+      <table class="janusec-cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
       {{ range .App.Cookies }}
           {{ if (eq .Type 1) }}
@@ -289,18 +286,18 @@ const cookieWindowTmpl = `
       </table>
 		</div>
 
-    <div id="Functional" class="tabcontent">
-		  <div class="cookie-type-line">
+    <div id="Functional" class="janusec-cookie-tabcontent">
+		  <div class="janusec-cookie-type-line">
 			<span>Functional Cookies</span>
 			<span>
-			<div class="switch-box">
+			<div class="janusec-cookie-switch-box">
 				<input id="functionalPermit" type="checkbox" class="switch" />
 				<label for="functionalPermit"></label>
 			</div>
 			</span>
 			</div>
-			<p class="common-text">{{ .App.FunctionalNotice }}</p> 
-      <table class="cookie-preference-table">
+			<p class="janusec-cookie-common-text">{{ .App.FunctionalNotice }}</p> 
+      <table class="janusec-cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
       {{ range .App.Cookies }}
           {{ if (eq .Type 2) }}
@@ -310,18 +307,18 @@ const cookieWindowTmpl = `
       </table>
 		</div>
 		
-		<div id="Analytics" class="tabcontent">
-		  <div class="cookie-type-line">
+		<div id="Analytics" class="janusec-cookie-tabcontent">
+		  <div class="janusec-cookie-type-line">
 			<span>Analytics Cookies</span>
 			<span>
-			<div class="switch-box">
+			<div class="janusec-cookie-switch-box">
 				<input id="analyticsPermit" type="checkbox" class="switch" />
 				<label for="analyticsPermit"></label>
 			</div>
 			</span>
 			</div>
-			<p class="common-text">{{ .App.AnalyticsNotice }}</p> 
-      <table class="cookie-preference-table">
+			<p class="janusec-cookie-common-text">{{ .App.AnalyticsNotice }}</p> 
+      <table class="janusec-cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
       {{ range .App.Cookies }}
           {{ if (eq .Type 4) }}
@@ -331,18 +328,18 @@ const cookieWindowTmpl = `
       </table>
 		</div>
 		
-		<div id="Marketing" class="tabcontent">
-			<div class="cookie-type-line">
+		<div id="Marketing" class="janusec-cookie-tabcontent">
+			<div class="janusec-cookie-type-line">
 			<span>Marketing Cookies</span>
 			<span>
-			<div class="switch-box">
+			<div class="janusec-cookie-switch-box">
 				<input id="marketingPermit" type="checkbox" class="switch" />
 				<label for="marketingPermit"></label>
 			</div>
 			</span>
 			</div>
-			<p class="common-text">{{ .App.MarketingNotice }}</p>
-      <table class="cookie-preference-table">
+			<p class="janusec-cookie-common-text">{{ .App.MarketingNotice }}</p>
+      <table class="janusec-cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
       {{ range .App.Cookies }}
           {{ if (eq .Type 8) }}
@@ -352,18 +349,18 @@ const cookieWindowTmpl = `
       </table>
 		</div>
 
-    <div id="Unclassified" class="tabcontent">
-			<div class="cookie-type-line">
+    <div id="Unclassified" class="janusec-cookie-tabcontent">
+			<div class="janusec-cookie-type-line">
 			<span>Unclassified Cookies</span>
 			<span>
-			<div class="switch-box">
+			<div class="janusec-cookie-switch-box">
 				<input id="unclassifiedPermit" type="checkbox" class="switch" />
 				<label for="unclassifiedPermit"></label>
 			</div>
 			</span>
 			</div>
-			<p class="common-text">{{ .App.UnclassifiedNotice }}</p>
-      <table class="cookie-preference-table">
+			<p class="janusec-cookie-common-text">{{ .App.UnclassifiedNotice }}</p>
+      <table class="janusec-cookie-preference-table">
       <tr> <th>Name</th> <th>Domain</th> <th>Path</th> <th>Duration</th> <th>Vendor</th> <th>Description</th> </tr>
       {{ if .UnclassifiedEnabled }}
         {{ range .App.Cookies }}
@@ -376,13 +373,13 @@ const cookieWindowTmpl = `
 		</div>
 
 	</div>
-	<div class="cookie-div-container">
+	<div class="janusec-cookie-div-container">
 	<br>
-		<button class="btn-confirm" onclick="saveCookiePreference()">Confirm My Choice</button>
+		<button class="janusec-btn-confirm" onclick="saveCookiePreference()">Confirm My Choice</button>
 	</div>
 </div>
 <br>
-<div class="cookie-window-footer">
+<div class="janusec-cookie-window-footer">
 	<small><span>Powered by </span><span class="txt-janusec-logo">JANUSEC</span></small>
 </div>
 <script>
@@ -396,10 +393,10 @@ function toggleCookieOptWindow() {
 }
 
 function openCookieTab(evt, cookieTab) {
-  var i, tabcontent, tablinks;
-  tabcontent = document.getElementsByClassName("tabcontent");
-  for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
+  var i, cookieTabContent, tablinks;
+  cookieTabContent = document.getElementsByClassName("janusec-cookie-tabcontent");
+  for (i = 0; i < cookieTabContent.length; i++) {
+    cookieTabContent[i].style.display = "none";
   }
   tablinks = document.getElementsByClassName("tablinks");
   for (i = 0; i < tablinks.length; i++) {
@@ -433,7 +430,6 @@ function closeCookieOptWindow() {
 
 function initCookieOptValue() {
   var optConsent = +getCookie("CookieOptConsent");
-  console.log("optConsent", optConsent);
   if(optConsent==0) {
     document.getElementById("JanusecCookieOptWindow").style.display = "block";
     {{ if .App.EnableFunctional }}
