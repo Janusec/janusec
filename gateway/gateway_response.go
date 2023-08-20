@@ -221,7 +221,10 @@ func rewriteResponse(resp *http.Response) (err error) {
 			if body != nil {
 				cookieIcon := ConvertStringToHTMLNode(cookieIconTmpl, "div")
 				body.AppendChild(cookieIcon)
-				tmplCookieWindow, err := template.New("cookieWindow").Parse(cookieWindowTmpl)
+				tmplCookieWindow, err := template.New("cookieWindow").Funcs(
+					template.FuncMap{
+						"unescaped": unescaped,
+					}).Parse(cookieWindowTmpl)
 				if err != nil {
 					utils.DebugPrintln("template cookieWindow Parse error", err)
 				}
@@ -279,4 +282,8 @@ func GetCookieOptConsent(r *http.Request) int64 {
 		}
 	}
 	return optConsentValue
+}
+
+func unescaped(s string) template.HTML {
+	return template.HTML(s)
 }

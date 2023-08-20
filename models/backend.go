@@ -46,9 +46,12 @@ type Application struct {
 	CacheEnabled bool `json:"cache_enabled"`
 
 	// Cookie Consent Management v1.4.1
-	CookieMgmtEnabled  bool      `json:"cookie_mgmt_enabled"`
-	ConciseNotice      string    `json:"concise_notice"`
-	LongNoticeLink     string    `json:"long_notice_link"`
+	CookieMgmtEnabled bool   `json:"cookie_mgmt_enabled"`
+	ConciseNotice     string `json:"concise_notice"`
+
+	// LongNoticeLink is not required and removed from v1.4.2fix3, ConciseNotice begin to support HTML
+	// LongNoticeLink     string    `json:"long_notice_link"`
+
 	NecessaryNotice    string    `json:"necessary_notice"`
 	FunctionalNotice   string    `json:"functional_notice"`
 	EnableFunctional   bool      `json:"enable_functional"`
@@ -87,9 +90,11 @@ type DBApplication struct {
 	CacheEnabled bool `json:"cache_enabled"`
 
 	// Cookie Consent Management v1.4.1
-	CookieMgmtEnabled  bool   `json:"cookie_mgmt_enabled"`
-	ConciseNotice      string `json:"concise_notice"`
-	LongNoticeLink     string `json:"long_notice_link"`
+	CookieMgmtEnabled bool   `json:"cookie_mgmt_enabled"`
+	ConciseNotice     string `json:"concise_notice"`
+
+	// LongNoticeLink is not required and removed from v1.4.2fix3, ConciseNotice begin to support HTML
+	// LongNoticeLink     string `json:"long_notice_link"`
 	NecessaryNotice    string `json:"necessary_notice"`
 	FunctionalNotice   string `json:"functional_notice"`
 	EnableFunctional   bool   `json:"enable_functional"`

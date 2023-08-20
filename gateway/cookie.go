@@ -28,7 +28,7 @@ const cookieStyle = `<style>
     height: 100%;
     font-size: 24px;
     color: #ffffff;
-    background-color: #007bff;
+    background-color: #4169e1;
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -44,7 +44,7 @@ const cookieStyle = `<style>
     z-index: 9999;
     width: 800px;
     background-color: #FFFFFF;
-    border: 2px solid #e0e0e0;
+    border: 3px solid #4169e1;
     opacity: 1;
  }
  
@@ -89,7 +89,7 @@ const cookieStyle = `<style>
     padding: 10px;
     color: #ffffff;
     border: solid 1px #F5F5F5;
-    background-color: #007bff;
+    background-color: #4169e1;
  }
  
  .janusec-cookie-window-footer {
@@ -157,7 +157,7 @@ const cookieStyle = `<style>
 	padding: 10px;
   color: #ffffff;
   border: solid 1px #F5F5F5;
-  background-color: #007bff;
+  background-color: #4169e1;
  }
 
  .janusec-cookie-type-line {
@@ -166,11 +166,11 @@ const cookieStyle = `<style>
 
  .janusec-txt-always-on {
 	float: right;
-	color: #007bff;
+	color: #4169e1;
  }
 
  .txt-janusec-logo {
-  color: #007bff;
+  color: #4169e1;
  }
 
 .janusec-cookie-switch-box {
@@ -228,7 +228,7 @@ const cookieStyle = `<style>
 }
 
 .janusec-cookie-switch-box .switch:checked~label::after {
-    background-color: #007bff;
+    background-color: #4169e1;
 }
 
 .janusec-cookie-div-container * {
@@ -251,9 +251,9 @@ const cookieWindowTmpl = `
       <button class="janusec-btn-cookie-window-close" onclick="closeCookieOptWindow()">×</button>
     </span>
   </div>
+  <hr>
   <p class="janusec-cookie-common-text">
-    {{ .App.ConciseNotice }} For more detailed information about the cookies we use, see our 
-    <a href="{{ .App.LongNoticeLink }}" target="_blank">cookies notice</a>.
+    {{ .App.ConciseNotice | unescaped }}
   </p>
 	<div>
 		<button class="janusec-btn-cookie-save" onclick="rejectAllCookies()">Reject all Cookies</button>
