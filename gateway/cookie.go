@@ -44,7 +44,6 @@ const cookieStyle = `<style>
     z-index: 9999;
     width: 800px;
     background-color: #FFFFFF;
-    border: 3px solid #4169e1;
     opacity: 1;
  }
  
@@ -235,12 +234,24 @@ const cookieStyle = `<style>
   box-sizing: border-box
 }
 
+#JanusecCookieMask {
+  position: fixed; 
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4); 
+  z-index: 9000;
+}
+
  </style>`
 
 const cookieIconTmpl = `
 <div id="JanusecCookieOptIcon">
     <button onclick="toggleCookieOptWindow()">C</button>
 </div>`
+
+const cookieMaskTmpl = `<div id="JanusecCookieMask"></div>`
 
 const cookieWindowTmpl = `
 <div id="JanusecCookieOptWindow">
@@ -386,9 +397,9 @@ const cookieWindowTmpl = `
 function toggleCookieOptWindow() {
   var display = document.getElementById("JanusecCookieOptWindow").style.display;
   if(display=='none') {
-    document.getElementById("JanusecCookieOptWindow").style.display = 'block';
+    openCookieOptWindow();
   } else {
-    document.getElementById("JanusecCookieOptWindow").style.display = 'none';
+    closeCookieOptWindow();
   }
 }
 
@@ -424,14 +435,20 @@ function setCookie(cname,cvalue,exdays){
   document.cookie = cname + "=" + cvalue + "; " + expires;
 }
 
+function openCookieOptWindow() {
+  document.getElementById("JanusecCookieOptWindow").style.display = "block";
+  document.getElementById("JanusecCookieMask").style.display = "block";
+}
+
 function closeCookieOptWindow() {
   document.getElementById("JanusecCookieOptWindow").style.display = "none";
+  document.getElementById("JanusecCookieMask").style.display = "none";
 }
 
 function initCookieOptValue() {
   var optConsent = +getCookie("CookieOptConsent");
   if(optConsent==0) {
-    document.getElementById("JanusecCookieOptWindow").style.display = "block";
+    openCookieOptWindow();
     {{ if .App.EnableFunctional }}
     document.getElementById("functionalPermit").checked = true;
     {{ end }}

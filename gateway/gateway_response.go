@@ -221,6 +221,8 @@ func rewriteResponse(resp *http.Response) (err error) {
 			if body != nil {
 				cookieIcon := ConvertStringToHTMLNode(cookieIconTmpl, "div")
 				body.AppendChild(cookieIcon)
+				cookieMask := ConvertStringToHTMLNode(cookieMaskTmpl, "div")
+				body.AppendChild(cookieMask)
 				tmplCookieWindow, err := template.New("cookieWindow").Funcs(
 					template.FuncMap{
 						"unescaped": unescaped,
