@@ -193,6 +193,11 @@ func UpdateAppUser(w http.ResponseWriter, r *http.Request, body []byte, clientIP
 		appUser.IsCertAdmin = false
 		appUser.IsSuperAdmin = false
 	}
+	if len(frontUser.Password) > 0 {
+		// Update salt if password not null
+		appUser.Salt = data.GetRandomSaltString()
+		appUser.HashPwd = data.SHA256Hash(frontUser.Password + appUser.Salt)
+	}
 	if appUser.ID == 0 {
 		// new user
 		newID, err := data.DAL.InsertIfNotExistsAppUser(appUser.Username, appUser.HashPwd, appUser.Salt, appUser.Email, appUser.IsSuperAdmin, appUser.IsCertAdmin, appUser.IsAppAdmin, true)
@@ -204,9 +209,6 @@ func UpdateAppUser(w http.ResponseWriter, r *http.Request, body []byte, clientIP
 	} else {
 		// update existed user
 		if len(frontUser.Password) > 0 {
-			// Update salt when modify password
-			appUser.Salt = data.GetRandomSaltString()
-			appUser.HashPwd = data.SHA256Hash(frontUser.Password + appUser.Salt)
 			err := data.DAL.UpdateAppUserWithPwd(appUser.Username, appUser.HashPwd, appUser.Salt, appUser.Email, appUser.IsSuperAdmin, appUser.IsCertAdmin, appUser.IsAppAdmin, false, appUser.ID)
 			if err != nil {
 				utils.DebugPrintln("UpdateAppUser", err)
