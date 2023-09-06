@@ -144,7 +144,7 @@ func HandleCookies(resp *http.Response, app *models.Application, reqURI string, 
 			cookieDesc := ""
 			cookieDurationMinutes := math.Ceil(time.Until(httpCookie.Expires).Minutes())
 			if cookieDurationMinutes < 0 {
-				cookieDesc = "From user request, possibly forged"
+				cookieDesc = "From user request"
 			}
 			// check relevant CookieRef and update Vendor, Type, and Description
 			cookieRef := GetCookieRefByName(httpCookie.Name)
