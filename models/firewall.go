@@ -238,6 +238,9 @@ type IPPolicy struct {
 
 	// ApplyToCC allow CC not block
 	ApplyToCC bool `json:"apply_to_cc"`
+
+	CreateTime  int64  `json:"create_time"`
+	Description string `json:"description"`
 }
 
 // RPCIPPolicies for replica nodes
