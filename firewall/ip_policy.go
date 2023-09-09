@@ -14,6 +14,7 @@ import (
 	"janusec/models"
 	"janusec/utils"
 	"strconv"
+	"time"
 )
 
 var globalIPPolicies []*models.IPPolicy
@@ -45,31 +46,22 @@ func UpdateIPPolicy(body []byte, clientIP string, authUser *models.AuthUser) (*m
 		return nil, err
 	}
 	ipPolicy := rpcIPRequest.Object
-
-	/*
-		ipPolicyI := param["object"].(map[string]interface{})
-		id, _ := strconv.ParseInt(ipPolicyI["id"].(string), 10, 64)
-		ipAddr := ipPolicyI["ip_addr"].(string)
-		ipAddr = strings.Trim(ipAddr, " ")
-		isAllow := ipPolicyI["is_allow"].(bool)
-		applyToWAF := ipPolicyI["apply_to_waf"].(bool)
-		applyToCC := ipPolicyI["apply_to_cc"].(bool)
-	*/
-
 	if ipPolicy.ID == 0 {
 		// New IP
-		ipPolicy.ID = data.DAL.InsertIPPolicy(ipPolicy.IPAddr, ipPolicy.IsAllow, ipPolicy.ApplyToWAF, ipPolicy.ApplyToCC)
+		ipPolicy.CreateTime = time.Now().Unix()
+		ipPolicy.ID = data.DAL.InsertIPPolicy(ipPolicy.IPAddr, ipPolicy.IsAllow, ipPolicy.ApplyToWAF, ipPolicy.ApplyToCC, ipPolicy.CreateTime, ipPolicy.Description)
 		globalIPPolicies = append(globalIPPolicies, ipPolicy)
 		go utils.OperationLog(clientIP, authUser.Username, "Add IP Policy", ipPolicy.IPAddr)
 		data.UpdateFirewallLastModified()
 		return ipPolicy, nil
 	}
 	// Update
-	err := data.DAL.UpdateIPPolicy(ipPolicy.ID, ipPolicy.IPAddr, ipPolicy.IsAllow, ipPolicy.ApplyToWAF, ipPolicy.ApplyToCC)
+	err := data.DAL.UpdateIPPolicy(ipPolicy.ID, ipPolicy.IPAddr, ipPolicy.IsAllow, ipPolicy.ApplyToWAF, ipPolicy.ApplyToCC, ipPolicy.Description)
 	if err != nil {
 		utils.DebugPrintln("UpdateIPPolicy", err)
 		return nil, err
 	}
+	globalIPPolicies = data.DAL.LoadIPPolicies()
 	go utils.OperationLog(clientIP, authUser.Username, "Update IP Policy", ipPolicy.IPAddr)
 	data.UpdateFirewallLastModified()
 	return ipPolicy, nil

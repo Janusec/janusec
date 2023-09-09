@@ -191,6 +191,14 @@ func InitDatabase() {
 			utils.DebugPrintln("InitDatabase ALTER TABLE destinations add constraint", err)
 		}
 	}
+
+	// v1.4.2fix4
+	if !dal.ExistConstraint("ip_policies", "create_time") {
+		_ = dal.ExecSQL(`ALTER TABLE "ip_policies" ADD COLUMN "create_time" BIGINT, ADD COLUMN "description" VARCHAR(1024) DEFAULT ''`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE ip_policies add COLUMN", err)
+		}
+	}
 }
 
 // LoadAppConfiguration ...

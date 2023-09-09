@@ -144,16 +144,22 @@ func LogGroupHitRequestAPI(r *http.Request) error {
 
 // GetCCLogCount ...
 func GetCCLogCount(body []byte) (*models.StatCount, error) {
-	var rpcStatCountRequest models.APIStatCountRequest
-	if err := json.Unmarshal(body, &rpcStatCountRequest); err != nil {
+	var apiStatCountRequest models.APIStatCountRequest
+	if err := json.Unmarshal(body, &apiStatCountRequest); err != nil {
 		utils.DebugPrintln("GetCCLogCount", err)
 		return nil, err
 	}
-	count, err := data.DAL.SelectCCLogsCount(rpcStatCountRequest.AppID, rpcStatCountRequest.StartTime, rpcStatCountRequest.EndTime)
+	var count int64
+	var err error
+	if apiStatCountRequest.AppID != 0 {
+		count, err = data.DAL.SelectCCLogsCount(apiStatCountRequest.AppID, apiStatCountRequest.StartTime, apiStatCountRequest.EndTime)
+	} else {
+		count, err = data.DAL.SelectAllCCLogsCount(apiStatCountRequest.StartTime, apiStatCountRequest.EndTime)
+	}
 	statCount := &models.StatCount{
-		AppID:     rpcStatCountRequest.AppID,
-		StartTime: rpcStatCountRequest.StartTime,
-		EndTime:   rpcStatCountRequest.EndTime,
+		AppID:     apiStatCountRequest.AppID,
+		StartTime: apiStatCountRequest.StartTime,
+		EndTime:   apiStatCountRequest.EndTime,
 		Count:     count,
 	}
 	return statCount, err
@@ -161,16 +167,22 @@ func GetCCLogCount(body []byte) (*models.StatCount, error) {
 
 // GetGroupLogCount ...
 func GetGroupLogCount(body []byte) (*models.StatCount, error) {
-	var rpcStatCountRequest models.APIStatCountRequest
-	if err := json.Unmarshal(body, &rpcStatCountRequest); err != nil {
+	var apiStatCountRequest models.APIStatCountRequest
+	if err := json.Unmarshal(body, &apiStatCountRequest); err != nil {
 		utils.DebugPrintln("GetGroupLogCount", err)
 		return nil, err
 	}
-	count, err := data.DAL.SelectGroupHitLogsCount(rpcStatCountRequest.AppID, rpcStatCountRequest.StartTime, rpcStatCountRequest.EndTime)
+	var count int64
+	var err error
+	if apiStatCountRequest.AppID != 0 {
+		count, err = data.DAL.SelectGroupHitLogsCountByAppID(apiStatCountRequest.AppID, apiStatCountRequest.StartTime, apiStatCountRequest.EndTime)
+	} else {
+		count, err = data.DAL.SelectGroupHitLogsCount(apiStatCountRequest.StartTime, apiStatCountRequest.EndTime)
+	}
 	statCount := &models.StatCount{
-		AppID:     rpcStatCountRequest.AppID,
-		StartTime: rpcStatCountRequest.StartTime,
-		EndTime:   rpcStatCountRequest.EndTime,
+		AppID:     apiStatCountRequest.AppID,
+		StartTime: apiStatCountRequest.StartTime,
+		EndTime:   apiStatCountRequest.EndTime,
 		Count:     count,
 	}
 	return statCount, err
@@ -222,7 +234,7 @@ func GetWeekStat(body []byte) (weekStat []int64, err error) {
 
 		} else {
 			if apiWeekStatRequest.VulnID == 0 {
-				dayCount, err := data.DAL.SelectGroupHitLogsCount(apiWeekStatRequest.AppID, dayStartTime, dayEndTime)
+				dayCount, err := data.DAL.SelectGroupHitLogsCountByAppID(apiWeekStatRequest.AppID, dayStartTime, dayEndTime)
 				if err != nil {
 					utils.DebugPrintln("GetWeekStat SelectGroupHitLogsCount", err)
 				}
@@ -246,7 +258,12 @@ func GetCCLogs(body []byte) ([]*models.SimpleCCLog, error) {
 		utils.DebugPrintln("GetCCLogs", err)
 		return nil, err
 	}
-	simpleCCLogs := data.DAL.SelectCCLogs(apiHitLogRequest.AppID, apiHitLogRequest.StartTime, apiHitLogRequest.EndTime, apiHitLogRequest.RequestCount, apiHitLogRequest.Offset)
+	var simpleCCLogs []*models.SimpleCCLog
+	if apiHitLogRequest.AppID != 0 {
+		simpleCCLogs = data.DAL.SelectCCLogsByAppID(apiHitLogRequest.AppID, apiHitLogRequest.StartTime, apiHitLogRequest.EndTime, apiHitLogRequest.RequestCount, apiHitLogRequest.Offset)
+	} else {
+		simpleCCLogs = data.DAL.SelectCCLogs(apiHitLogRequest.StartTime, apiHitLogRequest.EndTime, apiHitLogRequest.RequestCount, apiHitLogRequest.Offset)
+	}
 	return simpleCCLogs, nil
 }
 
@@ -257,7 +274,13 @@ func GetGroupLogs(body []byte) ([]*models.SimpleGroupHitLog, error) {
 		utils.DebugPrintln("GetGroupLogs", err)
 		return nil, err
 	}
-	simpleRegexHitLogs := data.DAL.SelectGroupHitLogs(apiHitLogRequest.AppID, apiHitLogRequest.StartTime, apiHitLogRequest.EndTime, apiHitLogRequest.RequestCount, apiHitLogRequest.Offset)
+	var simpleRegexHitLogs []*models.SimpleGroupHitLog
+	if apiHitLogRequest.AppID != 0 {
+		simpleRegexHitLogs = data.DAL.SelectGroupHitLogsByAppID(apiHitLogRequest.AppID, apiHitLogRequest.StartTime, apiHitLogRequest.EndTime, apiHitLogRequest.RequestCount, apiHitLogRequest.Offset)
+	} else {
+		// all applications
+		simpleRegexHitLogs = data.DAL.SelectGroupHitLogs(apiHitLogRequest.StartTime, apiHitLogRequest.EndTime, apiHitLogRequest.RequestCount, apiHitLogRequest.Offset)
+	}
 	return simpleRegexHitLogs, nil
 }
 
