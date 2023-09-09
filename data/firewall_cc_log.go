@@ -16,9 +16,6 @@ const (
 	sqlCreateTableIfNotExistsCCLog = `CREATE TABLE IF NOT EXISTS "cc_logs"("id" bigserial primary key,"request_time" bigint,"client_ip" VARCHAR(256) NOT NULL,"host" VARCHAR(256) NOT NULL,"method" VARCHAR(16) NOT NULL,"url_path" VARCHAR(2048) NOT NULL,"url_query" VARCHAR(2048) NOT NULL DEFAULT '',"content_type" VARCHAR(128) NOT NULL DEFAULT '',"user_agent" VARCHAR(1024) NOT NULL DEFAULT '',"cookies" VARCHAR(1024) NOT NULL DEFAULT '',"raw_request" VARCHAR(16384) NOT NULL,"action" bigint,"app_id" bigint)`
 	sqlInsertCCLog                 = `INSERT INTO "cc_logs"("id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","app_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`
 	sqlSelectCCLogByID             = `SELECT "id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","app_id" FROM "cc_logs" WHERE "id"=$1`
-	sqlSelectSimpleCCLogs          = `SELECT "id","request_time","client_ip","host","method","url_path","action","app_id" FROM "cc_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 ORDER BY "request_time" DESC LIMIT $4 OFFSET $5`
-	sqlSelectCCLogsCount           = `SELECT COUNT(1) FROM "cc_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3`
-	sqlSelectAllCCLogsCount        = `SELECT COUNT(1) FROM "cc_logs" WHERE "request_time" BETWEEN $1 AND $2`
 	sqlDeleteCCLogsBeforeTime      = `DELETE FROM "cc_logs" WHERE "request_time"<$1`
 )
 
@@ -53,6 +50,7 @@ func (dal *MyDAL) InsertCCLog(requestTime int64, clientIP string, host string, m
 // SelectCCLogsCount ...
 func (dal *MyDAL) SelectCCLogsCount(appID int64, startTime int64, endTime int64) (int64, error) {
 	var count int64
+	const sqlSelectCCLogsCount = `SELECT COUNT(1) FROM "cc_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3`
 	err := dal.db.QueryRow(sqlSelectCCLogsCount, appID, startTime, endTime).Scan(&count)
 	if err != nil {
 		utils.DebugPrintln("SelectCCLogsCount QueryRow", err)
@@ -62,6 +60,7 @@ func (dal *MyDAL) SelectCCLogsCount(appID int64, startTime int64, endTime int64)
 
 // SelectAllCCLogsCount ...
 func (dal *MyDAL) SelectAllCCLogsCount(startTime int64, endTime int64) (int64, error) {
+	const sqlSelectAllCCLogsCount = `SELECT COUNT(1) FROM "cc_logs" WHERE "request_time" BETWEEN $1 AND $2`
 	stmt, err := dal.db.Prepare(sqlSelectAllCCLogsCount)
 	if err != nil {
 		utils.DebugPrintln("SelectAllCCLogsCount Prepare", err)
@@ -100,10 +99,31 @@ func (dal *MyDAL) SelectCCLogByID(id int64) (*models.CCLog, error) {
 	return ccLog, err
 }
 
-// SelectCCLogs ...
-func (dal *MyDAL) SelectCCLogs(appID int64, startTime int64, endTime int64, requestCount int64, offset int64) []*models.SimpleCCLog {
+// SelectCCLogsByAppID ...
+func (dal *MyDAL) SelectCCLogsByAppID(appID int64, startTime int64, endTime int64, requestCount int64, offset int64) []*models.SimpleCCLog {
 	simpleCCLogs := []*models.SimpleCCLog{}
+	const sqlSelectSimpleCCLogs = `SELECT "id","request_time","client_ip","host","method","url_path","action","app_id" FROM "cc_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 ORDER BY "request_time" DESC LIMIT $4 OFFSET $5`
 	rows, err := dal.db.Query(sqlSelectSimpleCCLogs, appID, startTime, endTime, requestCount, offset)
+	if err != nil {
+		utils.DebugPrintln("SelectCCLogs Query", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		simpleCCLog := &models.SimpleCCLog{}
+		err = rows.Scan(&simpleCCLog.ID, &simpleCCLog.RequestTime, &simpleCCLog.ClientIP, &simpleCCLog.Host, &simpleCCLog.Method, &simpleCCLog.UrlPath, &simpleCCLog.Action, &simpleCCLog.AppID)
+		if err != nil {
+			utils.DebugPrintln("SelectCCLogs rows.Scan", err)
+		}
+		simpleCCLogs = append(simpleCCLogs, simpleCCLog)
+	}
+	return simpleCCLogs
+}
+
+// SelectCCLogs of all applications
+func (dal *MyDAL) SelectCCLogs(startTime int64, endTime int64, requestCount int64, offset int64) []*models.SimpleCCLog {
+	simpleCCLogs := []*models.SimpleCCLog{}
+	const sqlSelectSimpleCCLogs = `SELECT "id","request_time","client_ip","host","method","url_path","action","app_id" FROM "cc_logs" WHERE "request_time" BETWEEN $1 AND $2 ORDER BY "request_time" DESC LIMIT $3 OFFSET $4`
+	rows, err := dal.db.Query(sqlSelectSimpleCCLogs, startTime, endTime, requestCount, offset)
 	if err != nil {
 		utils.DebugPrintln("SelectCCLogs Query", err)
 	}

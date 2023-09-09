@@ -13,11 +13,10 @@ import (
 )
 
 const (
-	sqlCreateTableIfNotExistsGroupHitLog  = `CREATE TABLE IF NOT EXISTS "group_hit_logs"("id" bigserial primary key,"request_time" bigint,"client_ip" VARCHAR(256) NOT NULL,"host" VARCHAR(256) NOT NULL,"method" VARCHAR(16) NOT NULL,"url_path" VARCHAR(2048) NOT NULL,"url_query" VARCHAR(2048) NOT NULL DEFAULT '',"content_type" VARCHAR(128) NOT NULL DEFAULT '',"user_agent" VARCHAR(1024) NOT NULL DEFAULT '',"cookies" VARCHAR(1024) NOT NULL DEFAULT '',"raw_request" VARCHAR(16384) NOT NULL,"action" bigint,"policy_id" bigint,"vuln_id" bigint,"app_id" bigint)`
-	sqlInsertGroupHitLog                  = `INSERT INTO "group_hit_logs"("id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`
-	sqlSelectGroupHitLogByID              = `SELECT "id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id" FROM "group_hit_logs" WHERE "id"=$1`
-	sqlSelectSimpleGroupHitLogs           = `SELECT "id","request_time","client_ip","host","method","url_path","action","policy_id","app_id" FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 ORDER BY "request_time" DESC LIMIT $4 OFFSET $5`
-	sqlSelectGroupHitLogsCount            = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3`
+	sqlCreateTableIfNotExistsGroupHitLog = `CREATE TABLE IF NOT EXISTS "group_hit_logs"("id" bigserial primary key,"request_time" bigint,"client_ip" VARCHAR(256) NOT NULL,"host" VARCHAR(256) NOT NULL,"method" VARCHAR(16) NOT NULL,"url_path" VARCHAR(2048) NOT NULL,"url_query" VARCHAR(2048) NOT NULL DEFAULT '',"content_type" VARCHAR(128) NOT NULL DEFAULT '',"user_agent" VARCHAR(1024) NOT NULL DEFAULT '',"cookies" VARCHAR(1024) NOT NULL DEFAULT '',"raw_request" VARCHAR(16384) NOT NULL,"action" bigint,"policy_id" bigint,"vuln_id" bigint,"app_id" bigint)`
+	sqlInsertGroupHitLog                 = `INSERT INTO "group_hit_logs"("id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`
+	sqlSelectGroupHitLogByID             = `SELECT "id","request_time","client_ip","host","method","url_path","url_query","content_type","user_agent","cookies","raw_request","action","policy_id","vuln_id","app_id" FROM "group_hit_logs" WHERE "id"=$1`
+
 	sqlSelectGroupHitLogsCountByVulnID    = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND "vuln_id"=$2 AND "request_time" BETWEEN $3 AND $4`
 	sqlSelectAllGroupHitLogsCount         = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2`
 	sqlSelectAllGroupHitLogsCountByVulnID = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "vuln_id"=$1 AND "request_time" BETWEEN $2 AND $3`
@@ -54,8 +53,9 @@ func (dal *MyDAL) InsertGroupHitLog(requestTime int64, clientIP string, host str
 	return err
 }
 
-// SelectGroupHitLogsCount ...
-func (dal *MyDAL) SelectGroupHitLogsCount(appID int64, startTime int64, endTime int64) (int64, error) {
+// SelectGroupHitLogsCountByAppID ...
+func (dal *MyDAL) SelectGroupHitLogsCountByAppID(appID int64, startTime int64, endTime int64) (int64, error) {
+	const sqlSelectGroupHitLogsCount = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3`
 	stmt, err := dal.db.Prepare(sqlSelectGroupHitLogsCount)
 	if err != nil {
 		utils.DebugPrintln("SelectGroupHitLogsCount Prepare", err)
@@ -63,6 +63,22 @@ func (dal *MyDAL) SelectGroupHitLogsCount(appID int64, startTime int64, endTime 
 	defer stmt.Close()
 	var count int64
 	err = stmt.QueryRow(appID, startTime, endTime).Scan(&count)
+	if err != nil {
+		utils.DebugPrintln("SelectGroupHitLogsCount QueryRow", err)
+	}
+	return count, err
+}
+
+// SelectGroupHitLogsCount of all applications
+func (dal *MyDAL) SelectGroupHitLogsCount(startTime int64, endTime int64) (int64, error) {
+	const sqlSelectGroupHitLogsCount = `SELECT COUNT(1) FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2`
+	stmt, err := dal.db.Prepare(sqlSelectGroupHitLogsCount)
+	if err != nil {
+		utils.DebugPrintln("SelectGroupHitLogsCount Prepare", err)
+	}
+	defer stmt.Close()
+	var count int64
+	err = stmt.QueryRow(startTime, endTime).Scan(&count)
 	if err != nil {
 		utils.DebugPrintln("SelectGroupHitLogsCount QueryRow", err)
 	}
@@ -143,15 +159,41 @@ func (dal *MyDAL) SelectGroupHitLogByID(id int64) (*models.GroupHitLog, error) {
 	return groupHitLog, err
 }
 
-// SelectGroupHitLogs ...
-func (dal *MyDAL) SelectGroupHitLogs(appID int64, startTime int64, endTime int64, requestCount int64, offset int64) []*models.SimpleGroupHitLog {
+// SelectGroupHitLogsByAppID ...
+func (dal *MyDAL) SelectGroupHitLogsByAppID(appID int64, startTime int64, endTime int64, requestCount int64, offset int64) []*models.SimpleGroupHitLog {
 	simpleGroupHitLogs := []*models.SimpleGroupHitLog{}
+	const sqlSelectSimpleGroupHitLogs = `SELECT "id","request_time","client_ip","host","method","url_path","action","policy_id","app_id" FROM "group_hit_logs" WHERE "app_id"=$1 AND "request_time" BETWEEN $2 AND $3 ORDER BY "request_time" DESC LIMIT $4 OFFSET $5`
 	stmt, err := dal.db.Prepare(sqlSelectSimpleGroupHitLogs)
+	if err != nil {
+		utils.DebugPrintln("SelectGroupHitLogsByAppID Prepare", err)
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query(appID, startTime, endTime, requestCount, offset)
+	if err != nil {
+		utils.DebugPrintln("SelectGroupHitLogsByAppID Query", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		simpleGroupHitLog := &models.SimpleGroupHitLog{}
+		err = rows.Scan(&simpleGroupHitLog.ID, &simpleGroupHitLog.RequestTime, &simpleGroupHitLog.ClientIP, &simpleGroupHitLog.Host, &simpleGroupHitLog.Method, &simpleGroupHitLog.UrlPath, &simpleGroupHitLog.Action, &simpleGroupHitLog.PolicyID, &simpleGroupHitLog.AppID)
+		if err != nil {
+			utils.DebugPrintln("SelectGroupHitLogsByAppID rows.Scan", err)
+		}
+		simpleGroupHitLogs = append(simpleGroupHitLogs, simpleGroupHitLog)
+	}
+	return simpleGroupHitLogs
+}
+
+// SelectGroupHitLogs of all applications
+func (dal *MyDAL) SelectGroupHitLogs(startTime int64, endTime int64, requestCount int64, offset int64) []*models.SimpleGroupHitLog {
+	simpleGroupHitLogs := []*models.SimpleGroupHitLog{}
+	const sqlSelectAllGroupHitLogs = `SELECT "id","request_time","client_ip","host","method","url_path","action","policy_id","app_id" FROM "group_hit_logs" WHERE "request_time" BETWEEN $1 AND $2 ORDER BY "request_time" DESC LIMIT $3 OFFSET $4`
+	stmt, err := dal.db.Prepare(sqlSelectAllGroupHitLogs)
 	if err != nil {
 		utils.DebugPrintln("SelectGroupHitLogs Prepare", err)
 	}
 	defer stmt.Close()
-	rows, err := stmt.Query(appID, startTime, endTime, requestCount, offset)
+	rows, err := stmt.Query(startTime, endTime, requestCount, offset)
 	if err != nil {
 		utils.DebugPrintln("SelectGroupHitLogs Query", err)
 	}
