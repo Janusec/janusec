@@ -46,14 +46,14 @@ CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build janusec.go
 buildFor arm64
 printf "arm64 done!\n"
 
-printf "Building mips64 ... \n"
-CGO_ENABLED=0 GOOS=linux GOARCH=mips64 go build janusec.go
-buildFor mips64
-printf "mips64 done!\n"
+#printf "Building mips64 ... \n"
+#CGO_ENABLED=0 GOOS=linux GOARCH=mips64 go build janusec.go
+#buildFor mips64
+#printf "mips64 done!\n"
 
-printf "Building mips64le ... \n"
-CGO_ENABLED=0 GOOS=linux GOARCH=mips64le go build janusec.go
-buildFor mips64le
-printf "mips64le done!\n"
+#printf "Building mips64le ... \n"
+#CGO_ENABLED=0 GOOS=linux GOARCH=mips64le go build janusec.go
+#buildFor mips64le
+#printf "mips64le done!\n"
 
 printf "Done!\n"
