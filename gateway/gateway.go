@@ -469,6 +469,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 							utils.DebugPrintln("Check Update NewRequest", err)
 						}
 						if err == nil {
+							// copy header.
+							for k := range r.Header {
+								req.Header.Set(k, r.Header.Get(k))
+							}
 							req.Header.Set("Host", domainStr)
 							modTimeGMT := fi.ModTime().UTC().Format(http.TimeFormat)
 							//If-Modified-Since: Sun, 14 Jun 2020 13:54:20 GMT
