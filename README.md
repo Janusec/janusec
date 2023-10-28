@@ -229,7 +229,7 @@ When listen=true in config.json :
 > https://`your_primary_node_domain_name:9443`/janusec-admin/  (after certificate configured)  
 
 When using primary node only, any application domain name can be used for admin.   
-But if you have one or more replica nodes, you should apply for a seperate domain name for primary node.   
+But if you have one or more replica nodes, you should apply for a separate domain name for primary node.   
 
 [Janusec Application Gateway Configuration](https://janusec.github.io/documentation/quick-start/)   
 
