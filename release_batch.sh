@@ -31,7 +31,7 @@ function buildFor() {
     \cp -f ./robots.txt ${temp_dir}static/
     \cp -f ./scripts/* ${temp_dir}
     cd ./dist/
-    tar -zcf ./${filename_prefix}.tar.gz ./${filename_prefix}
+    tar -zcf ./${filename_prefix}-pro.tar.gz ./${filename_prefix}
     rm -rf ./${filename_prefix}
     cd ..
 }
