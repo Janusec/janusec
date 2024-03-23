@@ -157,7 +157,6 @@ func InitDefaultSettings() {
 	DAL.LoadInstanceKey()
 	DAL.LoadNodesKey()
 	DAL.LoadAPIKey()
-	var err error
 
 	// Init PrimarySetting
 	if !DAL.ExistsSetting("authenticator_enabled") {
@@ -261,7 +260,7 @@ func InitDefaultSettings() {
 		DAL.SaveStringSetting("dingtalk_appsecret", "crrALdXUIj4T0zBekYh4u9sU_T1GZT")
 	}
 	if !DAL.ExistsSetting("dingtalk_corpid") {
-		// added on Mar 23, 2024
+		// added on Mar 23, 2024, v1.5.0
 		DAL.SaveStringSetting("dingtalk_corpid", "xxxx")
 	}
 	// AuthConfig feishu
@@ -350,9 +349,6 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("init_time") {
 		// 0.9.13 +
 		_ = DAL.SaveIntSetting("init_time", time.Now().Unix())
-	}
-	if err != nil {
-		utils.DebugPrintln("InitDefaultSettings error", err)
 	}
 }
 

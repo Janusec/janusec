@@ -27,7 +27,7 @@ func UpdatePods(dest *models.Destination, nowTimeStamp int64) {
 	if err != nil {
 		utils.DebugPrintln("Check K8S API GetResponse", err)
 		dest.CheckTime = nowTimeStamp
-		dest.Online = false
+		SetDestinationOffline(dest)
 	}
 	pods := models.PODS{}
 	err = json.Unmarshal(resp, &pods)
@@ -96,7 +96,7 @@ func SelectPodFromVIPTarget(dest *models.VipTarget, srcIP string) string {
 		if err != nil {
 			utils.DebugPrintln("Check K8S API GetResponse", err)
 			dest.CheckTime = nowTimeStamp
-			dest.Online = false
+			SetVipTargetOffline(dest)
 		}
 		pods := models.PODS{}
 		err = json.Unmarshal(resp, &pods)

@@ -51,7 +51,7 @@ func GetSignature(msg []byte, key []byte) string {
 }
 */
 
-// AccessToken Response V2, added on Mar 23, 2024
+// AccessToken Response V2, added on Mar 23, 2024, v1.5.0
 // Doc: https://open.dingtalk.com/document/orgapp/obtain-user-token#h2-hxj-mpf-5bd
 type AccessTokenResp struct {
 	AccessToken  string `json:"accessToken"`
@@ -144,7 +144,7 @@ func DingtalkCallbackWithCodeV1(w http.ResponseWriter, r *http.Request) {
 }
 */
 
-// This is the API v2, added on Mar 23, 2024
+// This is the API v2, added on Mar 23, 2024, v1.5.0
 // Doc: https://open.dingtalk.com/document/orgapp/tutorial-obtaining-user-personal-information
 // Step 1: https://login.dingtalk.com/oauth2/auth?redirect_uri=https://.../oauth/dingtalk&response_type=code&client_id=...&scope=openid&state=...&prompt=consent
 // If state==admin, for janusec-admin; else for frontend applications

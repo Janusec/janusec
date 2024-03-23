@@ -84,7 +84,7 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 			data.NodeSetting.AuthConfig.Dingtalk.AppID,
 			data.NodeSetting.AuthConfig.Dingtalk.Callback)
 		*/
-		// API v2, added on Mar 23, 2024
+		// API v2, added on Mar 23, 2024, v1.5.0
 		entranceURL := fmt.Sprintf(`https://login.dingtalk.com/oauth2/auth?redirect_uri=%s&response_type=code&corpId=%s&client_id=%s&scope=openid%%20corpid&state=admin&prompt=consent`,
 			data.NodeSetting.AuthConfig.Dingtalk.Callback,
 			data.NodeSetting.AuthConfig.Dingtalk.CorpID,

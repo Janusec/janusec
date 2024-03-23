@@ -1,4 +1,4 @@
-# [Janusec Application Gateway / JANUSEC应用网关](https://www.janusec.com/) &nbsp; [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Protect%20web%20applications%20from%20network%20attacks%20with%20open%20source%20Janusec%20Application%20Gateway&url=https://github.com/Janusec/janusec&via=janusec&hashtags=waf,web,application,firewall,gateway)
+# Janusec Application Gateway / JANUSEC应用网关  
 
 [![Build Status](https://travis-ci.org/Janusec/janusec.svg?branch=master)](https://travis-ci.org/Janusec/janusec)
 
@@ -52,21 +52,20 @@
 
 ## 产品网站   
 
-https://doc.janusec.com/cn/   
+https://janusec.github.io/cn/   
+
 
 ## 需求   
 
-* PostgreSQL 10/11/12+ (开发环境，及生产环境主节点需要)  
-* Debian 9/10+, CentOS/RHEL 7/8+, 首选Debian 10+    
+* PostgreSQL 10/11/12/13/14+ (开发环境，及生产环境主节点需要)  
+* Debian 9/10/11+, CentOS/RHEL 7/8+, 首选Debian 10+    
 * systemd  
 * nftables  
 * Golang 1.15+ (仅开发环境需要)  
 
 ## 部署快速指引    
 
-详细文档可在这里获取： [Janusec应用网关快速入门](https://doc.janusec.com/cn/quick-start/)  
-
-如希望快速体验，可尝试使用 [Docker镜像](https://www.janusec.com/articles/opensource/1615470598.html)    
+详细文档可在这里获取： [Janusec应用网关快速入门](https://janusec.github.io/cn/quick-start/)  
 
 ## 开发快速指引   
 
@@ -103,7 +102,7 @@ Janusec将自动加密数据库口令
 只使用主节点时，任意应用域名均可用于访问管理入口。   
 如果使用了副本节点，应为主节点申请一个单独的域名。   
 
-[Janusec应用网关配置](https://doc.janusec.com/cn/quick-start/)   
+[Janusec应用网关配置](https://janusec.github.io/cn/quick-start/)   
 
 ## 发布 
 
@@ -119,15 +118,15 @@ Janusec将自动加密数据库口令
 
 Web化管理所需的文件在 `./static/janusec-admin/` 目录, 源码在 [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) ，前端源码使用Angular 9.  
 
-## 许可证  
+## 多许可证  
 
-Janusec应用网关源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)授权.    
+JANUSEC应用网关开源版本的源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)授权.     
+专业增强特性版本闭源发布，增强特性包括：GSLB、Cookie合规（应用无需修改）等。   
 
 ## 支持  
 
-* 产品网站 [https://doc.janusec.com/cn/](https://doc.janusec.com/cn/)   
-* 官方网站: [https://www.janusec.com/](https://www.janusec.com/)  
-* Email: `support#janusec.com`  
+* 产品网站 [https://janusec.github.io/cn/](https://janusec.github.io/cn/)   
+* Email: `support`**@**`janusec.com`  
 * QQ群: 776900157  
 
 
@@ -185,17 +184,15 @@ https://janusec.github.io/
 
 ## Requirements    
 
-* PostgreSQL 10/11/12+ (Required by Development and Primary Node of Deployment)  
-* Debian 9/10+, CentOS/RHEL 7/8+, Debian 10+ is preferred       
+* PostgreSQL 10/11/12/13/14+ (Required by Development and Primary Node of Deployment)  
+* Debian 9/10/11+, CentOS/RHEL 7/8+, Debian 10+ is preferred       
 * systemd  
 * nftables  
 * Golang 1.15+ (Required by Development Only)  
 
 ## Quick Start for Deployment     
 
-Detailed documentation is available at： [Janusec Application Gateway Quick Start](https://janusec.github.io/documentation/quick-start/).  
-
-You can also try it with [Docker Image](https://www.janusec.com/articles/opensource/1615470598.html)    
+Detailed documentation is available at： [Janusec Application Gateway Quick Start](https://janusec.github.io/documentation/quick-start/).   
 
 ## Quick Start for Developer   
 
@@ -247,13 +244,14 @@ The release package is under `./dist` .
 
 Release directory is `./static/janusec-admin/` , and source code is available at [Janusec-Admin Github](https://github.com/Janusec/janusec-admin) with Angular 9.  
 
-## LICENSE   
+## Multiple LICENSES   
 
-Janusec Application Gateway source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)).   
+The open source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)).   
+
+The professional enhanced version is released in closed source, and the enhanced features including GSLB, Cookie compliance (No need to modify applications), etc.   
 
 ## Support   
 
-* Product: [https://janusec.github.io/](https://janusec.github.io/)   
-* Official site : [https://www.janusec.com/](https://www.janusec.com/)  
-* Email: `support#janusec.com`  
+* Product: [https://janusec.github.io/](https://janusec.github.io/)    
+* Email: `support`**@**`janusec.com`  
 * QQ Group: 776900157 

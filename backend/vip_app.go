@@ -104,22 +104,14 @@ func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 			//fmt.Println("UDPForwarding ReadMsgUDP", err)
 			break
 		}
-
 		vipTarget := SelectVipTarget(vipApp, clientAddr.String())
-		if err != nil {
-			//fmt.Println("UDPForwarding ResolveUDPAddr", err)
-			break
-		}
 		if vipTarget != nil {
 			vipTarget.CheckTime = time.Now().Unix()
 			targetAddr, _ := net.ResolveUDPAddr("udp", vipTarget.Destination)
 			udpTargetConn, err := net.DialUDP("udp", nil, targetAddr)
 			if err != nil {
 				utils.DebugPrintln("UDPForwarding DialUDP could not connect to target", vipTarget.Destination, err)
-				vipTarget.Online = false
-				if data.NodeSetting.SMTP.SMTPEnabled {
-					sendVIPOfflineNotification(vipApp, vipTarget.Destination)
-				}
+				SetVipTargetOffline(vipTarget)
 				break
 			}
 			if udpTargetConn == nil {
@@ -138,10 +130,7 @@ func UDPForwarding(vipApp *models.VipApp, udpListenConn *net.UDPConn) {
 				for {
 					n, _, err := udpTargetConn.ReadFromUDP(dataBuf)
 					if err != nil {
-						vipTarget.Online = false
-						if data.NodeSetting.SMTP.SMTPEnabled {
-							sendVIPOfflineNotification(vipApp, vipTarget.Destination)
-						}
+						SetVipTargetOffline(vipTarget)
 						break
 					}
 					// Response to client
@@ -190,10 +179,7 @@ func TCPForwarding(vipApp *models.VipApp, vipListener net.Listener) {
 			vipTarget.CheckTime = time.Now().Unix()
 			if err != nil {
 				utils.DebugPrintln("TCPForwarding could not connect to target", targetDest, err)
-				vipTarget.Online = false
-				if data.NodeSetting.SMTP.SMTPEnabled {
-					sendVIPOfflineNotification(vipApp, targetDest)
-				}
+				SetVipTargetOffline(vipTarget)
 				continue
 			}
 			vipTarget.Online = true
@@ -384,24 +370,4 @@ func GetVipAppIndex(vipAppID int64) int {
 		}
 	}
 	return -1
-}
-
-// sendVIPOfflineNotification ...
-func sendVIPOfflineNotification(app *models.VipApp, dest string) {
-	var emails string
-	if data.IsPrimary {
-		emails = data.DAL.GetAppAdminAndOwnerEmails(app.Owner)
-	} else {
-		emails = data.NodeSetting.SMTP.AdminEmails
-	}
-	mailBody := "Backend virtual IP server: " + dest + " (" + app.Name + ") was offline."
-	if len(mailBody) > 0 && len(emails) > 0 {
-		go utils.SendEmail(data.NodeSetting.SMTP.SMTPServer,
-			data.NodeSetting.SMTP.SMTPPort,
-			data.NodeSetting.SMTP.SMTPAccount,
-			data.NodeSetting.SMTP.SMTPPassword,
-			emails,
-			"[JANUSEC] Backend server offline notification",
-			mailBody)
-	}
 }
