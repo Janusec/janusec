@@ -79,9 +79,16 @@ func GetOAuthInfo() (*OAuthInfo, error) {
 		oauthInfo.EntranceURL = entranceURL
 		return &oauthInfo, nil
 	case "dingtalk":
+		/*  API v1
 		entranceURL := fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=admin&redirect_uri=%s",
 			data.NodeSetting.AuthConfig.Dingtalk.AppID,
 			data.NodeSetting.AuthConfig.Dingtalk.Callback)
+		*/
+		// API v2, added on Mar 23, 2024
+		entranceURL := fmt.Sprintf(`https://login.dingtalk.com/oauth2/auth?redirect_uri=%s&response_type=code&corpId=%s&client_id=%s&scope=openid%%20corpid&state=admin&prompt=consent`,
+			data.NodeSetting.AuthConfig.Dingtalk.Callback,
+			data.NodeSetting.AuthConfig.Dingtalk.CorpID,
+			data.NodeSetting.AuthConfig.Dingtalk.AppID)
 		oauthInfo.UseOAuth = true
 		oauthInfo.DisplayName = data.NodeSetting.AuthConfig.Dingtalk.DisplayName
 		oauthInfo.EntranceURL = entranceURL

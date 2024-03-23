@@ -75,6 +75,9 @@ type DingtalkConfig struct {
 	Callback    string `json:"callback"`
 	AppID       string `json:"appid"`
 	AppSecret   string `json:"appsecret"`
+
+	// CorpID for API v2, added on Mar 23, 2024
+	CorpID string `json:"corpid"`
 }
 
 type FeishuConfig struct {

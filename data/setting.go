@@ -260,6 +260,10 @@ func InitDefaultSettings() {
 	if !DAL.ExistsSetting("dingtalk_appsecret") {
 		DAL.SaveStringSetting("dingtalk_appsecret", "crrALdXUIj4T0zBekYh4u9sU_T1GZT")
 	}
+	if !DAL.ExistsSetting("dingtalk_corpid") {
+		// added on Mar 23, 2024
+		DAL.SaveStringSetting("dingtalk_corpid", "xxxx")
+	}
 	// AuthConfig feishu
 	if !DAL.ExistsSetting("feishu_display_name") {
 		DAL.SaveStringSetting("feishu_display_name", "Login with Feishu")
@@ -495,11 +499,13 @@ func GetDingtalkConfig() *models.DingtalkConfig {
 	callback := DAL.SelectStringSetting("dingtalk_callback")
 	appID := DAL.SelectStringSetting("dingtalk_appid")
 	appSecret := DAL.SelectStringSetting("dingtalk_appsecret")
+	corpID := DAL.SelectStringSetting("dingtalk_corpid")
 	dingtalkConfig := &models.DingtalkConfig{
 		DisplayName: displayName,
 		Callback:    callback,
 		AppID:       appID,
 		AppSecret:   appSecret,
+		CorpID:      corpID,
 	}
 	return dingtalkConfig
 }
@@ -515,17 +521,11 @@ func UpdateDingtalkConfig(body []byte, clientIP string, authUser *models.AuthUse
 		return nil, err
 	}
 	dingtalkConfig := rpcDingtalkConfigRequest.Object
-	/*
-		dingtalkConfig := param["object"].(map[string]interface{})
-		displayName := dingtalkConfig["display_name"].(string)
-		callback := dingtalkConfig["callback"].(string)
-		appid := dingtalkConfig["appid"].(string)
-		appsecret := dingtalkConfig["appsecret"].(string)
-	*/
 	DAL.SaveStringSetting("dingtalk_display_name", dingtalkConfig.DisplayName)
 	DAL.SaveStringSetting("dingtalk_callback", dingtalkConfig.Callback)
 	DAL.SaveStringSetting("dingtalk_appid", dingtalkConfig.AppID)
 	DAL.SaveStringSetting("dingtalk_appsecret", dingtalkConfig.AppSecret)
+	DAL.SaveStringSetting("dingtalk_corpid", dingtalkConfig.CorpID)
 
 	NodeSetting.AuthConfig.Dingtalk = dingtalkConfig
 	go utils.OperationLog(clientIP, authUser.Username, "Update Dingtalk Config", dingtalkConfig.DisplayName)

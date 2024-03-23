@@ -577,10 +577,28 @@ func getOAuthEntrance(state string) (entranceURL string, err error) {
 			data.NodeSetting.AuthConfig.Wxwork.Callback,
 			state)
 	case "dingtalk":
-		entranceURL = fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=%s&redirect_uri=%s",
+		/* This is the api v1
+		    entranceURL = fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=%s&redirect_uri=%s",
 			data.NodeSetting.AuthConfig.Dingtalk.AppID,
 			state,
 			data.NodeSetting.AuthConfig.Dingtalk.Callback)
+		*/
+		// API V2, added on Mar 23, 2024
+		// doc: https://open.dingtalk.com/document/orgapp/tutorial-obtaining-user-personal-information
+		// Entrance URL Format: https://login.dingtalk.com/oauth2/auth?
+		// redirect_uri=https://test.janusec.com/oauth/dingtalk
+		// &response_type=code
+		// &client_id=...
+		// &scope=openid
+		// &state=...
+		// &prompt=consent
+		// &corpId=...
+		entranceURL = fmt.Sprintf(`https://login.dingtalk.com/oauth2/auth?redirect_uri=%s&response_type=code&corpId=%s&client_id=%s&scope=openid%%20corpid&state=%s&prompt=consent`,
+			data.NodeSetting.AuthConfig.Dingtalk.Callback,
+			data.NodeSetting.AuthConfig.Dingtalk.CorpID,
+			data.NodeSetting.AuthConfig.Dingtalk.AppID,
+			state)
+
 	case "feishu":
 		entranceURL = fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=%s",
 			data.NodeSetting.AuthConfig.Feishu.Callback,
