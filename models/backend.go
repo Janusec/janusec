@@ -171,6 +171,7 @@ type Destination struct {
 	BackendRoute string `json:"backend_route"`
 
 	// Destination is backend IP:Port , or static directory
+	// If RoutyType is K8S, this field is not used
 	Destination string `json:"destination"`
 
 	// PodsAPI example: http://127.0.0.1:8080/api/v1/namespaces/default/pods

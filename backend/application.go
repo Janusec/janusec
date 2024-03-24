@@ -74,6 +74,8 @@ func SelectBackendRoute(app *models.Application, r *http.Request, srcIP string) 
 	// get online destinations
 	var onlineDests = []*models.Destination{}
 	for _, dest := range dests {
+		dest.Mutex.Lock()
+		defer dest.Mutex.Unlock()
 		if dest.Online {
 			onlineDests = append(onlineDests, dest)
 		}
