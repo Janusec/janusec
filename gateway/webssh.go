@@ -118,9 +118,9 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	defer wsConn.Close()
 	// Read SSH Parameters
-	_, msg, err := wsConn.ReadMessage()
-	if err != nil {
-		utils.DebugPrintln("ReadMessage SSH Parameters Error:", err)
+	_, msg, err2 := wsConn.ReadMessage()
+	if err2 != nil {
+		utils.DebugPrintln("ReadMessage SSH Parameters Error:", err2)
 		return
 	}
 	if !data.PrimarySetting.WebSSHEnabled {
@@ -135,16 +135,16 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.DebugPrintln("WebSSHHandlerFunc json.Unmarshal error", err)
 	}
-	if err := wsConn.WriteMessage(websocket.TextMessage, []byte("Connecting "+host.IP+":"+host.Port+" ... Please wait a moment!\r\n")); err != nil {
+	if err = wsConn.WriteMessage(websocket.TextMessage, []byte("Connecting "+host.IP+":"+host.Port+" ... Please wait a moment!\r\n")); err != nil {
 		return
 	}
 	errChan := make(chan error)
 	go SSH(&sshInput, &sshOutput, &host, errChan)
 	err = <-errChan
 	if err != nil {
-		err = wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
-		if err != nil {
-			utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err)
+		err2 := wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+		if err2 != nil {
+			utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err2)
 		}
 		return
 	}
@@ -154,23 +154,23 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-errChan:
-			err = wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
-			if err != nil {
-				utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err)
+			err2 := wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+			if err2 != nil {
+				utils.DebugPrintln("WebSSHHandlerFunc wsConn.WriteMessage error", err2)
 			}
 			return
 		default:
 			if wsConn == nil {
 				return
 			}
-			_, msg, err := wsConn.ReadMessage()
-			if err != nil {
+			_, msg, err2 := wsConn.ReadMessage()
+			if err2 != nil {
 				return
 			}
 			//log.Printf("Received: %s %v\n", string(msg), msg)
 			if sshInput != nil {
 				go CmdLog(&logBuf, username, &host, &msg)
-				if _, err := sshInput.Write(msg); err != nil {
+				if _, err = sshInput.Write(msg); err != nil {
 					return
 				}
 			}

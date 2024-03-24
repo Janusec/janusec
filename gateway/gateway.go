@@ -392,21 +392,20 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		ExpectContinueTimeout: 10 * time.Second,
 		MaxIdleConns:          100,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			dest.Mutex.Lock()
+			defer dest.Mutex.Unlock()
 			dest.CheckTime = nowTimeStamp
 			conn, err := net.Dial("tcp", targetDest)
 			if err != nil {
-				dest.Mutex.Lock()
-				defer dest.Mutex.Unlock()
-				dest.Online = false
+				backend.SetDestinationOffline(dest)
 				timeout := time.Now().Unix() - nowTimeStamp
 				utils.DebugPrintln("DialContext error", err, timeout, "seconds")
-				if data.NodeSetting.SMTP.SMTPEnabled {
-					sendOfflineNotification(app, targetDest)
+				if !dest.Online {
+					errInfo := &models.InternalErrorInfo{
+						Description: "Internal Server Offline",
+					}
+					GenerateInternalErrorResponse(w, errInfo)
 				}
-				errInfo := &models.InternalErrorInfo{
-					Description: "Internal Server Offline",
-				}
-				GenerateInternalErrorResponse(w, errInfo)
 			}
 			return conn, err
 		},
@@ -414,16 +413,15 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 			dest.CheckTime = nowTimeStamp
 			conn, err := net.Dial("tcp", targetDest)
 			if err != nil {
-				dest.Online = false
+				backend.SetDestinationOffline(dest)
 				timeout := time.Now().Unix() - nowTimeStamp
 				utils.DebugPrintln("DialTLS error", err, timeout, "seconds")
-				if data.NodeSetting.SMTP.SMTPEnabled {
-					sendOfflineNotification(app, targetDest)
+				if !dest.Online {
+					errInfo := &models.InternalErrorInfo{
+						Description: "Internal Server Offline",
+					}
+					GenerateInternalErrorResponse(w, errInfo)
 				}
-				errInfo := &models.InternalErrorInfo{
-					Description: "Internal Server Offline",
-				}
-				GenerateInternalErrorResponse(w, errInfo)
 				return nil, err
 			}
 			cfg := &tls.Config{
@@ -469,7 +467,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 							utils.DebugPrintln("Check Update NewRequest", err)
 						}
 						if err == nil {
-							// copy header.
+							// copy request headers
 							for k := range r.Header {
 								req.Header.Set(k, r.Header.Get(k))
 							}
@@ -577,10 +575,28 @@ func getOAuthEntrance(state string) (entranceURL string, err error) {
 			data.NodeSetting.AuthConfig.Wxwork.Callback,
 			state)
 	case "dingtalk":
-		entranceURL = fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=%s&redirect_uri=%s",
+		/* This is the api v1
+		    entranceURL = fmt.Sprintf("https://oapi.dingtalk.com/connect/qrconnect?appid=%s&response_type=code&scope=snsapi_login&state=%s&redirect_uri=%s",
 			data.NodeSetting.AuthConfig.Dingtalk.AppID,
 			state,
 			data.NodeSetting.AuthConfig.Dingtalk.Callback)
+		*/
+		// API V2, added on Mar 23, 2024, v1.5.0
+		// doc: https://open.dingtalk.com/document/orgapp/tutorial-obtaining-user-personal-information
+		// Entrance URL Format: https://login.dingtalk.com/oauth2/auth?
+		// redirect_uri=https://test.janusec.com/oauth/dingtalk
+		// &response_type=code
+		// &client_id=...
+		// &scope=openid
+		// &state=...
+		// &prompt=consent
+		// &corpId=...
+		entranceURL = fmt.Sprintf(`https://login.dingtalk.com/oauth2/auth?redirect_uri=%s&response_type=code&corpId=%s&client_id=%s&scope=openid%%20corpid&state=%s&prompt=consent`,
+			data.NodeSetting.AuthConfig.Dingtalk.Callback,
+			data.NodeSetting.AuthConfig.Dingtalk.CorpID,
+			data.NodeSetting.AuthConfig.Dingtalk.AppID,
+			state)
+
 	case "feishu":
 		entranceURL = fmt.Sprintf("https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s&state=%s",
 			data.NodeSetting.AuthConfig.Feishu.Callback,
@@ -710,26 +726,6 @@ func CheckExpiringCertificates() {
 			data.NodeSetting.SMTP.SMTPPassword,
 			emails,
 			"[JANUSEC] Certificate expire notification",
-			mailBody)
-	}
-}
-
-// sendOfflineNotification ...
-func sendOfflineNotification(app *models.Application, dest string) {
-	var emails string
-	if data.IsPrimary {
-		emails = data.DAL.GetAppAdminAndOwnerEmails(app.Owner)
-	} else {
-		emails = data.NodeSetting.SMTP.AdminEmails
-	}
-	mailBody := "Backend server: " + dest + " (" + app.Name + ") was offline."
-	if len(mailBody) > 0 && len(emails) > 0 {
-		go utils.SendEmail(data.NodeSetting.SMTP.SMTPServer,
-			data.NodeSetting.SMTP.SMTPPort,
-			data.NodeSetting.SMTP.SMTPAccount,
-			data.NodeSetting.SMTP.SMTPPassword,
-			emails,
-			"[JANUSEC] Backend server offline notification",
 			mailBody)
 	}
 }

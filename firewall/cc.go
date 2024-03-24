@@ -156,7 +156,7 @@ func InitCCPolicy() {
 		}
 		existCCPolicy := data.DAL.ExistsCCPolicy()
 		if !existCCPolicy {
-			err = data.DAL.InsertCCPolicy(0, 100, 6, 900, models.Action_Block_100, true, false, false, true)
+			err = data.DAL.InsertCCPolicy(0, 100, 15, 900, models.Action_Block_100, true, false, false, true)
 			if err != nil {
 				utils.DebugPrintln("InitCCPolicy InsertCCPolicy", err)
 			}

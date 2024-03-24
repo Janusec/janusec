@@ -9,11 +9,18 @@ package backend
 
 import (
 	"encoding/json"
+	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/patrickmn/go-cache"
+)
+
+var (
+	offlineCache = cache.New(30*time.Second, 30*time.Second)
 )
 
 // ContainsDestinationID ...
@@ -31,13 +38,17 @@ func ContainsDestinationID(destinations []*models.Destination, destID int64) boo
 func CheckOfflineDestinations(nowTimeStamp int64) {
 	for _, app := range Apps {
 		for _, dest := range app.Destinations {
+			dest.Mutex.Lock()
+			defer dest.Mutex.Unlock()
 			if dest.RouteType == models.ReverseProxyRoute && !dest.Online {
-				go func(dest *models.Destination) {
-					conn, err := net.DialTimeout("tcp", dest.Destination, time.Second)
+				go func(dest2 *models.Destination) {
+					conn, err := net.DialTimeout("tcp", dest2.Destination, time.Second)
 					if err == nil {
 						defer conn.Close()
-						dest.Online = true
-						dest.CheckTime = nowTimeStamp
+						dest2.Mutex.Lock()
+						defer dest2.Mutex.Unlock()
+						dest2.Online = true
+						dest2.CheckTime = nowTimeStamp
 					}
 				}(dest)
 			} else if dest.RouteType == models.K8S_Ingress && !dest.Online {
@@ -54,8 +65,6 @@ func CheckOfflineDestinations(nowTimeStamp int64) {
 				if err != nil {
 					utils.DebugPrintln("Unmarshal K8S API", err)
 				}
-				dest.Mutex.Lock()
-				defer dest.Mutex.Unlock()
 				dest.Pods = ""
 				for _, podItem := range pods.Items {
 					if podItem.Status.Phase == "Running" {
@@ -69,5 +78,47 @@ func CheckOfflineDestinations(nowTimeStamp int64) {
 				dest.Online = true
 			}
 		}
+	}
+}
+
+// SetDestinationOffline added on Mar 23, 2024, v1.5.0
+func SetDestinationOffline(dest *models.Destination) {
+	targetDest := dest.Destination
+	if dest.RouteType == models.K8S_Ingress {
+		targetDest = dest.PodsAPI
+	}
+	if count, ok := offlineCache.Get(targetDest); !ok {
+		offlineCache.Set(targetDest, int64(1), cache.DefaultExpiration)
+	} else {
+		nowCount := count.(int64) + int64(1)
+		if nowCount > 5 {
+			// more than 5 requests timeout
+			dest.Online = false
+			app, err := GetApplicationByID(dest.AppID)
+			if err == nil {
+				sendOfflineNotification(app, targetDest)
+			}
+		}
+		offlineCache.Set(targetDest, nowCount, cache.DefaultExpiration)
+	}
+}
+
+// sendOfflineNotification ...
+func sendOfflineNotification(app *models.Application, dest string) {
+	var emails string
+	if data.IsPrimary {
+		emails = data.DAL.GetAppAdminAndOwnerEmails(app.Owner)
+	} else {
+		emails = data.NodeSetting.SMTP.AdminEmails
+	}
+	mailBody := "Backend server: " + dest + " (" + app.Name + ") was offline."
+	if len(mailBody) > 0 && len(emails) > 0 {
+		go utils.SendEmail(data.NodeSetting.SMTP.SMTPServer,
+			data.NodeSetting.SMTP.SMTPPort,
+			data.NodeSetting.SMTP.SMTPAccount,
+			data.NodeSetting.SMTP.SMTPPassword,
+			emails,
+			"[JANUSEC] Backend server offline notification",
+			mailBody)
 	}
 }

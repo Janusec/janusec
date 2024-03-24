@@ -47,7 +47,7 @@ func InitLogger() {
 		CheckError("InitLogger", err)
 		os.Exit(1)
 	}
-	logger = log.New(logFile, "[Janusec] ", log.LstdFlags)
+	logger = log.New(logFile, "[JANUSEC] ", log.LstdFlags)
 }
 
 // GetDirAll ...
