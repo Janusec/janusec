@@ -376,23 +376,27 @@ func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) 
 		return nil, err
 	}
 	app := rpcAppRequest.Object
+	// backup app0 to update destinations and domains
+	var app0 *models.Application
 	customHeaders := GetCustomHeadersString(app.CustomHeaders)
 	if app.ID == 0 {
 		// new application
 		app.ID = data.DAL.InsertApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, customHeaders, app.CookieMgmtEnabled, app.ConciseNotice, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified)
 		Apps = append(Apps, app)
+		app0 = app
 		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {
 		err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, customHeaders, app.CookieMgmtEnabled, app.ConciseNotice, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified, app.ID)
 		if err != nil {
 			utils.DebugPrintln("UpdateApplication", err)
 		}
+		app0, _ = GetApplicationByID(app.ID)
 		// update app pointer in apps
 		UpdateApplications(app)
 		go utils.OperationLog(clientIP, authUser.Username, "Update Application", app.Name)
 	}
-	UpdateDestinations(app, app.Destinations)
-	UpdateAppDomains(app, app.Domains)
+	UpdateDestinations(app0, app.Destinations)
+	UpdateAppDomains(app0, app.Domains)
 	data.UpdateBackendLastModified()
 	return app, nil
 }

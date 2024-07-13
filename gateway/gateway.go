@@ -386,10 +386,10 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	// var transport http.RoundTripper
 	transport := &http.Transport{
-		TLSHandshakeTimeout:   30 * time.Second,
-		ResponseHeaderTimeout: 30 * time.Second,
-		IdleConnTimeout:       30 * time.Second,
-		ExpectContinueTimeout: 10 * time.Second,
+		TLSHandshakeTimeout:   60 * time.Second,
+		ResponseHeaderTimeout: 60 * time.Second,
+		IdleConnTimeout:       60 * time.Second,
+		ExpectContinueTimeout: 30 * time.Second,
 		MaxIdleConns:          100,
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			dest.Mutex.Lock()
