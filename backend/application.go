@@ -343,7 +343,8 @@ func UpdateAppDomains(app *models.Application, domains []*models.Domain) {
 	app.Domains = newDomains
 }
 
-// UpdateApplications refresh the object in the list
+// UpdateApplications refresh the object in the list. deprecated 2025.01.12, change app value instead
+/*
 func UpdateApplications(app *models.Application) {
 	for i, obj := range Apps {
 		if obj.ID == app.ID {
@@ -351,6 +352,7 @@ func UpdateApplications(app *models.Application) {
 		}
 	}
 }
+*/
 
 // UpdateApplication ...
 func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) (*models.Application, error) {
@@ -375,14 +377,28 @@ func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) 
 			utils.DebugPrintln("UpdateApplication", err)
 		}
 		app0, _ = GetApplicationByID(app.ID)
-		// update app pointer in apps
-		UpdateApplications(app)
+		// update app by value
+		app0.Name = app.Name
+		app0.InternalScheme = app.InternalScheme
+		app0.RedirectHTTPS = app.RedirectHTTPS
+		app0.HSTSEnabled = app.HSTSEnabled
+		app0.WAFEnabled = app.WAFEnabled
+		app0.ShieldEnabled = app.ShieldEnabled
+		app0.ClientIPMethod = app.ClientIPMethod
+		app0.Description = app.Description
+		app0.OAuthRequired = app.OAuthRequired
+		app0.SessionSeconds = app.SessionSeconds
+		app0.Owner = app.Owner
+		app0.CSPEnabled = app.CSPEnabled
+		app0.CSP = app.CSP
+		app0.CacheEnabled = app.CacheEnabled
+		app0.CustomHeaders = GetCustomHeaders(customHeaders)
 		go utils.OperationLog(clientIP, authUser.Username, "Update Application", app.Name)
 	}
 	UpdateDestinations(app0, app.Destinations)
 	UpdateAppDomains(app0, app.Domains)
 	data.UpdateBackendLastModified()
-	return app, nil
+	return app0, nil
 }
 
 // GetApplicationIndex ...
