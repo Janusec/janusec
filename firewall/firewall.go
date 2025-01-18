@@ -12,6 +12,7 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -71,9 +72,10 @@ func UnEscapeRawValue(rawQuery string) string {
 	decodeQuery, err := url.QueryUnescape(rawQuery)
 	if err != nil {
 		utils.DebugPrintln("UnEscapeRawValue", err)
+		// decodeQuery will get ""
+		decodeQuery = rawQuery
 	}
 	decodeQuery = PreProcessString(decodeQuery)
-	//fmt.Println("UnEscapeRawValue decodeQuery", decodeQuery)
 	return decodeQuery
 }
 
@@ -184,7 +186,7 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 
 	params := r.Form // include GET/POST/ Multipart non-File , but not include json
 
-	//fmt.Println("IsRequestHitPolicy params:", params, "count:", len(params))
+	fmt.Println("IsRequestHitPolicy params:", params, "count:", len(params))
 	r.Body = io.NopCloser(bytes.NewBuffer(bodyBuf))
 	for key, values := range params {
 		//fmt.Println("IsRequestHitPolicy param", key, ":", values)
@@ -211,7 +213,7 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 
 			// ChkPoint_GetPostValue
 			matched, policy = IsMatchGroupPolicy(ctxMap, appID, value, models.ChkPointGetPostValue, "", true)
-			//fmt.Println("ChkPoint_GetPostValue:", value2, matched)
+			//fmt.Println("ChkPoint_GetPostValue:", value, matched)
 			if matched {
 				return matched, policy
 			}
@@ -248,8 +250,9 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 		return matched, policy
 	}
 
-	// ChkPoint_ContentType media_type
-	matched, policy = IsMatchGroupPolicy(ctxMap, appID, mediaType, models.ChkPointContentType, "", false)
+	// ChkPoint_ContentType
+	// fmt.Println("IsRequestHitPolicy ChkPoint_ContentType:", contentType)
+	matched, policy = IsMatchGroupPolicy(ctxMap, appID, contentType, models.ChkPointContentType, "", false)
 	if matched {
 		return matched, policy
 	}
