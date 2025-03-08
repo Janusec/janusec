@@ -258,6 +258,34 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "del_discovery_rule":
 		obj = nil
 		err = firewall.DeleteDiscoveryRuleByID(apiRequest.ObjectID, clientIP, authUser)
+	case "get_app_cookies":
+		obj = backend.GetCookiesByAppID(apiRequest.ObjectID)
+		err = nil
+	case "update_cookie":
+		obj, err = backend.UpdateCookie(bodyBuf, clientIP, authUser)
+	case "del_cookie":
+		obj, err = nil, backend.DeleteCookie(apiRequest.ObjectID, clientIP, authUser)
+	case "get_cookie_refs":
+		obj = backend.GetCookieRefs()
+		err = nil
+	case "update_cookie_ref":
+		obj, err = backend.UpdateCookieRef(bodyBuf, clientIP, authUser)
+	case "del_cookie_ref":
+		obj, err = nil, backend.DeleteCookieRef(apiRequest.ObjectID, clientIP, authUser)
+	case "get_dns_domains":
+		obj, err = backend.GetDNSDomains(authUser)
+	case "get_dns_domain":
+		obj, err = backend.GetDNSDomainByID(apiRequest.ObjectID)
+	case "update_dns_domain":
+		obj, err = backend.UpdateDNSDomain(bodyBuf, clientIP, authUser)
+	case "del_dns_domain":
+		obj, err = nil, backend.DeleteDNSDomain(apiRequest.ObjectID, clientIP, authUser)
+	case "get_dns_records":
+		obj, err = backend.GetDNSRecordsByDomainID(authUser, apiRequest.ObjectID)
+	case "update_dns_record":
+		obj, err = backend.UpdateDNSRecord(bodyBuf, clientIP, authUser)
+	case "del_dns_record":
+		obj, err = nil, backend.DeleteDNSRecord(apiRequest.ObjectID, clientIP, authUser)
 	default:
 		//fmt.Println("undefined action")
 		obj = nil

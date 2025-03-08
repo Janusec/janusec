@@ -166,8 +166,24 @@ func LoadApps() {
 				CSPEnabled:     dbApp.CSPEnabled,
 				CSP:            dbApp.CSP,
 				CacheEnabled:   dbApp.CacheEnabled,
-				CustomHeaders:  GetCustomHeaders(dbApp.CustomHeaders),
+				// extends from v1.4.1pro
+				CookieMgmtEnabled:  dbApp.CookieMgmtEnabled,
+				ConciseNotice:      dbApp.ConciseNotice,
+				NecessaryNotice:    dbApp.NecessaryNotice,
+				FunctionalNotice:   dbApp.FunctionalNotice,
+				EnableFunctional:   dbApp.EnableFunctional,
+				AnalyticsNotice:    dbApp.AnalyticsNotice,
+				EnableAnalytics:    dbApp.EnableAnalytics,
+				MarketingNotice:    dbApp.MarketingNotice,
+				EnableMarketing:    dbApp.EnableMarketing,
+				UnclassifiedNotice: dbApp.UnclassifiedNotice,
+				EnableUnclassified: dbApp.EnableUnclassified,
+				CustomHeaders:      GetCustomHeaders(dbApp.CustomHeaders),
 			}
+			// Load Cookies of each App
+			InitAppConsentCookie(app.ID)
+			app.Cookies = data.DAL.SelectCookiesByAppID(app.ID)
+
 			Apps = append(Apps, app)
 		}
 	} else {
@@ -343,7 +359,8 @@ func UpdateAppDomains(app *models.Application, domains []*models.Domain) {
 	app.Domains = newDomains
 }
 
-// UpdateApplications refresh the object in the list
+// UpdateApplications refresh the object in the list. deprecated 2025.01.12, change app value instead
+/*
 func UpdateApplications(app *models.Application) {
 	for i, obj := range Apps {
 		if obj.ID == app.ID {
@@ -351,6 +368,7 @@ func UpdateApplications(app *models.Application) {
 		}
 	}
 }
+*/
 
 // UpdateApplication ...
 func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) (*models.Application, error) {
@@ -365,24 +383,52 @@ func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) 
 	customHeaders := GetCustomHeadersString(app.CustomHeaders)
 	if app.ID == 0 {
 		// new application
-		app.ID = data.DAL.InsertApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, customHeaders)
+		app.ID = data.DAL.InsertApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, customHeaders, app.CookieMgmtEnabled, app.ConciseNotice, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified)
 		Apps = append(Apps, app)
 		app0 = app
 		go utils.OperationLog(clientIP, authUser.Username, "Add Application", app.Name)
 	} else {
-		err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, customHeaders, app.ID)
+		err := data.DAL.UpdateApplication(app.Name, app.InternalScheme, app.RedirectHTTPS, app.HSTSEnabled, app.WAFEnabled, app.ShieldEnabled, app.ClientIPMethod, app.Description, app.OAuthRequired, app.SessionSeconds, app.Owner, app.CSPEnabled, app.CSP, app.CacheEnabled, customHeaders, app.CookieMgmtEnabled, app.ConciseNotice, app.NecessaryNotice, app.FunctionalNotice, app.EnableFunctional, app.AnalyticsNotice, app.EnableAnalytics, app.MarketingNotice, app.EnableMarketing, app.UnclassifiedNotice, app.EnableUnclassified, app.ID)
 		if err != nil {
 			utils.DebugPrintln("UpdateApplication", err)
 		}
 		app0, _ = GetApplicationByID(app.ID)
-		// update app pointer in apps
-		UpdateApplications(app)
+		// update app by value
+		app0.Name = app.Name
+		app0.InternalScheme = app.InternalScheme
+		app0.RedirectHTTPS = app.RedirectHTTPS
+		app0.HSTSEnabled = app.HSTSEnabled
+		app0.WAFEnabled = app.WAFEnabled
+		app0.ShieldEnabled = app.ShieldEnabled
+		app0.ClientIPMethod = app.ClientIPMethod
+		app0.Description = app.Description
+		app0.OAuthRequired = app.OAuthRequired
+		app0.SessionSeconds = app.SessionSeconds
+		app0.Owner = app.Owner
+		app0.CSPEnabled = app.CSPEnabled
+		app0.CSP = app.CSP
+		app0.CacheEnabled = app.CacheEnabled
+
+		// pro features: cookie
+		app0.CookieMgmtEnabled = app.CookieMgmtEnabled
+		app0.ConciseNotice = app.ConciseNotice
+		app0.NecessaryNotice = app.NecessaryNotice
+		app0.FunctionalNotice = app.FunctionalNotice
+		app0.EnableFunctional = app.EnableFunctional
+		app0.AnalyticsNotice = app.AnalyticsNotice
+		app0.EnableAnalytics = app.EnableAnalytics
+		app0.MarketingNotice = app.MarketingNotice
+		app0.EnableMarketing = app.EnableMarketing
+		app0.UnclassifiedNotice = app.UnclassifiedNotice
+		app0.EnableUnclassified = app.EnableUnclassified
+
+		app0.CustomHeaders = GetCustomHeaders(customHeaders)
 		go utils.OperationLog(clientIP, authUser.Username, "Update Application", app.Name)
 	}
 	UpdateDestinations(app0, app.Destinations)
 	UpdateAppDomains(app0, app.Domains)
 	data.UpdateBackendLastModified()
-	return app, nil
+	return app0, nil
 }
 
 // GetApplicationIndex ...
@@ -411,6 +457,7 @@ func DeleteApplicationByID(appID int64, clientIP string, authUser *models.AuthUs
 	}
 	DeleteDomainsByApp(app)
 	DeleteDestinationsByApp(appID)
+	DeleteCookiesByApp(app)
 	err = firewall.DeleteCCPolicyByAppID(appID, clientIP, authUser, false)
 	if err != nil {
 		utils.DebugPrintln("DeleteApplicationByID DeleteCCPolicyByAppID", err)

@@ -12,6 +12,7 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"encoding/json"
+	"html"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -68,12 +69,16 @@ func UnEscapeRawValue(rawQuery string) string {
 	rawQuery = strings.Replace(rawQuery, `%"`, `%25"`, -1)
 	re := regexp.MustCompile(`%$`)
 	rawQuery = re.ReplaceAllString(rawQuery, `%25`)
+	// fmt.Println("UnEscapeRawValue rawQuery", rawQuery)
 	decodeQuery, err := url.QueryUnescape(rawQuery)
+	// some case url.QueryUnescape will partially include html escape string like "&#60;&#105;&#109;&#103;"
+	decodeQuery = html.UnescapeString(decodeQuery)
 	if err != nil {
 		utils.DebugPrintln("UnEscapeRawValue", err)
+		// decodeQuery will get ""
+		decodeQuery = rawQuery
 	}
 	decodeQuery = PreProcessString(decodeQuery)
-	//fmt.Println("UnEscapeRawValue decodeQuery", decodeQuery)
 	return decodeQuery
 }
 
@@ -154,7 +159,7 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 					break
 				}
 				partContent, _ := io.ReadAll(p)
-				//fmt.Println("part_content=", string(part_content))
+				// fmt.Println("partContent=", string(partContent))
 				matched, policy = IsMatchGroupPolicy(ctxMap, appID, string(partContent), models.ChkPointGetPostValue, "", true)
 				if matched {
 					return matched, policy
@@ -211,7 +216,7 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 
 			// ChkPoint_GetPostValue
 			matched, policy = IsMatchGroupPolicy(ctxMap, appID, value, models.ChkPointGetPostValue, "", true)
-			//fmt.Println("ChkPoint_GetPostValue:", value2, matched)
+			//fmt.Println("ChkPoint_GetPostValue:", value, matched)
 			if matched {
 				return matched, policy
 			}
@@ -220,7 +225,9 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 	}
 
 	// ChkPoint_Referer added v1.1.0
-	matched, policy = IsMatchGroupPolicy(ctxMap, appID, r.Referer(), models.ChkPointReferer, "", false)
+	referer := UnEscapeRawValue(r.Referer())
+	//fmt.Println("00000 ChkPoint_Referer", referer)
+	matched, policy = IsMatchGroupPolicy(ctxMap, appID, referer, models.ChkPointReferer, "", false)
 	if matched {
 		return matched, policy
 	}
@@ -248,8 +255,9 @@ func IsRequestHitPolicy(r *http.Request, appID int64, srcIP string) (bool, *mode
 		return matched, policy
 	}
 
-	// ChkPoint_ContentType media_type
-	matched, policy = IsMatchGroupPolicy(ctxMap, appID, mediaType, models.ChkPointContentType, "", false)
+	// ChkPoint_ContentType
+	// fmt.Println("IsRequestHitPolicy ChkPoint_ContentType:", contentType)
+	matched, policy = IsMatchGroupPolicy(ctxMap, appID, contentType, models.ChkPointContentType, "", false)
 	if matched {
 		return matched, policy
 	}

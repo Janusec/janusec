@@ -18,6 +18,9 @@ type RPCRequest struct {
 	NodeVersion string      `json:"node_version"`
 	AuthKey     string      `json:"auth_key"`
 	Object      interface{} `json:"object"`
+
+	// PublicIP used for dns load balance, added v1.4.1
+	PublicIP string `json:"public_ip"`
 }
 
 type RPCGroupHitLogRequest struct {
@@ -118,4 +121,9 @@ type PrimarySettingRequest struct {
 type RPCDiscoveryRules struct {
 	Error  *string          `json:"err"`
 	Object []*DiscoveryRule `json:"object"`
+}
+
+type RPCCookieRefs struct {
+	Error  *string      `json:"err"`
+	Object []*CookieRef `json:"object"`
 }

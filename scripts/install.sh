@@ -15,8 +15,9 @@ install_dir="/usr/local/janusec"
 
 printf "Installing Janusec Application Gateway... \n"
 printf "Requirements:\n"
-printf "* CentOS/RHEL 7/8+ or Debian 9/10+, x86_64, with systemd and nftables \n"
-printf "* PostgreSQL 10/11/12+ (Primary Node Only) \n\n"
+printf "* Debian 9/10/11+, x86_64, with systemd and nftables \n"
+printf "* PostgreSQL 10/11/12+ (Primary Node Only) \n"
+printf "* Port TCP/UDP 53 not occupied (Primary Node Only) \n\n"
 
 printf "Installation Path: ${install_dir}/ \n"
 printf "Please select one of the following node types: \n"

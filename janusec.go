@@ -29,6 +29,8 @@ import (
 	"janusec/gateway"
 	"janusec/models"
 	"janusec/utils"
+
+	"github.com/miekg/dns"
 )
 
 func main() {
@@ -161,8 +163,30 @@ func main() {
 	gateMux.Handle("/captcha/png/", gateway.ShowCaptchaImage())
 	// Add 5-second shield Authorization
 	gateMux.HandleFunc("/.auth/shield", gateway.SecondShieldAuthorization)
+
 	// Test only
 	// gateMux.HandleFunc("/.auth/test", gateway.Test)
+
+	// DNS Management
+	if data.IsPrimary && data.PrimarySetting.DNSEnabled {
+		dns.HandleFunc(".", gateway.DNSHandler)
+		go func() {
+			utils.DebugPrintln("DNS Listen UDP 53")
+			err := dns.ListenAndServe(":53", "udp", nil)
+			if err != nil {
+				utils.DebugPrintln("DNS UDP", err)
+				os.Exit(1)
+			}
+		}()
+		go func() {
+			utils.DebugPrintln("DNS Listen TCP 53")
+			err := dns.ListenAndServe(":53", "tcp", nil)
+			if err != nil {
+				utils.DebugPrintln("DNS TCP", err)
+				os.Exit(1)
+			}
+		}()
+	}
 
 	// Reverse Proxy
 	gateMux.HandleFunc("/", gateway.ReverseHandlerFunc)

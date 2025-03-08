@@ -12,17 +12,20 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 
 	//"net/http/httputil"
 	"strings"
 
 	"github.com/andybalholm/brotli"
+	"golang.org/x/net/html"
 
 	"janusec/backend"
 	"janusec/data"
@@ -199,8 +202,90 @@ func rewriteResponse(resp *http.Response) (err error) {
 		}
 	}
 
-	//body, err := httputil.DumpResponse(resp, true)
-	//fmt.Println("Dump Response:")
-	//fmt.Println(string(body))
+	// Cookie Management
+	if app.CookieMgmtEnabled {
+		// check consent of user
+		optConsentValue := GetCookieOptConsent(r)
+
+		// check Set-Cookie and request.Cookies
+		backend.HandleCookies(resp, app, r.RequestURI, optConsentValue)
+
+		// Add DOM to body
+		contentType := resp.Header.Get("Content-Type")
+		if strings.Index(contentType, "text/html") == 0 {
+			doc, err := html.Parse(resp.Body)
+			if err != nil {
+				utils.DebugPrintln("html.Parse error", err)
+			}
+			body := getNodeByData(doc, "body")
+			if body != nil {
+				cookieIcon := ConvertStringToHTMLNode(cookieIconTmpl, "div")
+				body.AppendChild(cookieIcon)
+				cookieMask := ConvertStringToHTMLNode(cookieMaskTmpl, "div")
+				body.AppendChild(cookieMask)
+				tmplCookieWindow, err := template.New("cookieWindow").Funcs(
+					template.FuncMap{
+						"unescaped": unescaped,
+					}).Parse(cookieWindowTmpl)
+				if err != nil {
+					utils.DebugPrintln("template cookieWindow Parse error", err)
+				}
+				var bytesBuffer bytes.Buffer
+				cookieTmplObj := &models.CookieTmplObj{
+					App:                 app,
+					UnclassifiedEnabled: (optConsentValue & int64(models.Cookie_Unclassified)) > 0,
+				}
+				err = tmplCookieWindow.Execute(&bytesBuffer, cookieTmplObj)
+				if err != nil {
+					utils.DebugPrintln("tmplCookieWindow.Execute", err)
+				}
+				cookieWindowHTML := bytesBuffer.String()
+				cookieOptWindow := ConvertStringToHTMLNode(cookieWindowHTML, "div")
+				body.AppendChild(cookieOptWindow)
+				head := getNodeByData(doc, "head")
+				if head != nil {
+					cookieStyle := ConvertStringToHTMLNode(cookieStyle, "style")
+					head.AppendChild(cookieStyle)
+				}
+			}
+			// write back to resp.Body
+			var bytesBuffer bytes.Buffer
+			err = html.Render(&bytesBuffer, doc)
+			if err != nil {
+				fmt.Println("html.Render error", err)
+			}
+			newBody := bytesBuffer.Bytes()
+			resp.Body = io.NopCloser(bytes.NewReader(newBody))
+			resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(newBody)), 10))
+		}
+	}
+
+	/*
+		body, err := httputil.DumpResponse(resp, true)
+		if err != nil {
+			fmt.Println("httputil.DumpResponse error", err)
+		}
+		fmt.Println("Dump Response:")
+		fmt.Println(string(body))
+	*/
 	return nil
+}
+
+func GetCookieOptConsent(r *http.Request) int64 {
+	var optConsentValue int64
+	optConsentCookie, err := r.Cookie("CookieOptConsent")
+	if err != nil {
+		optConsentValue = 0
+	} else {
+		optConsentValue, err = strconv.ParseInt(optConsentCookie.Value, 10, 64)
+		if err != nil {
+			utils.DebugPrintln("Parse CookieOptConsent error", err)
+			optConsentValue = 0
+		}
+	}
+	return optConsentValue
+}
+
+func unescaped(s string) template.HTML {
+	return template.HTML(s)
 }

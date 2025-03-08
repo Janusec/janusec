@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"net"
 	"net/http"
 	"time"
 
@@ -27,6 +28,8 @@ var (
 	// PrimarySetting include oauth, logs retention, smtp etc.
 	PrimarySetting *models.PrimarySetting
 
+	// publicIP used for dns load balance
+	publicIP   string
 	TmplWAF    *template.Template
 	TmplShield *template.Template
 
@@ -345,6 +348,11 @@ func InitDefaultSettings() {
 		DAL.SaveStringSetting("data_discovery_key", "")
 	}
 
+	// DNS 1.4.1
+	if !DAL.ExistsSetting("dns_enabled") {
+		DAL.SaveBoolSetting("dns_enabled", false)
+	}
+
 	// Other
 	if !DAL.ExistsSetting("init_time") {
 		// 0.9.13 +
@@ -390,6 +398,8 @@ func LoadSettings() {
 		}
 		PrimarySetting.DataDiscoveryTenantID = DAL.SelectStringSetting("data_discovery_tenant_id")
 		PrimarySetting.DataDiscoveryKey = DAL.SelectStringSetting("data_discovery_key")
+		// v1.4.1 DNS
+		PrimarySetting.DNSEnabled = DAL.SelectBoolSetting("dns_enabled")
 
 		// NodeSetting
 		NodeSetting = &models.NodeShareSetting{}
@@ -737,6 +747,7 @@ func UpdatePrimarySetting(r *http.Request, body []byte, clientIP string, authUse
 	DAL.SaveStringSetting("data_discovery_api", PrimarySetting.DataDiscoveryAPI)
 	DAL.SaveStringSetting("data_discovery_tenant_id", PrimarySetting.DataDiscoveryTenantID)
 	DAL.SaveStringSetting("data_discovery_key", PrimarySetting.DataDiscoveryKey)
+	DAL.SaveBoolSetting("dns_enabled", PrimarySetting.DNSEnabled)
 	go utils.OperationLog(clientIP, authUser.Username, "Update Settings", "Global Settings")
 	UpdateBackendLastModified()
 	return PrimarySetting, nil
@@ -769,7 +780,9 @@ func GetNodeSetting() *models.NodeShareSetting {
 
 func RPCGetNodeSetting() *models.NodeShareSetting {
 	rpcRequest := &models.RPCRequest{
-		Action: "get_node_setting", Object: nil}
+		Action: "get_node_setting",
+		Object: nil,
+	}
 	resp, err := GetRPCResponse(rpcRequest)
 	if err != nil {
 		utils.DebugPrintln("RPCGetNodeSetting", err)
@@ -785,6 +798,22 @@ func RPCGetNodeSetting() *models.NodeShareSetting {
 		utils.DebugPrintln("RPCGetNodeSetting failed, please check config.json and server time")
 	}
 	return rpcObject.Object
+}
+
+// GetPublicIP used for DNS load balance
+func GetPublicIP() string {
+	if len(publicIP) > 0 {
+		return publicIP
+	}
+	conn, error := net.Dial("udp", "8.8.8.8:80")
+	if error != nil {
+		fmt.Println(error)
+	}
+	defer conn.Close()
+	ipAddress := conn.LocalAddr().(*net.UDPAddr)
+	publicIP = ipAddress.IP.String()
+	fmt.Println("GetPublicIP", publicIP)
+	return ipAddress.IP.String()
 }
 
 // UpdateShieldTemplate for 5-second shield

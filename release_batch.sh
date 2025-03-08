@@ -2,7 +2,7 @@ printf "Creating installation package\n"
 printf "Checklist:\n"
 printf "* Angular Admin Version Check. \n"
 printf "* Janusec Version Check. \n"
-version="1.5.1"
+version="1.5.2"
 printf "Version: ${version} \n"
 
 read -r -p "Are You Sure? [Y/n] " option
@@ -31,7 +31,7 @@ function buildFor() {
     \cp -f ./robots.txt ${temp_dir}static/
     \cp -f ./scripts/* ${temp_dir}
     cd ./dist/
-    tar -zcf ./${filename_prefix}.tar.gz ./${filename_prefix}
+    tar -zcf ./${filename_prefix}-pro.tar.gz ./${filename_prefix}
     rm -rf ./${filename_prefix}
     cd ..
 }

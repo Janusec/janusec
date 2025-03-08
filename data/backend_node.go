@@ -33,13 +33,13 @@ func (dal *MyDAL) SelectAllNodes() []*models.Node {
 		utils.DebugPrintln("SelectAllNodes", err)
 	}
 	defer rows.Close()
-	dbNodes := []*models.Node{}
+	nodes := []*models.Node{}
 	for rows.Next() {
 		node := &models.Node{}
 		_ = rows.Scan(&node.ID, &node.Version, &node.LastIP, &node.LastRequestTime)
-		dbNodes = append(dbNodes, node)
+		nodes = append(nodes, node)
 	}
-	return dbNodes
+	return nodes
 }
 
 // CreateTableIfNotExistsNodes ...

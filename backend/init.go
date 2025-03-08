@@ -173,6 +173,45 @@ func InitDatabase() {
 		}
 	}
 
+	// v1.4.0 extend string_value from varchar 1024 to 8192 for postgresql. sqlite not limit the length.
+	_ = dal.ExecSQL(`ALTER TABLE "settings" ALTER COLUMN "string_value" TYPE VARCHAR(8192)`)
+
+	if !dal.ExistColumnInTable("applications", "cookie_mgmt_enabled") {
+		// v1.4.1pro extend application add cookies management
+		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "cookie_mgmt_enabled" boolean default false, ADD COLUMN "concise_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "necessary_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "functional_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "enable_functional" boolean default false, ADD COLUMN "analytics_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "enable_analytics" boolean default false, ADD COLUMN "marketing_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "enable_marketing" boolean default false, ADD COLUMN "unclassified_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "enable_unclassified" boolean default false`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE applications add cookie management", err)
+		}
+	}
+	if dal.ExistColumnInTable("applications", "long_notice_link") {
+		// drop column long_notice_link because concise_notice support HTML, v1.4.2fix3
+		err = dal.ExecSQL(`ALTER TABLE "applications" DROP COLUMN "long_notice_link"`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE applications DROP COLUMN long_notice_link", err)
+		}
+	}
+
+	// v1.4.1 Cookie
+	err = dal.CreateTableIfNotExistsCookies()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase cookies", err)
+	}
+	err = dal.CreateTableIfNotExistsCookieRefs()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase cookieRefs", err)
+	}
+	InitCookieRefs()
+
+	// v1.4.1 DNS
+	err = dal.CreateTableIfNotExistsDNSDomains()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase DNSDomains", err)
+	}
+	err = dal.CreateTableIfNotExistsDNSRecords()
+	if err != nil {
+		utils.DebugPrintln("InitDatabase DNSRecords", err)
+	}
+	LoadDNSDomains()
 	// v1.4.0 extend string_value from varchar 1024 to 8192 for postgresql. sqlite not limit the length., v1.4.2 to 16384
 	_ = dal.ExecSQL(`ALTER TABLE "settings" ALTER COLUMN "string_value" TYPE VARCHAR(16384)`)
 
@@ -206,6 +245,7 @@ func LoadAppConfiguration() {
 	utils.DebugPrintln("LoadAppConfiguration")
 	LoadCerts()
 	LoadApps()
+	LoadCookieRefs()
 	LoadVipApps()
 	if data.IsPrimary {
 		LoadDestinations()

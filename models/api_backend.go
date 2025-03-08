@@ -37,3 +37,27 @@ type APIAppUserRequest struct {
 	ObjectID int64         `json:"id,string"`
 	Object   *FrontAppUser `json:"object"`
 }
+
+type APICookieRequest struct {
+	Action   string  `json:"action"`
+	ObjectID int64   `json:"id,string"`
+	Object   *Cookie `json:"object"`
+}
+
+type APICookieRefRequest struct {
+	Action   string     `json:"action"`
+	ObjectID int64      `json:"id,string"`
+	Object   *CookieRef `json:"object"`
+}
+
+type APIDNSDomainRequest struct {
+	Action   string     `json:"action"`
+	ObjectID int64      `json:"id,string"`
+	Object   *DNSDomain `json:"object"`
+}
+
+type APIDNSRecordRequest struct {
+	Action   string     `json:"action"`
+	ObjectID int64      `json:"id,string"`
+	Object   *DNSRecord `json:"object"`
+}

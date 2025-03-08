@@ -45,6 +45,23 @@ type Application struct {
 	// CacheEnabled cache static files v1.2.5
 	CacheEnabled bool `json:"cache_enabled"`
 
+	// Cookie Consent Management v1.4.1
+	CookieMgmtEnabled bool   `json:"cookie_mgmt_enabled"`
+	ConciseNotice     string `json:"concise_notice"`
+
+	// LongNoticeLink is not required and removed from v1.4.2fix3, ConciseNotice begin to support HTML
+	// LongNoticeLink     string    `json:"long_notice_link"`
+
+	NecessaryNotice    string    `json:"necessary_notice"`
+	FunctionalNotice   string    `json:"functional_notice"`
+	EnableFunctional   bool      `json:"enable_functional"`
+	AnalyticsNotice    string    `json:"analytics_notice"`
+	EnableAnalytics    bool      `json:"enable_analytics"`
+	MarketingNotice    string    `json:"marketing_notice"`
+	EnableMarketing    bool      `json:"enable_marketing"`
+	UnclassifiedNotice string    `json:"unclassified_notice"`
+	EnableUnclassified bool      `json:"enable_unclassified"`
+	Cookies            []*Cookie `json:"cookies"`
 	// CustomHeader add by gateway, v1.4.2
 	CustomHeaders []*CustomHeader `json:"custom_headers"`
 }
@@ -72,6 +89,21 @@ type DBApplication struct {
 	// CacheEnabled cache static files v1.2.5
 	CacheEnabled bool `json:"cache_enabled"`
 
+	// Cookie Consent Management v1.4.1
+	CookieMgmtEnabled bool   `json:"cookie_mgmt_enabled"`
+	ConciseNotice     string `json:"concise_notice"`
+
+	// LongNoticeLink is not required and removed from v1.4.2fix3, ConciseNotice begin to support HTML
+	// LongNoticeLink     string `json:"long_notice_link"`
+	NecessaryNotice    string `json:"necessary_notice"`
+	FunctionalNotice   string `json:"functional_notice"`
+	EnableFunctional   bool   `json:"enable_functional"`
+	AnalyticsNotice    string `json:"analytics_notice"`
+	EnableAnalytics    bool   `json:"enable_analytics"`
+	MarketingNotice    string `json:"marketing_notice"`
+	EnableMarketing    bool   `json:"enable_marketing"`
+	UnclassifiedNotice string `json:"unclassified_notice"`
+	EnableUnclassified bool   `json:"enable_unclassified"`
 	// CustomHeaders add by gateway, v1.4.2
 	CustomHeaders string `json:"custom_headers"`
 }
