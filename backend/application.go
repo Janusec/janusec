@@ -408,6 +408,20 @@ func UpdateApplication(body []byte, clientIP string, authUser *models.AuthUser) 
 		app0.CSPEnabled = app.CSPEnabled
 		app0.CSP = app.CSP
 		app0.CacheEnabled = app.CacheEnabled
+
+		// pro features: cookie
+		app0.CookieMgmtEnabled = app.CookieMgmtEnabled
+		app0.ConciseNotice = app.ConciseNotice
+		app0.NecessaryNotice = app.NecessaryNotice
+		app0.FunctionalNotice = app.FunctionalNotice
+		app0.EnableFunctional = app.EnableFunctional
+		app0.AnalyticsNotice = app.AnalyticsNotice
+		app0.EnableAnalytics = app.EnableAnalytics
+		app0.MarketingNotice = app.MarketingNotice
+		app0.EnableMarketing = app.EnableMarketing
+		app0.UnclassifiedNotice = app.UnclassifiedNotice
+		app0.EnableUnclassified = app.EnableUnclassified
+
 		app0.CustomHeaders = GetCustomHeaders(customHeaders)
 		go utils.OperationLog(clientIP, authUser.Username, "Update Application", app.Name)
 	}
