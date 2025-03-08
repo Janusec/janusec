@@ -79,13 +79,19 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	app := backend.GetApplicationByDomain(domainStr)
 	if app == nil {
 		// Static Web site
-		staticHandler := http.FileServer(http.Dir("./static/welcome"))
+		// staticHandler := http.FileServer(http.Dir("./static/welcome"))
+		targetFile := "./static/welcome" + r.URL.Path
 		if strings.HasSuffix(r.URL.Path, "/") {
-			targetFile := "./static/welcome" + r.URL.Path + "index.html"
-			http.ServeFile(w, r, targetFile)
+			targetFile = "./static/welcome" + r.URL.Path + "index.html"
+		}
+		if _, err := os.Stat(targetFile); os.IsNotExist(err) {
+			// targetFile not exists
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("400 Bad Request"))
 			return
 		}
-		staticHandler.ServeHTTP(w, r)
+		http.ServeFile(w, r, targetFile)
+		//staticHandler.ServeHTTP(w, r)
 		return
 	}
 	if (r.TLS == nil) && (app.RedirectHTTPS || app.HSTSEnabled) {

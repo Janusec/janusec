@@ -186,17 +186,6 @@ func InitGroupPolicy() {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
 
-			// SQL Injection JSON
-			groupPolicyID, err = data.DAL.InsertGroupPolicy("SQL Injection JSON", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
-			if err != nil {
-				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
-			}
-			// payload: id='{"id":"L2V0Yy9wYXNzd2Q="}'
-			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `\{\w+\:.+\}`, groupPolicyID)
-			if err != nil {
-				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
-			}
-
 			groupPolicyID, err = data.DAL.InsertGroupPolicy("Basic SQL Injection Comment", 0, 200, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
@@ -210,7 +199,7 @@ func InitGroupPolicy() {
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)union[\s/\*]+select`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i).+\sunion[\s/\*]+select`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -269,7 +258,7 @@ func InitGroupPolicy() {
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)<(script|iframe|object|table|param|animate|svg|form|input|embed|\!ENTITY|\/script\>)`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(\<(script|iframe|object|table|param|animate|svg|form|input|embed|\!ENTITY)\s|\<\/script\>)`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -311,7 +300,7 @@ func InitGroupPolicy() {
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `\.\./|/etc/passwd$`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `\.\./|/etc/passwd$|L2V0Yy9wYXNzd2Q=$`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -349,12 +338,12 @@ func InitGroupPolicy() {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
 
-			// DOM Abuse in URL
-			groupPolicyID, err = data.DAL.InsertGroupPolicy("DOM Abuse in URL", 0, 999, int64(models.ChkPointURLQuery), models.Action_Block_100, true, 0, curTime)
+			// DOM Abuse
+			groupPolicyID, err = data.DAL.InsertGroupPolicy("DOM Abuse", 0, 999, int64(models.ChkPointGetPostValue), models.Action_Block_100, true, 0, curTime)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointURLQuery, models.OperationRegexMatch, "", `(?i)(this|self|window|document|top|parent|frames)[\.\[]`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointGetPostValue, models.OperationRegexMatch, "", `(?i)(^|\s)(this|self|window|document|top|parent|frames)[\.\[]`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
@@ -364,7 +353,7 @@ func InitGroupPolicy() {
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertGroupPolicy", err)
 			}
-			_, err = data.DAL.InsertCheckItem(models.ChkPointReferer, models.OperationRegexMatch, "", `(?i)(this|self|window|document|top|parent|frames)[\.\[]`, groupPolicyID)
+			_, err = data.DAL.InsertCheckItem(models.ChkPointReferer, models.OperationRegexMatch, "", `(?i)(^|\s)(this|self|window|document|top|parent|frames)[\.\[]`, groupPolicyID)
 			if err != nil {
 				utils.DebugPrintln("InitGroupPolicy InsertCheckItem", err)
 			}
