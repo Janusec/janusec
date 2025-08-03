@@ -355,7 +355,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// targetDest will change with different requests for K8S
 	targetDest := dest.Destination
 
-	if dest.RouteType == models.StaticRoute {
+	switch dest.RouteType {
+	case models.StaticRoute:
 		// Static Web site
 		staticHandler := http.FileServer(http.Dir(dest.BackendRoute))
 		if strings.HasSuffix(r.URL.Path, "/") {
@@ -371,7 +372,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		}
 		http.StripPrefix(dest.RequestRoute, staticHandler).ServeHTTP(w, r)
 		return
-	} else if dest.RouteType == models.FastCGIRoute {
+	case models.FastCGIRoute:
 		// FastCGI
 		connFactory := gofast.SimpleConnFactory("tcp", targetDest)
 		urlPath := utils.GetRoutePath(r.URL.Path)
@@ -385,7 +386,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		)
 		fastCGIHandler.ServeHTTP(w, r)
 		return
-	} else if dest.RouteType == models.K8S_Ingress {
+	case models.K8S_Ingress:
 		// Get target Pod address
 		targetDest = backend.SelectPodFromDestination(dest, srcIP, r)
 	}
@@ -490,7 +491,8 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 								return
 							}
 							defer resp.Body.Close()
-							if resp.StatusCode == http.StatusOK {
+							switch resp.StatusCode {
+							case http.StatusOK:
 								//fmt.Println("200", backendAddr)
 								bodyBuf, _ := io.ReadAll(resp.Body)
 								err = os.WriteFile(targetFile, bodyBuf, 0600)
@@ -513,7 +515,7 @@ func ReverseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 										utils.DebugPrintln("CDN Chtimes", targetFile, err)
 									}
 								}
-							} else if resp.StatusCode == http.StatusNotModified {
+							case http.StatusNotModified:
 								//fmt.Println("304", backendAddr)
 								err := os.Chtimes(targetFile, now, fi.ModTime())
 								if err != nil {

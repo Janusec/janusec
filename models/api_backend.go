@@ -44,6 +44,13 @@ type APICookieRequest struct {
 	Object   *Cookie `json:"object"`
 }
 
+// APIDelCookiesRequest used for deletion cookies in batch
+// post {"action": "del_cookies", object: [1, 3, 5, 8]}
+type APIDelCookiesRequest struct {
+	Action string   `json:"action"`
+	IDList []string `json:"ids"`
+}
+
 type APICookieRefRequest struct {
 	Action   string     `json:"action"`
 	ObjectID int64      `json:"id,string"`

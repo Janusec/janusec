@@ -26,7 +26,7 @@ var (
 	logger *log.Logger
 
 	// Debug , if it is true, more output
-	Debug = false
+	Debug = true
 
 	// Snowflake Node
 	snowNode, _ = snowflake.NewNode(1)
