@@ -64,7 +64,7 @@ func SSH(sshInput *io.WriteCloser, sshOutput *io.Reader, host *HostInfo, errChan
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400,
 	}
-	err = sshSession.RequestPty("xterm", 25, 80, modes)
+	err = sshSession.RequestPty("xterm", 40, 120, modes)
 	if err != nil {
 		utils.DebugPrintln("request pty", err)
 	}
@@ -108,6 +108,9 @@ func WebSSHHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024 * 10,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
 	wsConn, err := upgrader.Upgrade(w, r, nil)
 	// websocket.Upgrade deprecated, add upgrader.Upgrade above, v1.2.0

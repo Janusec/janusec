@@ -121,7 +121,7 @@ Web化管理所需的文件在 `./static/janusec-admin/` 目录, 源码在 [Janu
 ## 多许可证  
 
 JANUSEC应用网关开源版本的源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)授权.     
-专业增强特性版本闭源发布，增强特性包括：GSLB、Cookie合规（应用无需修改）等。   
+
 
 ## 支持  
 
@@ -248,7 +248,6 @@ Release directory is `./static/janusec-admin/` , and source code is available at
 
 The open source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)).   
 
-The professional enhanced version is released in closed source, and the enhanced features including GSLB, Cookie compliance (No need to modify applications), etc.   
 
 ## Support   
 
