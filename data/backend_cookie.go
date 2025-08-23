@@ -7,8 +7,10 @@
 package data
 
 import (
+	"fmt"
 	"janusec/models"
 	"janusec/utils"
+	"strings"
 )
 
 // CreateTableIfNotExistsCookies ...
@@ -50,6 +52,21 @@ func (dal *MyDAL) UpdateCookie(cookie *models.Cookie) error {
 func (dal *MyDAL) DeleteCookieByID(id int64) error {
 	const sqlDelCookie = `DELETE FROM "cookies" WHERE "id"=$1`
 	_, err := dal.db.Exec(sqlDelCookie, id)
+	return err
+}
+
+func (dal *MyDAL) DeleteCookies(cookieIDs []int64) error {
+	// Generate placeholders: $1, $2, $3
+	placeholders := make([]string, len(cookieIDs))
+	args := make([]interface{}, len(cookieIDs))
+	for i, id := range cookieIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = id
+	}
+	// Create SQL
+	sqlDelCookies := fmt.Sprintf("DELETE FROM \"cookies\" WHERE \"id\" IN (%s)", strings.Join(placeholders, ", "))
+	// Delete Cookies
+	_, err := dal.db.Exec(sqlDelCookies, args...)
 	return err
 }
 

@@ -8,3 +8,4 @@
 /static/cdncache
 /certs
 /*.sqlite3
+/log

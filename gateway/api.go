@@ -265,6 +265,8 @@ func AdminAPIHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		obj, err = backend.UpdateCookie(bodyBuf, clientIP, authUser)
 	case "del_cookie":
 		obj, err = nil, backend.DeleteCookie(apiRequest.ObjectID, clientIP, authUser)
+	case "del_cookies":
+		obj, err = nil, backend.DeleteCookies(bodyBuf, clientIP, authUser)
 	case "get_cookie_refs":
 		obj = backend.GetCookieRefs()
 		err = nil

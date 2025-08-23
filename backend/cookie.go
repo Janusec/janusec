@@ -15,6 +15,7 @@ import (
 	"janusec/utils"
 	"math"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -91,6 +92,7 @@ func GetCookieDuration(cookieDurationMinutes float64) string {
 }
 
 func DeleteCookie(cookieID int64, clientIP string, authUser *models.AuthUser) error {
+	// the application info is required used for updating app.Cookies before delete a cookie
 	cookie, err := data.DAL.SelectCookieByID(cookieID)
 	if err != nil {
 		return err
@@ -113,6 +115,43 @@ func DeleteCookie(cookieID int64, clientIP string, authUser *models.AuthUser) er
 	return nil
 }
 
+// DeleteCookies post {"action": "del_cookies", "ids": [1, 3, 5, 8]}
+func DeleteCookies(body []byte, clientIP string, authUser *models.AuthUser) error {
+	var rpcDelCookiesRequest models.APIDelCookiesRequest
+	if err := json.Unmarshal(body, &rpcDelCookiesRequest); err != nil {
+		utils.DebugPrintln("DeleteCookies", err)
+		return err
+	}
+	var cookieIDs []int64
+	for _, idStr := range rpcDelCookiesRequest.IDList {
+		idNum, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			utils.DebugPrintln("DeleteCookies ParseInt", err)
+		}
+		cookieIDs = append(cookieIDs, idNum)
+	}
+	if len(cookieIDs) == 0 {
+		return nil
+	}
+	cookie0, err := data.DAL.SelectCookieByID(cookieIDs[0])
+	if err != nil {
+		return err
+	}
+	app, err := GetApplicationByID(cookie0.AppID)
+	if err != nil {
+		utils.DebugPrintln("DeleteCookies GetApp", err)
+	}
+	err = data.DAL.DeleteCookies(cookieIDs)
+	if err != nil {
+		utils.DebugPrintln("DeleteCookies ", err)
+		return err
+	}
+	DeleteCookiesFromAppCookies(app, cookieIDs)
+	go utils.OperationLog(clientIP, authUser.Username, "Delete Cookies ... ", cookie0.Name)
+	data.UpdateBackendLastModified()
+	return nil
+}
+
 func DeleteCookiesByApp(app *models.Application) {
 	data.DAL.DeleteCookiesByAppID(app.ID)
 	app.Cookies = nil
@@ -126,6 +165,25 @@ func DeleteCookieFromAppCookies(app *models.Application, cookieA *models.Cookie)
 		}
 	}
 	return errors.New("cookie not found")
+}
+
+func DeleteCookiesFromAppCookies(app *models.Application, idsToDelete []int64) error {
+	// use map
+	deleteMap := make(map[int64]bool)
+	for _, id := range idsToDelete {
+		deleteMap[id] = true
+	}
+	j := 0
+	for _, cookie := range app.Cookies {
+		if !deleteMap[cookie.ID] {
+			// cookie to be kept
+			app.Cookies[j] = cookie
+			j++
+		}
+		// discard cookie if it in deleteMap
+	}
+	app.Cookies = app.Cookies[:j]
+	return nil
 }
 
 func HandleCookies(resp *http.Response, app *models.Application, reqURI string, optConsentValue int64) {

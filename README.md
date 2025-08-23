@@ -39,13 +39,12 @@ JANUSEC应用网关的主要功能有：
       - 拦截CC攻击  
       - 支持CAPTCHA (验证码)  
 
-  + 安全运维: Web界面执行SSH运维   
- 
-  + 安全存储: 加密证书私钥  
 
-* 可扩展    
-  + 多节点负载均衡   
-  + 静态文件缓存加速  
+* 可扩展   
+
+  + GSLB (全局负载均衡，自带DNS服务器) ， v1.4.2版本开始提供   
+  + 静态文件缓存加速   
+  + Cookie合规管理(提供Cookie Banner与用户同意管理) ， v1.4.2版本开始提供  
 
 
 
@@ -130,18 +129,7 @@ Web化管理所需的文件在 `./static/janusec-admin/` 目录, 源码在 [Janu
 ## 多许可证  
 
 JANUSEC应用网关开源版本的源文件使用GNU [AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)授权.     
-专业增强特性版本闭源发布，增强特性包括：GSLB、Cookie合规（应用无需修改）等。   
 
-## 增强特性  
-
-增强体验版是在开源版本基础上进一步增强，增强特性部分不开源，仅用于测试或体验。  
-
-增强特性包括：
-
-* Cookie合规管理(提供Cookie Banner与用户同意管理) ， v1.4.2版本开始提供  
-* GSLB (全局负载均衡，自带DNS服务器) ， v1.4.2版本开始提供  
-
-增强体验版的下载链接可以在 [快速入门](https://doc.janusec.com/cn/quick-start/) 找到。   
 
 ## 支持  
 
@@ -186,14 +174,11 @@ The main functions of JANUSEC Application Gateway include:
       - Block CC Attacks  
       - CAPTCHA   
 
-  + Secure Operation: Web SSH Operation    
- 
-  + Secure Storage: Encryption of Private Key   
-
 * Scalable      
-  + Multiple Nodes Load Balance     
-  + Static Content Cache and Acceleration    
 
+  + GSLB (Global Server Load Balance, with DNS Server) , provided from v1.4.2       
+  + Static Content Cache and Acceleration    
+  + Cookie Compliance Management, include Cookie Banner, Consent Management and Cookie Discovery etc., provided from v1.4.
 
 
 ## Screenshots     
@@ -278,18 +263,6 @@ Release directory is `./static/janusec-admin/` , and source code is available at
 
 The open source files are made available under the terms of the GNU Affero General Public License ([GNU AGPLv3](http://www.gnu.org/licenses/agpl-3.0.html)).   
 
-The professional enhanced version is released in closed source, and the enhanced features including GSLB, Cookie compliance (No need to modify applications), etc.   
-
-## Professional Plus Edition    
-
-The Professional Plus Edition is a further enhancement based on the open source version. The enhanced features are not open source and are only used for testing or experience.  
-
-Professional features：
-
-* Cookie Compliance Management, include Cookie Banner, Consent Management and Cookie Discovery etc., provided from v1.4.2  
-* GSLB (Global Server Load Balance, with DNS Server) , provided from v1.4.2  
-
-The download link is available at： [Quick Start](https://janusec.github.io/documentation/quick-start/).  
 
 ## Support   
 
