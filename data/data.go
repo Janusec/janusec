@@ -35,7 +35,7 @@ var (
 	// IsPrimary i.e. Is Primary Node
 	IsPrimary bool
 	// Version of JANUSEC
-	Version = "1.6.0"
+	Version = "1.6.1"
 )
 
 // InitConfig init Data Access Layer
@@ -136,22 +136,17 @@ func (dal *MyDAL) ExistConstraint(tableName string, constraintName string) bool 
 	var err error
 	switch CFG.PrimaryNode.DatabaseType {
 	case "sqlite":
-		// SQLite
-		// select * from sqlite_master where type='index' and tbl_name='test' and name='uid'
-		// For SQLite, create unique index uid on table_name(column1, column2);
 		sql = `SELECT count(1) FROM sqlite_master WHERE type='index' AND tbl_name=$1 AND name=$2`
 		err = dal.db.QueryRow(sql, tableName, constraintName).Scan(&count)
-		if err != nil {
-			utils.DebugPrintln("ExistConstraint QueryRow", err)
-		}
-		return count > 0
 	default:
-		// PostgreSQL
-		sql = `SELECT count(1) FROM information_schema.constraint_column_usage WHERE table_name=$1 and constraint_name=$2`
+		// PostgreSQL：查询索引表，而非约束表
+		sql = `SELECT count(1) FROM pg_indexes WHERE tablename = $1 AND indexname = $2`
 		err = dal.db.QueryRow(sql, tableName, constraintName).Scan(&count)
-		if err != nil {
-			utils.DebugPrintln("ExistConstraint QueryRow", err)
-		}
-		return count > 0
 	}
+	// 查询出错时，直接返回 false
+	if err != nil {
+		utils.DebugPrintln("ExistConstraint QueryRow", err)
+		return false
+	}
+	return count > 0
 }

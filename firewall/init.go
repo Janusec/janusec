@@ -8,6 +8,7 @@
 package firewall
 
 import (
+	"janusec/data"
 	"janusec/models"
 	"janusec/utils"
 )
@@ -32,4 +33,16 @@ func InitFirewall() {
 	InitNFTables()
 	go RoutineCleanLogTick()
 	go RoutineCleanCacheTick()
+
+	// v1.4.2fix4
+	dal := data.DAL
+	if data.IsPrimary && !dal.ExistColumnInTable("ip_policies", "create_time") {
+		err := dal.ExecSQL(`
+ALTER TABLE "ip_policies" ADD COLUMN "create_time" BIGINT;
+ALTER TABLE "ip_policies" ADD COLUMN "description" VARCHAR(1024) DEFAULT '';
+`)
+		if err != nil {
+			utils.DebugPrintln("InitDatabase ALTER TABLE ip_policies add COLUMN", err)
+		}
+	}
 }
