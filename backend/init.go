@@ -74,21 +74,32 @@ func InitDatabase() {
 	// Upgrade to latest version
 	if !dal.ExistColumnInTable("domains", "redirect") {
 		// v0.9.6+ required
-		err = dal.ExecSQL(`ALTER TABLE "domains" ADD COLUMN "redirect" boolean default false, ADD COLUMN "location" VARCHAR(256) NOT NULL DEFAULT ''`)
+		err = dal.ExecSQL(`
+ALTER TABLE "domains" ADD COLUMN "redirect" boolean default false;
+ALTER TABLE "domains" ADD COLUMN "location" VARCHAR(256) NOT NULL DEFAULT '';
+`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE domains", err)
 		}
 	}
 	if !dal.ExistColumnInTable("applications", "oauth_required") {
 		// v0.9.7+ required
-		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "oauth_required" boolean default false, ADD COLUMN "session_seconds" bigint default 7200, ADD COLUMN "owner" VARCHAR(128)`)
+		err = dal.ExecSQL(`
+ALTER TABLE "applications" ADD COLUMN "oauth_required" boolean default false;
+ALTER TABLE "applications" ADD COLUMN "session_seconds" bigint default 7200;
+ALTER TABLE "applications" ADD COLUMN "owner" VARCHAR(128);
+`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications oauth", err)
 		}
 	}
 	if !dal.ExistColumnInTable("destinations", "route_type") {
 		// v0.9.8+ required
-		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "route_type" bigint default 1, ADD COLUMN "request_route" VARCHAR(128) NOT NULL DEFAULT '/', ADD COLUMN "backend_route" VARCHAR(128) NOT NULL DEFAULT '/'`)
+		err = dal.ExecSQL(`
+ALTER TABLE "destinations" ADD COLUMN "route_type" bigint default 1;
+ALTER TABLE "destinations" ADD COLUMN "request_route" VARCHAR(128) NOT NULL DEFAULT '/';
+ALTER TABLE "destinations" ADD COLUMN "backend_route" VARCHAR(128) NOT NULL DEFAULT '/';
+`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE destinations", err)
 		}
@@ -98,7 +109,11 @@ func InitDatabase() {
 		// alter table table_name alter column_name drop not null;
 		dal.ExecSQL(`ALTER TABLE "destinations" ALTER COLUMN "destination" DROP NOT NULL`)
 		dal.ExecSQL(`ALTER TABLE "destinations" ALTER COLUMN "destination" SET DEFAULT ''`)
-		err = dal.ExecSQL(`ALTER TABLE "destinations" ADD COLUMN "pods_api" VARCHAR(512) DEFAULT '', ADD COLUMN "pod_port" VARCHAR(128) DEFAULT '', ADD COLUMN "pods" VARCHAR(1024) DEFAULT ''`)
+		err = dal.ExecSQL(`
+ALTER TABLE "destinations" ADD COLUMN "pods_api" VARCHAR(512) DEFAULT '';
+ALTER TABLE "destinations" ADD COLUMN "pod_port" VARCHAR(128) DEFAULT '';
+ALTER TABLE "destinations" ADD COLUMN "pods" VARCHAR(1024) DEFAULT '';
+`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE destinations", err)
 		}
@@ -107,7 +122,12 @@ func InitDatabase() {
 		// v1.3.0+ required
 		dal.ExecSQL(`ALTER TABLE "vip_targets" ALTER COLUMN "destination" DROP NOT NULL`)
 		dal.ExecSQL(`ALTER TABLE "vip_targets" ALTER COLUMN "destination" SET DEFAULT ''`)
-		err = dal.ExecSQL(`ALTER TABLE "vip_targets" ADD COLUMN "route_type" bigint default 1, ADD COLUMN "pods_api" VARCHAR(512) DEFAULT '', ADD COLUMN "pod_port" VARCHAR(128) DEFAULT '', ADD COLUMN "pods" VARCHAR(1024) DEFAULT ''`)
+		err = dal.ExecSQL(`
+ALTER TABLE "vip_targets" ADD COLUMN "route_type" bigint default 1;
+ALTER TABLE "vip_targets" ADD COLUMN "pods_api" VARCHAR(512) DEFAULT '';
+ALTER TABLE "vip_targets" ADD COLUMN "pod_port" VARCHAR(128) DEFAULT '';
+ALTER TABLE "vip_targets" ADD COLUMN "pods" VARCHAR(1024) DEFAULT '';
+`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE vip_targets", err)
 		}
@@ -125,7 +145,10 @@ func InitDatabase() {
 	}
 	if !dal.ExistColumnInTable("applications", "csp") {
 		// v0.9.11 CSP
-		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "csp_enabled" boolean default false, ADD COLUMN "csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self'''`)
+		err = dal.ExecSQL(`
+ALTER TABLE "applications" ADD COLUMN "csp_enabled" boolean default false;
+ALTER TABLE "applications" ADD COLUMN "csp" VARCHAR(1024) NOT NULL DEFAULT 'default-src ''self''';
+		`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications", err)
 		}
@@ -178,7 +201,20 @@ func InitDatabase() {
 
 	if !dal.ExistColumnInTable("applications", "cookie_mgmt_enabled") {
 		// v1.4.1pro extend application add cookies management
-		err = dal.ExecSQL(`ALTER TABLE "applications" ADD COLUMN "cookie_mgmt_enabled" boolean default false, ADD COLUMN "concise_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "necessary_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "functional_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "enable_functional" boolean default false, ADD COLUMN "analytics_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "enable_analytics" boolean default false, ADD COLUMN "marketing_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "enable_marketing" boolean default false, ADD COLUMN "unclassified_notice" VARCHAR(1024) DEFAULT '', ADD COLUMN "enable_unclassified" boolean default false`)
+		// SQLite3 may not support add multiple fields in one sentence
+		err = dal.ExecSQL(`
+ALTER TABLE "applications" ADD COLUMN "cookie_mgmt_enabled" boolean default false;
+ALTER TABLE "applications" ADD COLUMN "concise_notice" VARCHAR(1024) DEFAULT '';
+ALTER TABLE "applications" ADD COLUMN "necessary_notice" VARCHAR(1024) DEFAULT '';
+ALTER TABLE "applications" ADD COLUMN "functional_notice" VARCHAR(1024) DEFAULT '';
+ALTER TABLE "applications" ADD COLUMN "enable_functional" boolean default false;
+ALTER TABLE "applications" ADD COLUMN "analytics_notice" VARCHAR(1024) DEFAULT '';
+ALTER TABLE "applications" ADD COLUMN "enable_analytics" boolean default false;
+ALTER TABLE "applications" ADD COLUMN "marketing_notice" VARCHAR(1024) DEFAULT '';
+ALTER TABLE "applications" ADD COLUMN "enable_marketing" boolean default false;
+ALTER TABLE "applications" ADD COLUMN "unclassified_notice" VARCHAR(1024) DEFAULT '';
+ALTER TABLE "applications" ADD COLUMN "enable_unclassified" boolean default false;
+`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE applications add cookie management", err)
 		}
@@ -225,19 +261,13 @@ func InitDatabase() {
 
 	// v1.4.2fix2 ALTER TABLE "destinations" ADD CONSTRAINT "unidest" UNIQUE("app_id","request_route","route_type","destination");
 	if !dal.ExistConstraint("destinations", "unidest") {
-		_ = dal.ExecSQL(`ALTER TABLE "destinations" ADD CONSTRAINT "unidest" UNIQUE("app_id","request_route","route_type","destination")`)
+		//err = dal.ExecSQL(`ALTER TABLE "destinations" ADD CONSTRAINT "unidest" UNIQUE("app_id","request_route","route_type","destination")`)
+		err = dal.ExecSQL(`CREATE UNIQUE INDEX IF NOT EXISTS unidest ON destinations (app_id, request_route, route_type, destination)`)
 		if err != nil {
 			utils.DebugPrintln("InitDatabase ALTER TABLE destinations add constraint", err)
 		}
 	}
 
-	// v1.4.2fix4
-	if !dal.ExistConstraint("ip_policies", "create_time") {
-		_ = dal.ExecSQL(`ALTER TABLE "ip_policies" ADD COLUMN "create_time" BIGINT, ADD COLUMN "description" VARCHAR(1024) DEFAULT ''`)
-		if err != nil {
-			utils.DebugPrintln("InitDatabase ALTER TABLE ip_policies add COLUMN", err)
-		}
-	}
 }
 
 // LoadAppConfiguration ...

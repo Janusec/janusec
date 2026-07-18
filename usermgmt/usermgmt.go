@@ -214,6 +214,7 @@ func UpdateAppUser(w http.ResponseWriter, r *http.Request, body []byte, clientIP
 				utils.DebugPrintln("UpdateAppUser", err)
 				return nil, err
 			}
+			appUser.NeedModifyPWD = false
 			if appUser.ID == authUser.UserID {
 				session, _ := store.Get(r, "sessionid")
 				authUser := session.Values["authuser"].(models.AuthUser)

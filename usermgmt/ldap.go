@@ -28,7 +28,7 @@ import (
 // LDAPAuthFunc CallBack at /ldap/auth
 func LDAPAuthFunc(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
-	username := r.FormValue("username")
+	username := ldap.EscapeFilter(r.FormValue("username"))
 	password := r.FormValue("password")
 
 	// LDAP Auth
